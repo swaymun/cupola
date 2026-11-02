@@ -10,10 +10,13 @@ This repository hosts the Mac app's releases and setup guide. Cupola is in publi
 ## Get it
 
 1. **iPhone/iPad:** join the TestFlight beta (link coming at launch).
-2. **Mac (Apple silicon, macOS 14+):** download `Cupola-<version>.zip` and `SHA256SUMS`
-   from [the latest release](https://github.com/swaymun/cupola/releases/latest), check the
-   SHA-256, and move `Cupola.app` to Applications. [SETUP.md](SETUP.md) has every step,
-   written so an agent on your Mac can follow it for you: "Set up Cupola using SETUP.md".
+2. **Mac (Apple silicon, macOS 14+):**
+   ```sh
+   brew trust swaymun/tap
+   brew install --cask swaymun/tap/cupola
+   ```
+   Or ask an agent on your Mac: "Set up Cupola using https://github.com/swaymun/cupola/blob/main/SETUP.md".
+   **Linux:** one-line install coming at launch. **Windows:** coming soon.
 3. **Pair:** open Cupola on your phone and scan the code the Mac shows, on the same Wi-Fi.
    Add Tailscale if you want to reach your Mac away from home.
 
