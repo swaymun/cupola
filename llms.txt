@@ -1,0 +1,14 @@
+# Cupola
+
+> A messenger for your Mac's agent conversations. The Cupola app runs on your Mac; you pair your iPhone or iPad with it on the same Wi-Fi.
+
+To set up Cupola on a Mac and reach pairing (for AI agents acting for a person), read and follow:
+
+- [SETUP.md](SETUP.md): step-by-step setup for a Mac with Apple silicon on macOS 14 or later. Do every step in order, and treat a step as done only when its check passes:
+  1. Start with the checks in step 0: ask the person about their phone (the Cupola app on iOS/iPadOS 26 or later, on the same Wi-Fi as the Mac), whether they also want Tailscale for away from home (optional). Never invent a download URL.
+  2. Install Cupola.app with Homebrew or from the GitHub release, checking its SHA-256, signature and notarization first.
+  3. Initialize (same Wi-Fi connections are on by default; check with `cupola lan status`), run `cupola doctor --json`, and start the host.
+  4. Pair on the same Wi-Fi: the person must read the verification text from their phone before `pair --approve <deviceId> --code <text>`; never use `pair --yes` or copy the host's text as their answer.
+  5. Finish with the final check in step 6 (`status`, `lan status` and `devices`). Do not report success before it passes.
+
+Tailscale and the ChatGPT desktop app are optional. Without the ChatGPT app, agents use Cua Driver to work in the Mac's apps. Codex works with the Codex CLI (npm or Homebrew) or the ChatGPT desktop app.
