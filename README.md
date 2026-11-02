@@ -20,7 +20,7 @@ This repository hosts the Mac app's releases and setup guide. Cupola is in publi
 ## What it needs
 
 - An agent you already use (Claude Code, Codex, T3 Code) signed in on the Mac. Your own
-  plan and limits apply; Cupola has no account and no cloud relay for your conversations.
+  plan and limits apply. There is no Cupola account.
 - The Mac awake and online while you're away.
 
 ## Feedback
