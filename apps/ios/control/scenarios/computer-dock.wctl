@@ -1,0 +1,83 @@
+# devices: iphone ipad duo
+# Synthetic host only. Signals call production actions because Duo native taps
+# are unavailable (#387). Native app buttons remain asserted in the AX tree.
+# OS/posture/theme variants use the same dock fixture; the capture runner owns
+# the 3 OS x 4 postures x light/dark matrix separately.
+driver on
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-dock --fixture no-hardware-keyboard
+assert --path computer.hasPicture --equals true --timeout 30
+assert --path computer.dockAvailable --equals true --timeout 15
+assert --path computer.dockPinned --equals '["com.apple.finder","com.apple.Safari","com.apple.Notes"]'
+assert --path computer.dockRecent --equals '["com.apple.Terminal"]'
+assert --path computer.controlling --equals false
+signal computer-dock-refuse-open
+driver off
+wait --id computer-session-control-message --contains "Take control" --timeout 10
+driver on
+assert --path computer.openedApps --equals '[]'
+driver off
+wait --id computer-session-mini-dock --timeout 15
+wait --id computer-session-dock-app:com.apple.finder --contains "Running" --timeout 10
+shot computer-dock-view-only
+signal computer-dock-take-control
+driver on
+assert --path computer.controlling --equals true --timeout 15
+signal computer-dock-hold-switcher
+assert --path computer.appSwitcher --equals true --timeout 10
+signal computer-dock-open-recent
+assert --path computer.appSwitcher --equals false --timeout 10
+assert --path computer.openedApps --equals '["com.apple.Terminal"]' --timeout 10
+assert --path computer.hasPicture --equals true
+driver off
+wait --id computer-session-keyboard --timeout 10
+# Two control rows: the shortcut row, then who controls, the keyboard, trackpad
+# and dictation buttons. Both stay without the keyboard. The dock is never in the
+# Duo's vertical rail (UX-DUO-4); folded it is a strip.
+wait --id computer-session-shortcuts-row --timeout 5
+wait --id computer-session-microphone --timeout 10
+shot computer-dock-control
+# Cupola's own dictation (not the keyboard): the microphone records, and the words are
+# typed into the computer when it finishes.
+signal computer-dock-dictate
+driver on
+assert --path computer.dictation --equals '"recording"' --timeout 10
+assert --path computer.typedText --equals '""' --timeout 5
+driver off
+wait --id computer-session-microphone --contains "Recording" --timeout 10
+shot computer-dock-dictating
+signal computer-dock-dictate-finish
+driver on
+assert --path computer.typedText --equals '"hello from dictation"' --timeout 10
+assert --path computer.dictation --equals '"idle"' --timeout 10
+assert --path computer.keyboardPresented --equals false
+driver off
+signal computer-dock-keyboard
+wait --id computer-viewport-appearances --contains "keyboards: 1;" --timeout 10
+# Shortcuts are icon-only: named for VoiceOver, never captioned. The row scrolls
+# sideways, so only its first icons are on screen on a phone. It stays with the keyboard up.
+wait --id computer-session-shortcuts-row --timeout 10
+wait --id computer-session-key-escape --timeout 10
+wait --id computer-session-shortcut-all-windows --contains "Control Up Arrow" --timeout 10
+wait --id computer-session-clipboard --timeout 10
+signal computer-dock-latch-modifier
+driver on
+assert --path computer.heldModifiers --equals '["shift"]' --timeout 10
+signal computer-dock-open-again
+assert --path computer.openedApps --equals '["com.apple.Terminal","com.apple.Terminal"]' --timeout 10
+assert --path computer.heldModifiers --equals '[]' --timeout 10
+assert --path computer.appSwitcher --equals false
+driver off
+shot computer-dock-keyboard
+signal computer-dock-trackpad
+wait --id computer-viewport-appearances --contains "trackpad: true;" --timeout 10
+wait --id computer-session-trackpad --timeout 10
+shot computer-dock-trackpad
+# available:false hides the dock entirely while leaving control reachable.
+driver on
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-dock --fixture computer-dock-unavailable --fixture no-hardware-keyboard
+assert --path computer.hasPicture --equals true --timeout 30
+assert --path computer.dockAvailable --equals false --timeout 15
+driver off
+wait --id computer-session-mini-dock --gone --timeout 10
+wait --id computer-session-take-control --timeout 10
+shot computer-dock-unavailable

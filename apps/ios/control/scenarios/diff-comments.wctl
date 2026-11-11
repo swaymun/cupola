@@ -1,0 +1,8 @@
+# The removed changes dashboard is no longer an entry point for diff comments.
+# Saved annotation rendering remains covered by Files annotation scenarios.
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture project-files-conversation-preview --fixture project-git-preview --fixture artifact-annotation-preview
+wait --id conversation-files-pill --timeout 20
+reveal down --id "reply-changes:turn"
+tap --id "reply-changes:turn"
+wait --id reply-changes --timeout 10
+shot diff-comments-reply-changes

@@ -1,0 +1,18 @@
+# An unsaved chat opened mid-load never strands "Loading chat…". Owned HTTP fixture holds the
+# first detail read, then drops it. Part 1 drives the real trigger: the Mac link flaps on the
+# SAME chat view, restarting its .task(id:) while the first read is still in flight (old code
+# bailed on the cancelled resolve's flag: spinner forever). Part 2: leave mid-load and reopen.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture chat-resolve-held --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+open wonder://v1/hosts/diagnostic-host/projects/read-project/threads/codex/read-fixture
+wait --id conversation-loading --timeout 15
+shot switch-away-loading
+signal mac-link-down
+signal mac-link-up
+signal chat-resolve
+wait --id conversation-loading --gone --timeout 10
+shot switch-away-after-flap
+wait --label "Try again" --timeout 10
+tap --label "Try again"
+wait --contains "Reply 13. Continuing the project" --timeout 20
+shot switch-away-opened

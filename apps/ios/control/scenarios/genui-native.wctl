@@ -1,0 +1,214 @@
+# nightly-ipad: native cards, tables, charts and form menus laid out at iPad width
+# Native v1 catalog: real SwiftUI rendering, offline synthetic thread; no model work.
+# Explicitly select theme, text size, font and empty preview composer on every launch.
+# Forced light-modern/dark-modern themes select appearance independently of simulator settings.
+# Host pixel tests cover the complete layout; these shots cover actual UIKit controls.
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=card --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-card --timeout 15
+shot genui-card-light-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=table --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-table --timeout 15
+shot genui-table-light-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=list --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-list --timeout 15
+shot genui-list-light-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=keyValue --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-keyValue --timeout 15
+shot genui-keyValue-light-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=chart --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-chart --timeout 15
+shot genui-chart-light-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=progress --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-progress --timeout 15
+shot genui-progress-light-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=button --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-action-button --timeout 15
+shot genui-button-light-large
+tap --id genui-action-button
+wait --id message-draft --contains "Suggest a shorter riverside route."
+wait --id genui-feedback-button --contains "Added to your draft"
+tap --id genui-action-button
+wait --id genui-feedback-button --contains "Your draft is already in use"
+wait --id message-draft --contains "Suggest a shorter riverside route."
+shot genui-button-preserves-draft
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=form --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-form --timeout 15
+shot genui-form-light-large
+tap --id genui-field-form-notes
+type "Use shaded paths"
+swipe up --in conversation-scroll
+tap --id genui-field-form-pace
+wait --label "Brisk"
+# Select the menu button, not the picker's selected-value StaticText.
+tap --label "Brisk" --type Button
+wait --id genui-field-form-pace --contains "Brisk"
+# Relaxed is menu-only after Brisk is selected; Brisk also remains on the closed picker.
+wait --label "Relaxed" --gone
+shot genui-form-picker-closed
+# A menu picker must not turn the entire conversation row into its tap target.
+tap --id genui-form
+wait --label "Relaxed" --gone
+# AXe tap misses this UISwitch; the same target accepts a 200 ms touch.
+hold --id genui-field-form-lunch --seconds 0.2
+wait --id genui-field-form-lunch --contains "1"
+tap --id genui-action-form
+wait --id message-draft --contains "Notes: Use shaded paths"
+wait --id message-draft --contains "Pace: Brisk"
+wait --id message-draft --contains "Include lunch: Yes"
+shot genui-form-draft
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=diagram --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-diagram --timeout 15
+shot genui-diagram-light-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=card --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+wait --id genui-card --timeout 15
+shot genui-card-light-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=table --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+wait --id genui-table --timeout 15
+shot genui-table-light-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=list --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+wait --id genui-list --timeout 15
+shot genui-list-light-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=keyValue --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+wait --id genui-keyValue --timeout 15
+shot genui-keyValue-light-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=chart --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+wait --id genui-chart --timeout 15
+shot genui-chart-light-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=progress --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+wait --id genui-progress --timeout 15
+shot genui-progress-light-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=button --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+wait --id genui-action-button --timeout 15
+shot genui-button-light-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=form --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+# Capture both ends of this tall form after its native controls are ready.
+wait --id genui-action-form --timeout 15
+swipe down --in conversation-scroll
+swipe down --in conversation-scroll
+swipe down --in conversation-scroll
+swipe down --in conversation-scroll
+wait --id genui-action-form --timeout 15
+shot genui-form-light-accessibility3
+swipe up --in conversation-scroll
+swipe up --in conversation-scroll
+wait --id genui-field-form-lunch --timeout 15
+shot genui-form-light-accessibility3-controls
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=diagram --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+# At the largest text size the diagram fills the screen below its heading.
+reveal down --id genui-diagram --in conversation-scroll
+wait --id genui-diagram --timeout 15
+shot genui-diagram-light-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=card --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-card --timeout 15
+shot genui-card-dark-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=table --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-table --timeout 15
+shot genui-table-dark-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=list --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-list --timeout 15
+shot genui-list-dark-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=keyValue --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-keyValue --timeout 15
+shot genui-keyValue-dark-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=chart --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-chart --timeout 15
+shot genui-chart-dark-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=progress --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-progress --timeout 15
+shot genui-progress-dark-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=button --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-action-button --timeout 15
+shot genui-button-dark-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=form --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-form --timeout 15
+shot genui-form-dark-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=diagram --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-diagram --timeout 15
+shot genui-diagram-dark-large
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=card --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+wait --id genui-card --timeout 15
+shot genui-card-dark-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=table --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+wait --id genui-table --timeout 15
+shot genui-table-dark-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=list --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+wait --id genui-list --timeout 15
+shot genui-list-dark-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=keyValue --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+wait --id genui-keyValue --timeout 15
+shot genui-keyValue-dark-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=chart --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+wait --id genui-chart --timeout 15
+shot genui-chart-dark-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=progress --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+wait --id genui-progress --timeout 15
+shot genui-progress-dark-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=button --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+wait --id genui-action-button --timeout 15
+shot genui-button-dark-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=form --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+# Capture both ends of this tall form after its native controls are ready.
+wait --id genui-action-form --timeout 15
+swipe down --in conversation-scroll
+swipe down --in conversation-scroll
+swipe down --in conversation-scroll
+swipe down --in conversation-scroll
+wait --id genui-action-form --timeout 15
+shot genui-form-dark-accessibility3
+swipe up --in conversation-scroll
+swipe up --in conversation-scroll
+wait --id genui-field-form-lunch --timeout 15
+shot genui-form-dark-accessibility3-controls
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=diagram --arg=-diagnostics-theme --arg=dark-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+# At the largest text size the diagram fills the screen below its heading.
+reveal down --id genui-diagram --in conversation-scroll
+wait --id genui-diagram --timeout 15
+shot genui-diagram-dark-accessibility3
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=malformed --arg=-diagnostics-theme --arg=light-modern --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-fallback --timeout 15
+wait --id native-reply-ui --gone
+shot genui-fallback-malformed
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=unknown --arg=-diagnostics-theme --arg=light-modern --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-fallback --timeout 15
+wait --id native-reply-ui --gone
+shot genui-fallback-unknown
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=oversized --arg=-diagnostics-theme --arg=light-modern --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-fallback --timeout 15
+wait --id native-reply-ui --gone
+shot genui-fallback-oversized
+# Expand: an interactive reply opens in a full-height sheet; a draft from it closes the sheet.
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=button --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-expand --timeout 15
+tap --id genui-expand
+wait --id expanded-message --timeout 10
+wait --id genui-action-button --timeout 10
+shot genui-expanded-button
+tap --id genui-action-button
+wait --id expanded-message --gone --timeout 10
+wait --id message-draft --contains "Suggest a shorter riverside route."
+# A tall form at an accessibility size scrolls inside the sheet and closes with Done.
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=form --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXL
+wait --id genui-expand --timeout 15
+tap --id genui-expand
+wait --id expanded-message --timeout 10
+shot genui-expanded-form-accessibility3
+swipe up --in expanded-message
+wait --id genui-field-form-lunch --timeout 10
+shot genui-expanded-form-accessibility3-controls
+# The sheet title overlays the scroll view: a drag from it scrolls scrolled-down content instead of dismissing.
+swipe down --in expanded-message
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10
+# HTML fences open in the offline browser. AXe checks the sheet; real WebKit
+# contracts and the XCTest capture tool own HTML text/layout assertions.
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=html --arg=-diagnostics-theme --arg=light-modern --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id html-page-open --timeout 15
+tap --id html-page-open
+wait --id expanded-message --timeout 15
+shot html-page-visual
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10
+# The unfiltered fixture is one conversation containing the full nine-component catalog.
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-theme --arg=light-modern --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id native-reply-ui --timeout 15
+shot genui-complete-thread

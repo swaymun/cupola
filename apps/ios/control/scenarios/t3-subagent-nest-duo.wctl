@@ -1,0 +1,38 @@
+# devices: duo
+# t3-subagent-nest.wctl on the Duo, folded then unfolded: Chats lists no row
+# for a T3 Code delegate child (only the orphaned one, marked Subagent) and the
+# parent's Agent tasks list them (the host filter itself is proven by the
+# daemon tests; the fixture stands in for the Mac). Sidebar and roster open through their
+# fixtures because Duo taps are not qualified.
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-t3-tasks --fixture sidebar-open
+wait --id project-row:read-project --timeout 30
+wait --id project-thread:claude:t3-orphan-fixture --contains "Subagent" --timeout 10
+wait --contains "Duo feedback videos" --never 2
+wait --contains "Check the release notes" --never 2
+wait --contains "Archive the old captures" --never 2
+shot t3-subagent-nest-duo-folded-chats
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-t3-tasks --fixture open-project-thread --fixture task-roster-open
+driver off
+wait --id project-subagent-roster:t3-child-duo-videos --timeout 30
+wait --id project-subagent-roster:t3-child-running --timeout 5
+wait --id project-subagent-roster:t3-child-unreadable --timeout 5
+shot t3-subagent-nest-duo-folded-tasks --display primary-1
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-t3-tasks --fixture sidebar-open
+wait --id project-row:read-project --timeout 30
+wait --id project-thread:claude:t3-orphan-fixture --contains "Subagent" --timeout 10
+wait --contains "Duo feedback videos" --never 2
+wait --contains "Check the release notes" --never 2
+wait --contains "Archive the old captures" --never 2
+shot t3-subagent-nest-duo-unfolded-chats
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-t3-tasks --fixture open-project-thread --fixture task-roster-open
+driver off
+wait --id project-subagent-roster:t3-child-duo-videos --timeout 30
+wait --id project-subagent-roster:t3-child-running --timeout 5
+wait --id project-subagent-roster:t3-child-unreadable --timeout 5
+shot t3-subagent-nest-duo-unfolded-tasks --display primary-1

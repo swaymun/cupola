@@ -1,0 +1,13 @@
+{
+  "scope": "thread",
+  "available": true,
+  "detail": null,
+  "branch": "agent/thread-changes",
+  "files": [
+    { "path": "Assets/logo.png", "status": "added", "binary": true, "additions": null, "deletions": null, "diff": null },
+    { "path": "Sources/Chip.swift", "status": "modified", "binary": false, "additions": 3, "deletions": 1, "diff": "@@ -1,2 +1,3 @@\n struct Chip {\n-    let title: String\n+    let title: String\n+    let count: Int\n+    let tint: Color\n }" },
+    { "path": "Sources/Old.swift", "status": "deleted", "binary": false, "additions": 0, "deletions": 2, "diff": "@@ -1,2 +0,0 @@\n-import SwiftUI\n-struct Old {}" }
+  ],
+  "totals": { "files": 3, "additions": 3, "deletions": 3 },
+  "truncated": false
+}

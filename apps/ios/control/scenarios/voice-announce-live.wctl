@@ -1,0 +1,31 @@
+# Voice announces from the live feed, not the scripted signals: the in-app-banner
+# fixture delivers real event frames (ConnectionModel.applyFrame) and a real
+# approvals read. With voice pinned to the fixture chat, its own finished reply
+# is announced; "Weekend plans" finishing a reply and "Release checklist"
+# asking for permission (other chats) are not; a question the pinned chat then
+# asks (a pending request fetched by the approvals read) is. The voice side is
+# the scripted offline fixture (no microphone, network or model).
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture voice-preview --fixture open-project-thread --fixture in-app-banner --fixture in-app-banner-seconds --arg 60 --arg=-diagnostics-banner-wait --arg=-diagnostics-voice-announce-gap --arg=3
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+tap --id voice-start
+assert --path voice.active --equals 'true'
+driver off
+wait --id voice-confirmation-message --contains "Run the voice tests"
+driver on
+tap --id voice-confirmation-cancel
+signal banner-start
+driver off
+wait --id voice-agent-caption --contains "finished its reply. Want me to read it?" --timeout 20
+shot voice-announce-live-reply
+wait --id in-app-banner --contains "Release checklist" --timeout 10
+driver on
+assert --path voice.announced --equals '["“Read status fixture” finished its reply. Want me to read it?"]'
+signal voice-live-question
+driver off
+wait --id voice-agent-caption --contains "has a question for you. Want me to read it?" --timeout 25
+shot voice-announce-live-question
+driver on
+assert --path voice.announced --equals '["“Read status fixture” finished its reply. Want me to read it?", "“Read status fixture” has a question for you. Want me to read it?"]'
+tap --id voice-end
+assert --path voice.active --equals 'false'

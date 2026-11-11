@@ -1,0 +1,97 @@
+# Owned synthetic computer only. Every launch seeds its own draft/file. No live sends.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --arg=-diagnostics-recovery-case --arg=expired
+wait --id new-chat-t3-note --contains "authorization expired" --timeout 30
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path composer.canSend --equals false
+shot recovery-after-new-expired
+tap --id new-chat-t3-reconnect
+wait --id t3code-status --contains "Sign-in expired" --timeout 15
+shot recovery-after-settings-expired
+tap --id t3code-connect
+wait --id t3code-status --contains "Connected" --timeout 15
+dismiss
+wait --id new-chat-t3-note --contains "words only" --timeout 15
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+shot recovery-recovered-new-expired
+# T3 starts with text only; explicitly choose Cupola to send the preserved file.
+tap --id composer-start-in-t3
+assert --path composer.canSend --equals true --timeout 15
+send
+assert --path fixtureSends.bodies --equals '["Keep my recovery draft"]' --timeout 30
+assert --path fixtureSends.uploadedHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path fixtureSends.attachments --equals 1
+assert --path fixtureSends.duplicates --equals 0
+assert --path composer.text --equals '""' --timeout 15
+shot recovery-sent-new-expired
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --arg=-diagnostics-recovery-case --arg=unreachable
+wait --id new-chat-t3-note --contains "isn’t reachable" --timeout 30
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path composer.canSend --equals false
+shot recovery-after-new-unreachable
+signal recovery-resolved
+tap --id new-chat-t3-retry
+wait --id new-chat-t3-note --contains "words only" --timeout 15
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+shot recovery-recovered-new-unreachable
+# T3 starts with text only; explicitly choose Cupola to send the preserved file.
+tap --id composer-start-in-t3
+assert --path composer.canSend --equals true --timeout 15
+send
+assert --path fixtureSends.bodies --equals '["Keep my recovery draft"]' --timeout 30
+assert --path fixtureSends.uploadedHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path fixtureSends.attachments --equals 1
+assert --path fixtureSends.duplicates --equals 0
+assert --path composer.text --equals '""' --timeout 15
+shot recovery-sent-new-unreachable
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --arg=-diagnostics-recovery-case --arg=signed-out
+wait --id new-chat-provider-recovery --contains "signed out" --timeout 30
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path composer.canSend --equals false
+shot recovery-after-new-signed-out
+signal recovery-resolved
+tap --id new-chat-recovery-retry
+assert --path composer.canSend --equals true --timeout 15
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+shot recovery-recovered-new-signed-out
+send
+assert --path fixtureSends.bodies --equals '["Keep my recovery draft"]' --timeout 30
+assert --path fixtureSends.uploadedHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path fixtureSends.attachments --equals 1
+assert --path fixtureSends.duplicates --equals 0
+assert --path composer.text --equals '""' --timeout 15
+shot recovery-sent-new-signed-out
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --arg=-diagnostics-recovery-case --arg=model
+wait --id new-chat-provider-recovery --contains "no longer available" --timeout 30
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path composer.canSend --equals false
+shot recovery-after-new-model
+tap --id new-chat-recovery-retry
+tap --id new-chat-model:claude:haiku
+dismiss
+assert --path composer.canSend --equals true --timeout 15
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+shot recovery-recovered-new-model
+send
+assert --path fixtureSends.bodies --equals '["Keep my recovery draft"]' --timeout 30
+assert --path fixtureSends.uploadedHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path fixtureSends.attachments --equals 1
+assert --path fixtureSends.duplicates --equals 0
+assert --path composer.text --equals '""' --timeout 15
+shot recovery-sent-new-model

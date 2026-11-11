@@ -1,0 +1,177 @@
+# nightly-ipad: shell restores each conversation pane and last chat without restoring computer control
+# devices: iphone ipad duo
+# Owned offline A/B chats; no messages, model work or live terminal commands.
+# Three navigation cycles per tool and a process kill/relaunch; unit tests own
+# the within-debounce new-chat background/kill race. Native AX verifies tools
+# and explicit control. The active toolbar’s Give control back is the positive
+# control proof (nightly #533: the inner control-active AX ID collapses on iPad).
+# Both active IDs must be absent after restoration, with Take control visible.
+# Shell actions cover Terminal; actual chat URLs cover an active Computer viewer.
+# The viewer intentionally exposes only its own driver actions.
+# Fresh pooled lanes need the system’s first-use Open-in-Cupola consent for
+# the owned URL first (TESTING.md#physical-chat-link-restoration).
+driver on
+launch --fixture chat-layout --fixture rail-fixture --fixture project-actions --fixture terminal-available --fixture terminal-preview --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture durable-store --fixture open-project-thread --fixture durable-store-reset
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+type "Continuity draft A"
+assert --path composer.text --equals '"Continuity draft A"'
+driver off
+tap --id conversation-terminal-pill
+wait --id terminal-output --contains "build.sh" --timeout 20
+shot continuity-terminal-A
+driver on
+open-thread fixture-fork-conversation --host diagnostic-host
+assert --path selection.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 30
+type "Continuity draft B"
+assert --path composer.text --equals '"Continuity draft B"' --timeout 10
+driver off
+wait --id terminal-output --gone --timeout 10
+wait --id computer-session-container --gone --timeout 10
+wait --id message-draft --timeout 10
+driver on
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+assert --path composer.text --equals '"Continuity draft A"' --timeout 10
+driver off
+wait --id terminal-output --contains "build.sh" --timeout 20
+shot continuity-terminal-return-1
+driver on
+open-thread fixture-fork-conversation --host diagnostic-host
+assert --path selection.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path composer.text --equals '"Continuity draft B"' --timeout 10
+driver off
+wait --id terminal-output --gone --timeout 10
+wait --id computer-session-container --gone --timeout 10
+wait --id message-draft --timeout 10
+driver on
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+assert --path composer.text --equals '"Continuity draft A"' --timeout 10
+driver off
+wait --id terminal-output --contains "build.sh" --timeout 20
+shot continuity-terminal-return-2
+driver on
+open-thread fixture-fork-conversation --host diagnostic-host
+assert --path selection.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path composer.text --equals '"Continuity draft B"' --timeout 10
+driver off
+wait --id terminal-output --gone --timeout 10
+wait --id computer-session-container --gone --timeout 10
+wait --id message-draft --timeout 10
+driver on
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+assert --path composer.text --equals '"Continuity draft A"' --timeout 10
+driver off
+wait --id terminal-output --contains "build.sh" --timeout 20
+shot continuity-terminal-return-3
+type "restored"
+wait --id terminal-output --contains "wonder-app % restored" --timeout 10
+shot continuity-restored-terminal-input
+driver on
+assert --path composer.text --equals '"Continuity draft A"'
+dismiss
+assert --path composer.text --equals '"Continuity draft A"' --timeout 10
+driver off
+wait --id terminal-output --gone --timeout 10
+tap --id computer-status-pill
+wait --id computer-session-live-status --contains "Live" --timeout 20
+tap --id computer-session-take-control
+wait --id computer-session-done --label "Give control back" --timeout 15
+driver off
+open wonder://v1/hosts/diagnostic-host/chats/fixture-fork-conversation
+driver on
+assert --path selection.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path composer.text --equals '"Continuity draft B"' --timeout 10
+driver off
+wait --id terminal-output --gone --timeout 10
+wait --id computer-session-container --gone --timeout 10
+wait --id message-draft --timeout 10
+driver off
+open wonder://v1/hosts/diagnostic-host/chats/fixture-parent-conversation
+driver on
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+driver off
+wait --id computer-session-live-status --contains "Live" --timeout 20
+wait --id computer-session-take-control --timeout 10
+assert --id computer-session-control-active --gone
+assert --id computer-session-done --gone
+shot continuity-computer-view-only-1
+tap --id computer-session-take-control
+wait --id computer-session-done --label "Give control back" --timeout 15
+driver off
+open wonder://v1/hosts/diagnostic-host/chats/fixture-fork-conversation
+driver on
+assert --path selection.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path composer.text --equals '"Continuity draft B"' --timeout 10
+driver off
+wait --id terminal-output --gone --timeout 10
+wait --id computer-session-container --gone --timeout 10
+wait --id message-draft --timeout 10
+driver off
+open wonder://v1/hosts/diagnostic-host/chats/fixture-parent-conversation
+driver on
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+driver off
+wait --id computer-session-live-status --contains "Live" --timeout 20
+wait --id computer-session-take-control --timeout 10
+assert --id computer-session-control-active --gone
+assert --id computer-session-done --gone
+shot continuity-computer-view-only-2
+tap --id computer-session-take-control
+wait --id computer-session-done --label "Give control back" --timeout 15
+driver off
+open wonder://v1/hosts/diagnostic-host/chats/fixture-fork-conversation
+driver on
+assert --path selection.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path composer.text --equals '"Continuity draft B"' --timeout 10
+driver off
+wait --id terminal-output --gone --timeout 10
+wait --id computer-session-container --gone --timeout 10
+wait --id message-draft --timeout 10
+driver off
+open wonder://v1/hosts/diagnostic-host/chats/fixture-parent-conversation
+driver on
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+driver off
+wait --id computer-session-live-status --contains "Live" --timeout 20
+wait --id computer-session-take-control --timeout 10
+assert --id computer-session-control-active --gone
+assert --id computer-session-done --gone
+shot continuity-computer-view-only-3
+button home
+terminate
+driver on
+launch --fixture chat-layout --fixture rail-fixture --fixture project-actions --fixture terminal-available --fixture terminal-preview --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture durable-store
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+driver off
+wait --id computer-session-live-status --contains "Live" --timeout 20
+wait --id computer-session-take-control --timeout 10
+assert --id computer-session-control-active --gone
+assert --id computer-session-done --gone
+shot continuity-relaunch-computer-view-only
+driver on
+dismiss
+assert --path composer.text --equals '"Continuity draft A"' --timeout 10
+driver off
+open wonder://v1/hosts/diagnostic-host/chats/fixture-fork-conversation
+driver on
+assert --path selection.id --equals '"fixture-fork-conversation"' --timeout 30
+launch --fixture chat-layout --fixture rail-fixture --fixture project-actions --fixture terminal-available --fixture terminal-preview --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture durable-store
+assert --path selection.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path composer.text --equals '"Continuity draft B"' --timeout 20
+shot continuity-relaunch-last-chat-B
+driver off
+open wonder://v1/hosts/diagnostic-host/chats/fixture-parent-conversation
+driver on
+assert --path composer.text --equals '"Continuity draft A"' --timeout 20
+driver off
+wait --id terminal-output --gone --timeout 10
+wait --id computer-session-container --gone --timeout 10
+shot continuity-explicit-close-stays-closed

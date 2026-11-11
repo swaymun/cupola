@@ -1,0 +1,21 @@
+/target/
+*.log
+.DS_Store
+/node_modules/
+dist/
+__pycache__/
+*.pyc
+
+apps/native/.build/
+apps/ios/.build/
+apps/ios/DerivedData/
+apps/ios/**/xcuserdata/
+native/computer-use/.build/
+
+# Local state and per-machine config
+/.local/
+/.bundle/
+.wrangler/
+services/push/wrangler.local.jsonc
+.env
+.env.*

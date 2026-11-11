@@ -1,0 +1,40 @@
+# devices: duo
+# Settings → Voice at the Announcements switch on the folded Duo cover and the
+# unfolded Duo (Settings is one full-width page; the Voice page pushes onto it), light and dark.
+# Offline fixtures only; nothing is minted, spoken or sent.
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=cupola-light
+driver off
+wait --id settings-root-list --timeout 20
+reveal up --id settings-voice
+tap --id settings-voice
+wait --id voice-key-computer --timeout 15
+reveal up --id voice-announce
+shot voice-settings-announce-duo-folded-light
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=cupola-dark
+driver off
+wait --id settings-root-list --timeout 20
+reveal up --id settings-voice
+tap --id settings-voice
+wait --id voice-key-computer --timeout 15
+reveal up --id voice-announce
+shot voice-settings-announce-duo-folded-dark
+hinge 180
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --arg=-diagnostics-settings-open --arg=-diagnostics-settings-search-row --arg=voice-announce --arg=-diagnostics-theme --arg=cupola-light
+driver off
+wait --id voice-announce --timeout 15
+shot voice-settings-announce-duo-unfolded-light --display primary-1
+hinge 180
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --arg=-diagnostics-settings-open --arg=-diagnostics-settings-search-row --arg=voice-announce --arg=-diagnostics-theme --arg=cupola-dark
+driver off
+wait --id voice-announce --timeout 15
+shot voice-settings-announce-duo-unfolded-dark --display primary-1

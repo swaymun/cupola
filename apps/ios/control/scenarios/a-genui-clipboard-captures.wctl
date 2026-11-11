@@ -1,0 +1,121 @@
+# devices: iphone ipad
+# Captures for A-GENUI-CLIPBOARD: expanded Gen UI pages and the computer view's clipboard text, per theme. Offline fixtures; nothing is sent.
+launch --fixture read-preview --fixture send-preview --fixture html-render-preview --arg=-html-render-page --arg=genui-grid --arg=-diagnostics-theme --arg=cupola-light
+wait --id html-render-page --timeout 30
+reveal down --id html-render-expand --in conversation-scroll
+tap --id html-render-expand
+wait --id expanded-message --timeout 15
+shot a-genui-clipboard-html-expanded-cupola-light-open
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10
+launch --fixture read-preview --fixture send-preview --fixture html-render-preview --arg=-html-render-page --arg=genui-grid --arg=-diagnostics-theme --arg=cupola-dark
+wait --id html-render-page --timeout 30
+reveal down --id html-render-expand --in conversation-scroll
+tap --id html-render-expand
+wait --id expanded-message --timeout 15
+shot a-genui-clipboard-html-expanded-cupola-dark-open
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10
+launch --fixture read-preview --fixture send-preview --fixture html-render-preview --arg=-html-render-page --arg=genui-grid --arg=-diagnostics-theme --arg=nord
+wait --id html-render-page --timeout 30
+reveal down --id html-render-expand --in conversation-scroll
+tap --id html-render-expand
+wait --id expanded-message --timeout 15
+shot a-genui-clipboard-html-expanded-nord-open
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10
+launch --fixture read-preview --fixture send-preview --fixture html-render-preview --arg=-html-render-page --arg=genui-grid --arg=-diagnostics-theme --arg=misty-forest
+wait --id html-render-page --timeout 30
+reveal down --id html-render-expand --in conversation-scroll
+tap --id html-render-expand
+wait --id expanded-message --timeout 15
+shot a-genui-clipboard-html-expanded-misty-forest-open
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=button --arg=-diagnostics-theme --arg=cupola-light --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-expand --timeout 15
+tap --id genui-expand
+wait --id expanded-message --timeout 10
+wait --id genui-action-button --timeout 10
+shot a-genui-clipboard-native-expanded-cupola-light-open
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=button --arg=-diagnostics-theme --arg=cupola-dark --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-expand --timeout 15
+tap --id genui-expand
+wait --id expanded-message --timeout 10
+wait --id genui-action-button --timeout 10
+shot a-genui-clipboard-native-expanded-cupola-dark-open
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=button --arg=-diagnostics-theme --arg=nord --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-expand --timeout 15
+tap --id genui-expand
+wait --id expanded-message --timeout 10
+wait --id genui-action-button --timeout 10
+shot a-genui-clipboard-native-expanded-nord-open
+launch --fixture read-preview --fixture send-preview --fixture genui --arg=-diagnostics-genui-component --arg=button --arg=-diagnostics-theme --arg=misty-forest --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id genui-expand --timeout 15
+tap --id genui-expand
+wait --id expanded-message --timeout 10
+wait --id genui-action-button --timeout 10
+shot a-genui-clipboard-native-expanded-misty-forest-open
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-clipboard-off --fixture theme --arg cupola-dark
+wait --id computer-session-take-control --timeout 30
+wait --id computer-session-clipboard-message --gone --timeout 5
+shot a-genui-clipboard-computer-idle-cupola-dark-open
+tap --id computer-session-more
+wait --id computer-session-share-clipboard
+tap --id computer-session-share-clipboard
+shot a-genui-clipboard-computer-unavailable-cupola-dark-toggled
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture theme --arg cupola-dark
+wait --id computer-session-take-control --timeout 30
+tap --id computer-session-take-control
+wait --id computer-session-control-active --timeout 15
+wait --id computer-session-clipboard-message --gone --timeout 5
+shot a-genui-clipboard-computer-on-cupola-dark-open
+# The clipboard lives on the keyboard's shortcut row.
+tap --id computer-session-keyboard
+wait --id computer-session-clipboard --timeout 10
+tap --id computer-session-clipboard
+tap --id computer-session-copy-from-mac
+wait --id computer-session-clipboard-message --contains "Copied from" --timeout 5
+shot a-genui-clipboard-computer-copied-cupola-dark-after-copy
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-clipboard-off --fixture theme --arg nord
+wait --id computer-session-take-control --timeout 30
+wait --id computer-session-clipboard-message --gone --timeout 5
+shot a-genui-clipboard-computer-idle-nord-open
+tap --id computer-session-more
+wait --id computer-session-share-clipboard
+tap --id computer-session-share-clipboard
+shot a-genui-clipboard-computer-unavailable-nord-toggled
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture theme --arg nord
+wait --id computer-session-take-control --timeout 30
+tap --id computer-session-take-control
+wait --id computer-session-control-active --timeout 15
+wait --id computer-session-clipboard-message --gone --timeout 5
+shot a-genui-clipboard-computer-on-nord-open
+# The clipboard lives on the keyboard's shortcut row.
+tap --id computer-session-keyboard
+wait --id computer-session-clipboard --timeout 10
+tap --id computer-session-clipboard
+tap --id computer-session-copy-from-mac
+wait --id computer-session-clipboard-message --contains "Copied from" --timeout 5
+shot a-genui-clipboard-computer-copied-nord-after-copy
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-clipboard-off --fixture theme --arg misty-forest
+wait --id computer-session-take-control --timeout 30
+wait --id computer-session-clipboard-message --gone --timeout 5
+shot a-genui-clipboard-computer-idle-misty-forest-open
+tap --id computer-session-more
+wait --id computer-session-share-clipboard
+tap --id computer-session-share-clipboard
+shot a-genui-clipboard-computer-unavailable-misty-forest-toggled
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture theme --arg misty-forest
+wait --id computer-session-take-control --timeout 30
+tap --id computer-session-take-control
+wait --id computer-session-control-active --timeout 15
+wait --id computer-session-clipboard-message --gone --timeout 5
+shot a-genui-clipboard-computer-on-misty-forest-open
+# The clipboard lives on the keyboard's shortcut row.
+tap --id computer-session-keyboard
+wait --id computer-session-clipboard --timeout 10
+tap --id computer-session-clipboard
+tap --id computer-session-copy-from-mac
+wait --id computer-session-clipboard-message --contains "Copied from" --timeout 5
+shot a-genui-clipboard-computer-copied-misty-forest-after-copy

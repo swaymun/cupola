@@ -1,0 +1,443 @@
+#!/usr/bin/env python3
+"""Check Cupola product copy and inventory protected compatibility names.
+
+scripts/check-brand-name --summary
+scripts/check-brand-name --format json > .local/evidence/rename-cupola/inventory.json
+scripts/check-brand-name --surface ios-app
+
+Counts are literal case-insensitive `wonder` occurrences, not distinct strings.
+Every hit receives rename or keep-internal, with a reason. Tags are conservative
+planning recommendations, not proof of runtime visibility. No broad replacement
+is safe: an endpoint, bundle ID and visible brand can share one source line.
+Tracked and nonignored new UTF-8 text is scanned; binaries are reported as excluded. Historical
+plans/research and developer-only/test references are listed separately. The
+checker, policy and rename plan exclude themselves to keep the baseline stable.
+"""
+import argparse
+from collections import Counter, defaultdict
+import json
+from pathlib import Path
+import re
+import subprocess
+import runpy
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+SELF = {"scripts/check-brand-name", "scripts/brand-name-allowlist.json", "plans/rename-cupola.md"}
+BRAND = re.compile("wonder", re.IGNORECASE)
+POLICY = json.loads((ROOT / "scripts/brand-name-allowlist.json").read_text())
+exception_keys = [(entry["path"], entry["text"]) for entry in POLICY.get("exceptions", [])]
+if len(set(exception_keys)) != len(exception_keys) or any(
+    not entry.get("reason", "").strip() for entry in POLICY["protected_spans"] + POLICY.get("exceptions", [])
+):
+    sys.exit("Fix scripts/brand-name-allowlist.json: unique exact path/text exceptions and reviewed reasons are required.")
+LEXER = runpy.run_path(str(ROOT / "scripts/check-platform-wording"))
+PROTECTED = [(re.compile(rule["pattern"]), rule["reason"]) for rule in POLICY["protected_spans"]]
+ARCHIVE_SCRIPTS = re.compile(r"^scripts/(?:.*(?:package|release|archive|appcast|sign-macos|prepare-cli-tap|link-cli|install-mac|install-signed|install-dev).*)$")
+SOURCE_EXTENSIONS = {".swift", ".rs", ".m", ".mm", ".c", ".h", ".py", ".sh", ".ps1", ".js", ".mjs", ".ts"}
+JS_TOKEN = re.compile(r"[A-Za-z_$][\w$]*|=>|&&|\|\|")
+
+
+def js_literals(source):
+    """Literal spans, including template text but excluding interpolated code.
+
+    Comment apostrophes and quoted text inside regexes must never turn following
+    object keys/variables into copy. Templates recurse into their expressions.
+    """
+    spans = []
+
+    def quoted(i, quote):
+        start = i
+        i += 1
+        while i < len(source):
+            if source[i] == "\\":
+                i += 2
+            elif source[i] == quote:
+                spans.append((start, i + 1))
+                return i + 1
+            else:
+                i += 1
+        raise ValueError(f"Unterminated JS string at {start}")
+
+    def template(i):
+        start = i
+        i += 1
+        while i < len(source):
+            if source[i] == "\\":
+                i += 2
+            elif source[i] == "`":
+                spans.append((start, i + 1))
+                return i + 1
+            elif source.startswith("${", i):
+                spans.append((start, i))
+                i = code(i + 2, True)
+                start = i
+            else:
+                i += 1
+        raise ValueError(f"Unterminated JS template at {start}")
+
+    def code(i, expression=False):
+        depth, previous = 0, "="
+        while i < len(source):
+            char = source[i]
+            if char.isspace():
+                i += 1
+                continue
+            if source.startswith("//", i):
+                end = source.find("\n", i)
+                i = len(source) if end < 0 else end + 1
+                continue
+            if source.startswith("/*", i):
+                end = source.find("*/", i + 2)
+                i = len(source) if end < 0 else end + 2
+                continue
+            if char in "\"'`":
+                i = template(i) if char == "`" else quoted(i, char)
+                previous = "literal"
+                continue
+            if char == "/" and previous in {"=", "(", "[", ",", ":", "!", "?", "return", "=>", "&&", "||"}:
+                i += 1
+                character_class = False
+                while i < len(source):
+                    if source[i] == "\\":
+                        i += 2
+                        continue
+                    if source[i] == "[":
+                        character_class = True
+                    elif source[i] == "]":
+                        character_class = False
+                    elif source[i] == "/" and not character_class:
+                        i += 1
+                        break
+                    i += 1
+                previous = "literal"
+                continue
+            token = JS_TOKEN.match(source, i)
+            if token:
+                previous = token.group()
+                i += len(previous)
+                continue
+            if char == "{":
+                depth += 1
+            elif char == "}":
+                if expression and depth == 0:
+                    return i + 1
+                depth -= 1
+            previous = char
+            i += 1
+        return i
+
+    code(0)
+    return spans
+
+
+def is_markdown(path):
+    # llms.txt is the Markdown setup guide agents read first; its `#` lines are headings.
+    return path.endswith(".md") or path == "llms.txt"
+
+
+def surface(path):
+    if path == "BETA_STATUS.md" or path.startswith((".impeccable/", ".orch/")):
+        return "historical-planning"
+    if path.startswith(("plans/", "research/", "docs/archive/", "docs/adr/", "docs/maintenance/", "fastlane/app-store/graphics/captures/", "evidence/", "artifacts/", "output/")):
+        return "historical-planning"
+    if is_markdown(path) and not path.endswith("SKILL.md"):
+        return "docs-readme"
+    if re.search(r"(?:^|/)(?:tests?|\w*Tests)(?:/|\.)|_tests\.rs$|\.test\.(?:ps1|mjs|ts|js)$|^apps/ios/control/|^tests/|(?:^|/)(?:test[-_]|smoke_session)", path):
+        return "tests-fixtures"
+    if path.startswith("fastlane/metadata/"):
+        return "app-store-metadata"
+    if path.startswith(("fastlane/app-store/", "site/")):
+        return "store-web-graphics"
+    if path.startswith("apps/ios/Wonder.xcodeproj/"):
+        return "ios-build-names"
+    if path.startswith(("apps/ios/WonderWidget/", "apps/ios/WonderShare/", "apps/ios/WonderNotification")):
+        return "ios-extensions"
+    if path.startswith("apps/ios/Wonder/"):
+        return "ios-app"
+    if path.startswith("apps/ios/PushShared/"):
+        return "ios-extensions"
+    if path.startswith("apps/native/Sources/"):
+        return "shared-native"
+    if path in {"install.sh", "install.ps1", "uninstall.sh", "uninstall.ps1"} or path.startswith("distribution/"):
+        return "installers-homebrew"
+    if path.startswith("scripts/windows/install-host"):
+        return "installers-homebrew"
+    if ARCHIVE_SCRIPTS.match(path):
+        return "release-archives"
+    if path.startswith("crates/wonderd/src/headless/") or path == "crates/wonderd/Cargo.toml":
+        return "cli-command-help-output"
+    if path.startswith("crates/wonderd/src/"):
+        return "daemon-phone-text"
+    if path.startswith(("crates/wonder-store/", "crates/wonder-app-server/")):
+        return "store-adapter-phone-text"
+    if path.startswith("services/push/"):
+        return "push-service"
+    if path.startswith(("services/claude-runtime/", "services/acp-runtime/", "native/computer-use")):
+        return "runtime-helpers"
+    if path.startswith(("scripts/", ".github/", "fastlane/")):
+        return "developer-tooling"
+    return "other-internal-or-surface"
+
+
+def classify(path, line, match, section, test_region=False, multiline=False):
+    start, end = match.span()
+    for pattern, reason in PROTECTED:
+        if any(hit.start() <= start and end <= hit.end() for hit in pattern.finditer(line)):
+            return "keep-internal", reason
+    if (start and (line[start-1].isalnum() or line[start-1] == "_")) or (end < len(line) and (line[end].isalnum() or line[end] == "_")):
+        return "keep-internal", "Code, package or storage token; only the standalone product name changes."
+    for rule in POLICY.get("exceptions", []):
+        if path == rule["path"] and line.strip() == rule["text"]:
+            return "keep-internal", rule["reason"]
+    if section in {"historical-planning", "tests-fixtures", "developer-tooling"} or test_region:
+        return "keep-internal", "Historical/developer/test reference; adjust affected expected output during Phase 2, not a public brand surface."
+    if path.endswith((".entitlements", ".xcscheme", ".lock")) or path in {"Cargo.lock", "package-lock.json"}:
+        return "keep-internal", "Signing, target/package identity or dependency lock; preserve."
+    if path.endswith(".pbxproj"):
+        if "WONDER_APP_DISPLAY_NAME =" in line and start > line.index("="):
+            return "rename", "Visible iOS display-name value; preserve the build setting key and bundle IDs."
+        if "UsageDescription" in line:
+            return "rename", "Permission prompt shown by iOS."
+        return "keep-internal", "Xcode target/module/product reference; display names are controlled separately."
+    if path == "crates/wonderd/Cargo.toml":
+        if line.strip() == 'name = "wonder"':
+            return "rename", "Public binary target becomes cupola; package and wonderd target stay."
+        return "keep-internal", "Cargo package, dependency or developer comment."
+    if path == "crates/wonder-app-server/src/lib.rs" and '"name":' in line:
+        return "keep-internal", "App Server client identity; only its human title changes."
+    stripped = line.lstrip()
+    comment = stripped.startswith(("//", "#", "/*", "*", "<!--"))
+    if comment and not (path.endswith("/headless/cli.rs") and stripped.startswith("///")):
+        if not is_markdown(path):
+            return "keep-internal", "Source comment, preprocessor statement or developer documentation."
+    if section in {"docs-readme", "app-store-metadata", "store-web-graphics", "pairing-web", "installers-homebrew", "release-archives"}:
+        return "rename", "Public prose, command, distribution name or archive reference; review protected paths before replacement."
+    if path.endswith((".html", ".storyboard", ".strings", ".xcstrings", ".stringsdict")):
+        return "rename", "Rendered resource or localized user text."
+    if path.endswith(".plist"):
+        if re.search(r"(?:IconFile|Executable|Identifier|AppGroup|Keychain|widgetKind|URLSchemes)", line):
+            return "keep-internal", "Bundle resource, executable or compatibility key."
+        return "rename", "Plist text candidate; inspect the enclosing key before editing."
+    if path.endswith("/headless/cli.rs") and stripped.startswith("///"):
+        return "rename", "Clap doc comment rendered in public command help."
+    if Path(path).suffix in SOURCE_EXTENSIONS:
+        # A lexical inventory, not a language parser. Keep code symbols separate;
+        # include multiline prose so Swift/Rust long help does not disappear.
+        quoted = any(hit.start() < start < hit.end() for hit in re.finditer(
+            r'''(["'`])(?:\\.|(?!\1).)*\1''', line))
+        if quoted or multiline or (match.group() != "wonder" and stripped.startswith("Wonder ")):
+            return "rename", "String/prose candidate shown by app, CLI or backend; verify caller and exclude developer logs before editing."
+        return "keep-internal", "Code symbol or nonliteral developer reference."
+    return "keep-internal", "Unowned/internal format; inspect manually before any scope expansion."
+
+
+def scan_lines(path, lines):
+    section = surface(path)
+    source = "\n".join(lines)
+    literal_ranges = None
+    excluded = []
+    if Path(path).suffix in {".swift", ".rs"}:
+        strings, code = LEXER["literals"](source)
+        literal_ranges = [(off, off + len(value)) for off, value in strings]
+        excluded = LEXER["excluded_ranges"](code)
+    elif Path(path).suffix in {".mjs", ".js", ".ts"}:
+        # Runtime copy also lives in multiline JS templates (privacy HTML and
+        # agent instructions). Restrict edits to quoted spans, not nearby code.
+        literal_ranges = js_literals(source)
+    test_region = False
+    multiline = False
+    offset = 0
+    for number, line in enumerate(lines, 1):
+        # Rustfmt puts a top-level module's final brace at column zero. Do not
+        # let a cfg(test) import or one inline module hide later production code.
+        if path.endswith(".rs") and re.match(r"^mod \w*tests\w*\s*\{", line):
+            test_region = True
+        for match in BRAND.finditer(line):
+            position = offset + match.start()
+            in_literal = literal_ranges is not None and any(a <= position < b for a, b in literal_ranges)
+            tag, reason = classify(path, line, match, section, test_region, multiline or in_literal)
+            help_doc = path.endswith("/headless/cli.rs") and line.lstrip().startswith("///")
+            if literal_ranges is not None and not help_doc and (
+                not any(a <= position < b for a, b in literal_ranges)
+                or any(a <= position < b for a, b in excluded)
+            ):
+                tag, reason = "keep-internal", "Code/comment, test or diagnostic log; shared Swift/Rust literal parser."
+            yield dict(surface=section, path=path, line=number, column=match.start() + 1,
+                       tag=tag, reason=reason, text=line.strip())
+        if path.endswith(".rs") and line == "}":
+            test_region = False
+        if line.count('"""') % 2:
+            multiline = not multiline
+        offset += len(line) + 1
+
+
+def inventory(ref=None):
+    contents = None
+    if ref:
+        tree = subprocess.check_output(["git", "-C", str(ROOT), "ls-tree", "-r", "-z", ref]).decode().split("\0")
+        entries = [entry.split("\t", 1) for entry in tree if entry and entry.startswith("100")]
+        tracked = [path for _, path in entries]
+        objects = [meta.split()[2] for meta, _ in entries]
+        raw = subprocess.check_output(["git", "-C", str(ROOT), "cat-file", "--batch"],
+                                      input=("\n".join(objects) + "\n").encode())
+        contents, offset = {}, 0
+        for path in tracked:
+            end = raw.index(b"\n", offset)
+            size = int(raw[offset:end].split()[-1])
+            contents[path] = raw[end+1:end+1+size]
+            offset = end + size + 2
+    else:
+        tracked = subprocess.check_output(["git", "-C", str(ROOT), "ls-files", "--cached", "--others", "--exclude-standard", "-z"]).decode().split("\0")
+    rows, excluded = [], []
+    scanned = 0
+    for path in sorted(p for p in tracked if p and p not in SELF):
+        full = ROOT / path
+        if contents is None and (not full.is_file() or full.is_symlink()):
+            continue
+        data = contents[path] if contents is not None else full.read_bytes()
+        try:
+            if b"\0" in data:
+                raise UnicodeError()
+            lines = data.decode("utf-8").splitlines()
+        except UnicodeError:
+            excluded.append(path)
+            continue
+        scanned += 1
+        rows.extend(scan_lines(path, lines))
+        # Only distribution filenames are externally addressed product names.
+        if path.startswith("distribution/") and "wonder.rb" in path:
+            rows.append(dict(surface="installers-homebrew", path=path, line=0, column=0,
+                             tag="rename", reason="Public Homebrew formula/cask filename becomes cupola.rb.in.", text=path))
+    return rows, scanned, excluded
+
+
+def totals(rows):
+    grouped = defaultdict(Counter)
+    for row in rows:
+        grouped[row["surface"]][row["tag"]] += 1
+    return {name: dict(counts) for name, counts in sorted(grouped.items())}
+
+
+def self_test():
+    cases = [
+        ("apps/ios/Wonder/View.swift", 'Text("Open Wonder")', ["rename"]),
+        ("apps/ios/Wonder/View.swift", 'import WonderPairing', ["keep-internal"]),
+        ("apps/ios/Wonder/View.swift", '// Open Wonder', ["keep-internal"]),
+        ("apps/ios/Wonder/View.swift", 'Text("Wonder uses WONDER_DATA_DIR and ~/.wonder")', ["rename", "keep-internal", "keep-internal"]),
+        ("apps/ios/Wonder.xcodeproj/project.pbxproj", 'WONDER_APP_DISPLAY_NAME = "Wonder Testing";', ["keep-internal", "rename"]),
+        ("apps/ios/Wonder/Wonder.entitlements", '<string>group.com.swaymun.wonder</string>', ["keep-internal"]),
+        ("crates/wonderd/src/headless/cli.rs", '/// Start the Wonder host', ["rename"]),
+        ("crates/wonderd/Cargo.toml", 'name = "wonder"', ["rename"]),
+        ("crates/wonderd/Cargo.toml", 'name = "wonderd"', ["keep-internal"]),
+        ("crates/wonderd/src/headless/cli.rs", '"cupola chat --project Wonder"', ["rename"]),
+        ("README.md", 'xcodebuild -project apps/ios/Wonder.xcodeproj -scheme WonderUITests', ["keep-internal", "keep-internal"]),
+        ("README.md", 'Open Wonder: https://mywonderbot.com ~/.wonder WONDER_DATA_DIR', ["rename", "keep-internal", "keep-internal", "keep-internal"]),
+        ("plans/old.md", 'Wonder was the old product name', ["keep-internal"]),
+        (".orch/briefs/unit.md", 'Rename Wonder to Cupola', ["keep-internal"]),
+        ("apps/ios/WonderWidget/Widget.swift", '.accessibilityLabel("Wonder, ready")', ["rename"]),
+        ("apps/ios/PushShared/PushPreview.swift", 'let category = "wonder.command-approval"', ["keep-internal"]),
+        ("crates/wonderd/src/ingestion.rs", 'let key = "_wonderRuntimeId";', ["keep-internal"]),
+        ("crates/wonder-api/src/pairing.rs", 'const DOMAIN: &str = "wonder-session-v1";', ["keep-internal"]),
+        ("services/push/src/cloudflare.ts", 'const name = `wonder-${label}`;', ["keep-internal"]),
+        ("crates/wonder-store/src/queue.rs", 'let state = "accepted_by_wonder";', ["keep-internal"]),
+        ("README.md", 'See apps/ios/Wonder/View.swift; run `wonder status`.', ["keep-internal", "rename"]),
+        ("llms.txt", '# Wonder', ["rename"]),
+    ]
+    for path, line, expected in cases:
+        actual = [classify(path, line, m, surface(path))[0] for m in BRAND.finditer(line)]
+        if actual != expected:
+            raise AssertionError(f"{path}: {line!r}: {actual} != {expected}")
+    source = ["#[cfg(all(test, unix))]", "mod test_support;", 'fn before() { println!("Wonder before"); }',
+              "#[cfg(test)]", "mod distribution_contract_tests {", '    let help = "Wonder fixture";', "}",
+              'fn after() { println!("Wonder after"); }']
+    actual = [r["tag"] for r in scan_lines("crates/wonderd/src/headless/main.rs", source)]
+    if actual != ["rename", "keep-internal", "rename"]:
+        raise AssertionError(f"Test module boundaries hid production text: {actual}")
+    for path, source, expected in [
+        ("apps/ios/Wonder/View.swift", 'Text("wonder")', ["rename"]),
+        ("apps/ios/Wonder/View.swift", 'Text("Open Wonder, WONDER_DATA_DIR ~/.wonder com.swaymun.wonder")',
+         ["rename", "keep-internal", "keep-internal", "keep-internal"]),
+        ("services/claude-runtime/bridge.mjs", 'const x = { wonder: "wonder", title: "Wonder" };',
+         ["keep-internal", "rename", "rename"]),
+        ("services/acp-runtime/projection.mjs", '// Wonder\'s code\nconst wonder = true; const x = wonder ? "Wonder" : "OpenCode";',
+         ["keep-internal", "keep-internal", "keep-internal", "rename"]),
+        ("services/push/src/accounts.ts", 'const html = `<p>Wonder\'s account</p>\n<p>Open Wonder</p>${wonder}`;',
+         ["rename", "rename", "keep-internal"]),
+        ("services/claude-runtime/bridge.mjs", 'const valid = /^wonder:[a-z0-9-]+$/.test(name); const copy = "Open Wonder";',
+         ["keep-internal", "rename"]),
+        ("services/acp-runtime/tool-server.mjs", 'const id = `wonder-${hash("wonder")}`;',
+         ["keep-internal", "rename"]),
+        ("site/public/styles.css", '.brand::after { content: "Wonder"; }', ["rename"]),
+    ]:
+        actual = [row['tag'] for row in scan_lines(path, source.splitlines())]
+        assert actual == expected, (path, source, expected, actual)
+    print(f"Brand inventory self-test: {len(cases) + 9} cases passed.")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--format", choices=("text", "json"), default="text")
+    parser.add_argument("--summary", action="store_true", help="Print per-surface occurrence counts only")
+    parser.add_argument("--surface", help="Only list one named surface")
+    parser.add_argument("--ref", help="Inventory a Git commit with today's policy (read-only)")
+    parser.add_argument("--self-test", action="store_true", help="Check the protected/public classification contract")
+    parser.add_argument("--inventory", action="store_true", help="List classified occurrences without failing")
+    parser.add_argument("--apply", action="store_true", help="Replace reviewed candidate spans; inspect the diff before committing")
+    args = parser.parse_args()
+    if args.self_test:
+        self_test()
+        return 0
+    if args.apply and args.ref:
+        parser.error("--apply cannot edit a Git commit; omit --ref")
+    if not args.ref:
+        for entry in POLICY.get("exceptions", []):
+            path = ROOT / entry["path"]
+            if not path.is_file() or entry["text"] not in {line.strip() for line in path.read_text().splitlines()}:
+                sys.exit(f"Remove stale brand exception in scripts/brand-name-allowlist.json: {entry['path']}: {entry['text']}")
+    rows, scanned, excluded = inventory(args.ref)
+    if args.apply:
+        changes = defaultdict(list)
+        for row in rows:
+            if row["tag"] == "rename" and row["line"]:
+                changes[row["path"]].append(row)
+        for path, hits in changes.items():
+            full = ROOT / path
+            lines = full.read_text().splitlines(keepends=True)
+            for hit in sorted(hits, key=lambda r: (r["line"], r["column"]), reverse=True):
+                line, col = hit["line"] - 1, hit["column"] - 1
+                old = lines[line][col:col+6]
+                replacement = "cupola" if old == "wonder" else "Cupola"
+                lines[line] = lines[line][:col] + replacement + lines[line][col+6:]
+            full.write_text("".join(lines))
+        print(f"Updated candidate spans in {len(changes)} files. Review the diff and rerun without --apply.")
+        return 0
+    if args.surface:
+        rows = [row for row in rows if row["surface"] == args.surface]
+    result = dict(phase="enforced", source_head=subprocess.check_output(
+        ["git", "-C", str(ROOT), "rev-parse", args.ref or "HEAD"], text=True).strip(),
+        scanned_text_files=scanned, excluded_binary_files=excluded, counts=totals(rows))
+    if args.format == "json":
+        if not args.summary:
+            result["occurrences"] = rows
+        print(json.dumps(result, indent=2))
+    elif args.summary:
+        print("surface\trename\tkeep-internal\ttotal")
+        for name, counts in result["counts"].items():
+            rename, keep = counts.get("rename", 0), counts.get("keep-internal", 0)
+            print(f"{name}\t{rename}\t{keep}\t{rename + keep}")
+        print(f"TOTAL\t{sum(r['tag'] == 'rename' for r in rows)}\t{sum(r['tag'] == 'keep-internal' for r in rows)}\t{len(rows)}")
+        print(f"Scanned {scanned} tracked UTF-8 files; excluded {len(excluded)} binary/non-UTF-8 files.")
+    else:
+        for row in rows if args.inventory else [r for r in rows if r['tag'] == 'rename']:
+            print(f"{row['surface']}\t{row['tag']}\t{row['path']}:{row['line']}:{row['column']}\t{row['reason']}\t{row['text']}")
+    failures = [r for r in rows if r['tag'] == 'rename']
+    if not args.inventory and not failures and args.format == 'text' and not args.summary:
+        print(f"Brand name: 0 unreviewed old names; {len(rows)} protected/internal occurrences.")
+    if not args.inventory and failures:
+        print("Use Cupola in visible text and cupola for the public command. Preserve compatibility identifiers with a reviewed reason in scripts/brand-name-allowlist.json.", file=sys.stderr)
+    return int(bool(failures) and not args.inventory)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

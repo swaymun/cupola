@@ -1,0 +1,174 @@
+# devices: duo
+# Merged Chats and Projects across computers; Manage Projects once. Offline fixtures only, no sends.
+# Duo taps and drags are gated (#387): the sidebar and Manage Projects open by launch flags; the Settings > computer > Projects link is captured on iPhone and iPad.
+hinge 0
+orient portrait
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-folded-cupola-light-projects-several
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --arg=-diagnostics-sidebar-all-chats --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-folded-cupola-light-chats-several
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg cupola-light --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-folded-cupola-light-projects-one
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg cupola-light --arg=-diagnostics-sidebar-all-chats --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-folded-cupola-light-chats-one
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+tap --id sidebar-session-filter
+shot a-merged-chats-duo-folded-cupola-light-menu
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --arg=-diagnostics-manage-projects-open
+wait --id project-include:diagnostic-host:read-project --timeout 30
+shot a-merged-chats-duo-folded-cupola-light-manage
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-folded-cupola-dark-projects-several
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --arg=-diagnostics-sidebar-all-chats --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-folded-cupola-dark-chats-several
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg cupola-dark --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-folded-cupola-dark-projects-one
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg cupola-dark --arg=-diagnostics-sidebar-all-chats --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-folded-cupola-dark-chats-one
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+tap --id sidebar-session-filter
+shot a-merged-chats-duo-folded-cupola-dark-menu
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --arg=-diagnostics-manage-projects-open
+wait --id project-include:diagnostic-host:read-project --timeout 30
+shot a-merged-chats-duo-folded-cupola-dark-manage
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg nord --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-folded-nord-projects-several
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg nord --arg=-diagnostics-sidebar-all-chats --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-folded-nord-chats-several
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg nord --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-folded-nord-projects-one
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg nord --arg=-diagnostics-sidebar-all-chats --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-folded-nord-chats-one
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg nord --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+tap --id sidebar-session-filter
+shot a-merged-chats-duo-folded-nord-menu
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg nord --arg=-diagnostics-manage-projects-open
+wait --id project-include:diagnostic-host:read-project --timeout 30
+shot a-merged-chats-duo-folded-nord-manage
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg misty-forest --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-folded-misty-forest-projects-several
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg misty-forest --arg=-diagnostics-manage-projects-open
+wait --id project-include:diagnostic-host:read-project --timeout 30
+shot a-merged-chats-duo-folded-misty-forest-manage
+
+hinge 180
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-unfolded-cupola-light-projects-several --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --arg=-diagnostics-sidebar-all-chats --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-unfolded-cupola-light-chats-several --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg cupola-light --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-unfolded-cupola-light-projects-one --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg cupola-light --arg=-diagnostics-sidebar-all-chats --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-unfolded-cupola-light-chats-one --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+tap --id sidebar-session-filter
+shot a-merged-chats-duo-unfolded-cupola-light-menu --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --arg=-diagnostics-manage-projects-open
+wait --id project-include:diagnostic-host:read-project --timeout 30
+shot a-merged-chats-duo-unfolded-cupola-light-manage --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-unfolded-cupola-dark-projects-several --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --arg=-diagnostics-sidebar-all-chats --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-unfolded-cupola-dark-chats-several --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg cupola-dark --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-unfolded-cupola-dark-projects-one --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg cupola-dark --arg=-diagnostics-sidebar-all-chats --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-unfolded-cupola-dark-chats-one --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+tap --id sidebar-session-filter
+shot a-merged-chats-duo-unfolded-cupola-dark-menu --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --arg=-diagnostics-manage-projects-open
+wait --id project-include:diagnostic-host:read-project --timeout 30
+shot a-merged-chats-duo-unfolded-cupola-dark-manage --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg nord --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-unfolded-nord-projects-several --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg nord --arg=-diagnostics-sidebar-all-chats --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-unfolded-nord-chats-several --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg nord --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-unfolded-nord-projects-one --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg nord --arg=-diagnostics-sidebar-all-chats --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-unfolded-nord-chats-one --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg nord --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+tap --id sidebar-session-filter
+shot a-merged-chats-duo-unfolded-nord-menu --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg nord --arg=-diagnostics-manage-projects-open
+wait --id project-include:diagnostic-host:read-project --timeout 30
+shot a-merged-chats-duo-unfolded-nord-manage --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg misty-forest --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-duo-unfolded-misty-forest-projects-several --display primary-1
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg misty-forest --arg=-diagnostics-manage-projects-open
+wait --id project-include:diagnostic-host:read-project --timeout 30
+shot a-merged-chats-duo-unfolded-misty-forest-manage --display primary-1
+

@@ -1,0 +1,18 @@
+# Codex threads no longer offer "Use skill" in the + menu. Selection only: no model message is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults
+wait --id project-agent-picker --timeout 30
+wait --id new-chat-draft --timeout 15
+tap --id new-chat-attach
+wait --id new-chat-add-sketch --timeout 10
+wait --label "Skills" --gone --timeout 5
+shot codex-skills-new-chat-menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults
+wait --id project-agent-picker --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 15
+tap --id composer-actions
+wait --id composer-add-sketch --timeout 10
+wait --label "Skills" --gone --timeout 5
+shot codex-skills-thread-menu

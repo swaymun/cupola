@@ -1,0 +1,28 @@
+# Hardware keyboard: Command-comma opens Settings, Command-N starts a new chat
+# and Command-F shows Chats with its search field focused. Run with
+# `--input rig` (iPad, Duo): `keys` attaches a virtual hardware keyboard, so the
+# run selects its own state and should release the simulator afterwards.
+# The driver starts with the launch; only the route assertion below uses it.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions
+driver off
+wait --id open-sidebar --timeout 30
+# Command-comma (HID page 7: e3 left Command, 36 comma).
+keys e3:down,36,e3:up
+wait --id settings-follow-up --timeout 10
+shot shortcut-settings
+# Command-N leaves Settings for a fresh draft.
+keys e3:down,11,e3:up
+wait --id settings-follow-up --gone --timeout 10
+driver on
+assert --path route --equals '"new-chat"'
+driver off
+shot shortcut-new-chat
+# Command-F: Chats shows and typing goes straight into its search field.
+keys e3:down,09,e3:up
+wait --id sidebar-search --timeout 10
+type "Read"
+wait --id sidebar-search --contains Read --timeout 5
+wait --id project-row:read-project --timeout 10
+shot shortcut-search
+tap --label "Clear search"

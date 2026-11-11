@@ -1,0 +1,231 @@
+{
+  "errors": {
+    "http:history/activity": 1
+  },
+  "groups": {
+    "cupola/claude/activity": {
+      "patterns": {
+        "indented_fence": 5,
+        "internal_ids": 19,
+        "long_line": 1,
+        "nested_list": 7,
+        "tables": 4,
+        "unclosed_fence_candidate": 3,
+        "xml_tags": 3
+      },
+      "records": 312,
+      "tags": {
+        "other_xml_tag": 3
+      },
+      "utf8_bytes": 472760
+    },
+    "cupola/claude/activity_detail": {
+      "patterns": {
+        "indented_fence": 5,
+        "internal_ids": 31,
+        "long_line": 8,
+        "nested_list": 7,
+        "tables": 4,
+        "unclosed_fence_candidate": 3,
+        "xml_tags": 3
+      },
+      "records": 294,
+      "tags": {
+        "other_xml_tag": 3
+      },
+      "utf8_bytes": 488348
+    },
+    "cupola/claude/assistant": {
+      "patterns": {
+        "escaped_table_pipe": 1,
+        "nested_list": 6,
+        "tables": 3
+      },
+      "records": 76,
+      "tags": {},
+      "utf8_bytes": 60295
+    },
+    "cupola/claude/legacy_assistant": {
+      "patterns": {
+        "escaped_table_pipe": 1,
+        "nested_list": 3,
+        "tables": 1
+      },
+      "records": 17,
+      "tags": {},
+      "utf8_bytes": 15982
+    },
+    "cupola/claude/outbound_receipt": {
+      "patterns": {
+        "escaped_table_pipe": 1,
+        "long_line": 1,
+        "xml_tags": 1
+      },
+      "records": 10,
+      "tags": {
+        "other_xml_tag": 1
+      },
+      "utf8_bytes": 8550
+    },
+    "cupola/claude/user": {
+      "patterns": {
+        "escaped_table_pipe": 2,
+        "long_line": 1,
+        "nested_list": 2,
+        "xml_tags": 1
+      },
+      "records": 13,
+      "tags": {
+        "other_xml_tag": 1
+      },
+      "utf8_bytes": 17604
+    },
+    "cupola/codex/activity": {
+      "patterns": {
+        "internal_ids": 2,
+        "long_line": 2,
+        "nested_list": 6
+      },
+      "records": 147,
+      "tags": {},
+      "utf8_bytes": 240148
+    },
+    "cupola/codex/activity_detail": {
+      "patterns": {
+        "internal_ids": 2,
+        "long_line": 2,
+        "nested_list": 6
+      },
+      "records": 135,
+      "tags": {},
+      "utf8_bytes": 242504
+    },
+    "cupola/codex/assistant": {
+      "patterns": {
+        "nested_list": 3,
+        "tables": 1
+      },
+      "records": 29,
+      "tags": {},
+      "utf8_bytes": 25808
+    },
+    "cupola/codex/legacy_assistant": {
+      "patterns": {
+        "nested_list": 3,
+        "tables": 1
+      },
+      "records": 25,
+      "tags": {},
+      "utf8_bytes": 20667
+    },
+    "cupola/codex/outbound_receipt": {
+      "patterns": {},
+      "records": 8,
+      "tags": {},
+      "utf8_bytes": 12509
+    },
+    "cupola/codex/user": {
+      "patterns": {},
+      "records": 8,
+      "tags": {},
+      "utf8_bytes": 12509
+    },
+    "cupola/cursor/activity": {
+      "patterns": {},
+      "records": 5,
+      "tags": {},
+      "utf8_bytes": 422
+    },
+    "cupola/cursor/activity_detail": {
+      "patterns": {},
+      "records": 1,
+      "tags": {},
+      "utf8_bytes": 41
+    },
+    "cupola/cursor/assistant": {
+      "patterns": {},
+      "records": 5,
+      "tags": {},
+      "utf8_bytes": 128
+    },
+    "cupola/cursor/legacy_assistant": {
+      "patterns": {},
+      "records": 5,
+      "tags": {},
+      "utf8_bytes": 128
+    },
+    "cupola/cursor/outbound_receipt": {
+      "patterns": {},
+      "records": 5,
+      "tags": {},
+      "utf8_bytes": 657
+    },
+    "cupola/cursor/user": {
+      "patterns": {},
+      "records": 5,
+      "tags": {},
+      "utf8_bytes": 657
+    },
+    "cupola/opencode/outbound_receipt": {
+      "patterns": {},
+      "records": 1,
+      "tags": {},
+      "utf8_bytes": 29
+    },
+    "cupola/opencode/user": {
+      "patterns": {},
+      "records": 1,
+      "tags": {},
+      "utf8_bytes": 29
+    },
+    "t3_via_cupola/claude/activity": {
+      "patterns": {
+        "internal_ids": 11
+      },
+      "records": 97,
+      "tags": {},
+      "utf8_bytes": 49143
+    },
+    "t3_via_cupola/claude/activity_detail": {
+      "patterns": {
+        "internal_ids": 11
+      },
+      "records": 67,
+      "tags": {},
+      "utf8_bytes": 37794
+    },
+    "t3_via_cupola/claude/assistant": {
+      "patterns": {
+        "nested_list": 1
+      },
+      "records": 23,
+      "tags": {},
+      "utf8_bytes": 7106
+    },
+    "t3_via_cupola/claude/user": {
+      "patterns": {},
+      "records": 1,
+      "tags": {},
+      "utf8_bytes": 50
+    }
+  },
+  "measured_at": "2026-11-03T03:05:03.641896+00:00",
+  "scope": {
+    "attached_listed": 34,
+    "holder:app": 2,
+    "holder:none": 23,
+    "projects": 19,
+    "projects_still_loading": 0,
+    "projects_with_more_threads": 0,
+    "provider:claude": 13,
+    "provider:codex": 9,
+    "provider:cursor": 3,
+    "provider:opencode": 1,
+    "t3_marked_threads": 2,
+    "threads_read": 26,
+    "threads_with_older_turns": 7,
+    "unattached_not_read": 40
+  },
+  "seconds": 12.73,
+  "source": "rpc"
+}

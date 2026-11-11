@@ -1,0 +1,31 @@
+class Cupola < Formula
+  desc "Persistent agent conversations on your computer, connected to your iPhone"
+  homepage "https://github.com/swaymun/cupola"
+  license "MIT"
+  version "@VERSION@"
+
+@LINUX_STANZAS@
+
+  depends_on :linux
+  conflicts_with "wonder", because: "the previous beta owns the same daemon command"
+@LINUX_ARCH_REQUIREMENT@
+  depends_on "node@24"
+
+  def install
+    libexec.install Dir["*"]
+    (bin/"cupola").write_env_script libexec/"cupola", WONDER_NODE_BIN: Formula["node@24"].opt_bin/"node"
+    bin.install_symlink libexec/"wonderd"
+  end
+
+  def caveats
+    <<~EOS
+      Set up with `cupola init`, then `cupola service install` (starts Cupola now and at every login) and `cupola pair`.
+      Use `brew upgrade cupola` to update a Homebrew installation.
+      For computer viewing, see the private Xvfb setup in the install guide.
+    EOS
+  end
+
+  test do
+    assert_match version.to_s, shell_output("#{bin}/cupola version --json")
+  end
+end

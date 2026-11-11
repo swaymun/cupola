@@ -1,0 +1,37 @@
+# A message sent while a reply runs is decided up front as queued: it shows as
+# Queued from its first frame and never in the conversation as being sent,
+# through the 1.5 s before the Mac's receipt (held by the fixture). The send
+# button says Queue. While nothing is typed, Stop sits in Send's place; with a
+# draft, Stop stays as its own button beside Send (check the shot on Duo). The
+# queued row is matched by its own "Queued message:" label and the draft is
+# read empty, since the words alone also match the editor.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --arg=-wonder.send.followUp --arg=queue
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 15
+wait --id stop-response --timeout 10
+wait --id send-message --gone --timeout 5
+shot send-queued-stop
+tap --id message-draft --type TextArea
+type "Also update the changelog"
+wait --label "Queue message" --timeout 10
+wait --id stop-response --timeout 5
+wait --label "Stop reply" --timeout 5
+shot send-queued-draft-stop
+tap --id send-message
+wait --contains "Queued message: Also update the changelog" --timeout 3
+wait --label "Sending message" --never 5
+wait --contains "Queued message: Also update the changelog" --timeout 3
+wait --id stop-response --timeout 5
+driver on
+assert --path composer.text --equals '""' --timeout 5
+# The computer holds exactly this message in its queue.
+assert --path fixtureSends.bodies --equals '["Also update the changelog"]' --timeout 5
+assert --path fixtureSends.queued --equals 1
+assert --path fixtureSends.duplicates --equals 0
+driver off
+shot send-queued

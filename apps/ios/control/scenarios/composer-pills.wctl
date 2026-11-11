@@ -1,0 +1,83 @@
+# devices: iphone iphone-27
+# Duo shows these tools in panes, not sheets: duo-unfolded/pane-headers.wctl, pills-parity.wctl and composer-pills-duo-actions.wctl.
+# iPad shows this tool in the companion pane, closed from its pill: companion-pane.wctl
+# Pull requests is no pill: the chat's title menu opens it (here as a sheet).
+# Open pills share one selected state (VoiceOver reads it as Open, the others as
+# Closed); Computer keeps any waiting-dialog count.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-pull-requests --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+tap --id conversation-title-menu
+wait --contains "Pull requests" --timeout 5
+tap --contains "Pull requests"
+wait --id pull-request-row:128 --timeout 10
+wait --id changes-scope --gone --timeout 2
+shot composer-pills-pull-requests-open
+swipe down --from-sheet
+wait --id pull-request-row:128 --gone --timeout 10
+
+# At the largest text size, Questions stays reachable while the transcript
+# scrolls. iPhone keeps it beside the pill row; Duo puts it in the native rail.
+# Neither placement scrolls away with the transcript.
+launch --fixture subagent-fixture --fixture goal-fixture --fixture project-subagents --fixture project-pull-requests --fixture opencode-fixture --fixture opencode-approval --arg=-composerPills --arg=computer,files,terminal,preview,goal,agentTasks,git,attention --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL --arg=-diagnostics-requests-stay-closed
+wait --id question-dock-open --timeout 20
+shot composer-pills-attention-pinned
+swipe down --in conversation-scroll
+wait --id question-dock-open
+swipe up --in conversation-scroll
+wait --id question-dock-open
+shot composer-pills-attention-pinned-scrolled
+
+# Phone sheets swipe down; full-screen viewers retain Close. Exercise two fresh
+# openings of Terminal followed by two of Computer; each closes fully and leaves
+# no sheet selection behind.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture terminal-preview --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture computer-simulator-fixture --arg=-composerPills --arg=preview,terminal,computer,files,git --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+driver off
+wait --id conversation-terminal-pill --contains "Closed" --timeout 20
+tap --id conversation-terminal-pill
+wait --id terminal-output --contains "build.sh" --timeout 10
+shot composer-pills-terminal-open
+swipe down --from terminal-title
+wait --id terminal-sheet --gone --timeout 10
+wait --id conversation-terminal-pill --contains "Closed" --timeout 10
+tap --id conversation-terminal-pill
+wait --id terminal-output --contains "build.sh" --timeout 10
+swipe down --from terminal-title
+wait --id terminal-sheet --gone --timeout 10
+wait --id conversation-terminal-pill --contains "Closed" --timeout 10
+shot composer-pills-terminal-closed-twice
+wait --id computer-status-pill --contains "Closed" --timeout 10
+tap --id computer-status-pill
+# On the Duo cover the viewer's Close is its own Computer pill in the system bar: the second
+# "Open" match (the chat's pill under the viewer is the first).
+wait --id computer-session-container --timeout 15
+shot composer-pills-computer-open
+tap --id computer-session-close --optional --timeout 1
+tap --id computer-status-pill --contains "Open" --nth 1 --optional --timeout 1
+wait --id computer-session-container --gone --timeout 10
+wait --id computer-status-pill --contains "Closed" --timeout 10
+wait --id conversation-terminal-pill --contains "Closed" --timeout 10
+tap --id computer-status-pill
+wait --id computer-session-container --timeout 15
+tap --id computer-session-close --optional --timeout 1
+tap --id computer-status-pill --contains "Open" --nth 1 --optional --timeout 1
+wait --id computer-session-container --gone --timeout 10
+wait --id computer-status-pill --contains "Closed" --timeout 10
+wait --id conversation-terminal-pill --contains "Closed" --timeout 10
+wait --id message-draft --timeout 10
+# Files shares the selection too, but keeps its inline phone surface.
+tap --id conversation-files-pill
+wait --id workspace-file-list --timeout 10
+tap --id conversation-files-pill
+wait --id workspace-file-list --gone --timeout 10
+shot composer-pills-tools-closed-twice
+
+driver on
+assert --path sheets --equals '[]' --timeout 10
+assert --path pane --equals null --timeout 10
+assert --path panels --equals '[]' --timeout 10
+assert --path presented --equals '[]' --timeout 10
+driver off

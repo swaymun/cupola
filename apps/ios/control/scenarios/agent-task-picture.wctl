@@ -1,0 +1,31 @@
+# A picture an agent task viewed, as its provider records it (a path on the Mac,
+# no file Cupola saved), shows in its transcript as its name with where to see it.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-subagent-status-pill --timeout 20
+tap --id project-subagent-status-pill
+wait --id project-subagent-roster:fixture-second-child-thread --timeout 10
+tap --id project-subagent-roster:fixture-second-child-thread
+wait --contains "Builder completed the file review." --timeout 15
+wait --id project-subagent-media:project-second-child-turn/project-second-child-chart --contains "Open it on your computer to see it." --timeout 10
+shot agent-task-picture
+
+# Conversation hides the task's Working group while preserving its picture notice.
+# A picture an agent task viewed, as its provider records it (a path on the Mac,
+# no file Cupola saved), shows in its transcript as its name with where to see it.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture conversation-only
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-subagent-status-pill --timeout 20
+tap --id project-subagent-status-pill
+wait --id project-subagent-roster:fixture-second-child-thread --timeout 10
+tap --id project-subagent-roster:fixture-second-child-thread
+wait --contains "Builder completed the file review." --timeout 15
+wait --id project-subagent-media:project-second-child-turn/project-second-child-chart --contains "Open it on your computer to see it." --timeout 10
+wait --id activity-group:project-second-child-turn/project-second-child-chart --gone --timeout 10
+shot agent-task-picture-conversation

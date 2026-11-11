@@ -1,0 +1,65 @@
+# Settings > computer > Cupola skills: when the Mac's Codex and Claude
+# offer Cupola's skills, each skill has its own switch, all off, with an
+# explanation of what they do and which agents use them. A switch shows saving
+# progress, a refused save says so and stays off, and a saved switch is still
+# on when Settings is opened again. The fixture stands in for the Mac; nothing
+# is sent to an agent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture wonder-skills --fixture wonder-skills-held --fixture wonder-skills-fail-once
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+tap --label "Synthetic fixture" --type Button
+# The section sits at the end of connection settings, above Remove connection;
+# a swipe made while the last one still scrolls only stops it, so each waits
+# for the scroll to settle; extra swipes at the end are harmless.
+swipe up --in connection-settings
+wait --id wonder-skill-saving:wonder-share-to-phone --never 1.5
+swipe up --in connection-settings
+wait --id wonder-skill-saving:wonder-share-to-phone --never 1.5
+swipe up --in connection-settings
+wait --id wonder-skill-saving:wonder-share-to-phone --never 1.5
+swipe up --in connection-settings
+wait --id wonder-skill-saving:wonder-share-to-phone --never 1.5
+swipe up --in connection-settings
+wait --id wonder-skill-saving:wonder-share-to-phone --never 1.5
+# Three skills lengthen the list: one more swipe, then let it settle so the
+# switch frames below are final before the press.
+swipe up --in connection-settings
+wait --id wonder-skill-saving:wonder-share-to-phone --never 1.5
+wait --id wonder-skill:wonder-phone-questions --timeout 5
+wait --id wonder-skill:wonder-phone-replies --contains "0" --timeout 5
+wait --id wonder-skills-footer --contains "When on, Codex and Claude threads" --timeout 5
+wait --id wonder-skill:wonder-phone-questions --contains "0" --timeout 5
+shot wonder-skills-off
+# A switch takes a short press: AXe's instant tap on a SwiftUI switch is
+# dropped about half the time, while a 0.15 s press toggles it every time.
+# The first save is refused: progress, then the reason, and the switch stays off.
+hold --id wonder-skill:wonder-phone-questions --seconds 0.15
+wait --id wonder-skill-saving:wonder-phone-questions --timeout 5
+shot wonder-skills-saving
+signal wonder-skill-save
+wait --id wonder-skill-failure:wonder-phone-questions --contains "Couldn’t turn this on" --timeout 10
+wait --id wonder-skill:wonder-phone-questions --contains "0" --timeout 5
+shot wonder-skills-refused
+# The retry is saved on the Mac.
+hold --id wonder-skill:wonder-phone-questions --seconds 0.15
+wait --id wonder-skill:wonder-phone-questions --contains "1" --timeout 10
+wait --id wonder-skill-failure:wonder-phone-questions --gone --timeout 5
+wait --id wonder-skill:wonder-phone-replies --contains "0" --timeout 5
+shot wonder-skills-on
+# Opening Settings again reads the saved choice from the Mac.
+back
+tap --label "Synthetic fixture" --type Button
+swipe up --in connection-settings
+wait --id wonder-skill-saving:wonder-share-to-phone --never 1.5
+swipe up --in connection-settings
+wait --id wonder-skill-saving:wonder-share-to-phone --never 1.5
+swipe up --in connection-settings
+wait --id wonder-skill-saving:wonder-share-to-phone --never 1.5
+swipe up --in connection-settings
+wait --id wonder-skill-saving:wonder-share-to-phone --never 1.5
+swipe up --in connection-settings
+wait --id wonder-skill-saving:wonder-share-to-phone --never 1.5
+wait --id wonder-skill:wonder-phone-questions --contains "1" --timeout 15
+shot wonder-skills-persisted

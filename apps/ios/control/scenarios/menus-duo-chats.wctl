@@ -1,0 +1,16 @@
+# devices: duo
+# visual-review: folded Chats begins with the action row; no separate title strip.
+# Offline fixtures only, no sends.
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+tap --id open-sidebar
+assert --path sidebarOpen --equals true
+driver off
+wait --id sidebar-new-chat --timeout 15
+wait --id sidebar-search --timeout 10
+order --axis y --ids sidebar-new-chat,sidebar-search
+assert --label "Chats" --gone
+shot menus-duo-chats --display primary

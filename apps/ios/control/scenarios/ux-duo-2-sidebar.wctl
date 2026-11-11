@@ -1,0 +1,73 @@
+# devices: iphone ipad
+# UX-DUO-2: the sidebar's ⋯ menu has no status filter; choosing chats shows one toolbar line (Cancel, "N selected", Select All);
+# there is no bell with nothing waiting and, with requests, lists them in the sidebar above Search;
+# Manage Projects swipes to Delete (one plain confirmation) and removes the Project with its chats. Owned fixtures, no sends.
+# Light, then dark. Duo is covered by ux-duo-2-sidebar-duo.wctl.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+tap --id sidebar-session-filter
+wait --label "Select chats" --timeout 10
+wait --label "Manage Projects" --timeout 10
+wait --label "Needs input" --gone --timeout 2
+shot ux-duo-2-light-menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --fixture sidebar-open --arg=-diagnostics-sidebar-selecting
+wait --id threads-select-all --timeout 30
+wait --id threads-selection-count --contains "0 selected" --timeout 10
+order --axis x --ids threads-selection-cancel,threads-selection-count,threads-select-all
+tap --id threads-select-all
+wait --id threads-selection-count --contains "selected" --timeout 10
+shot ux-duo-2-light-selecting
+# Nothing waiting: there is no bell and no list.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture theme --arg cupola-light --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+wait --id sidebar-needs-you --gone --timeout 5
+wait --id needs-you-list --gone --timeout 3
+shot ux-duo-2-light-bell-empty
+# Requests: the list sits in the sidebar above Search, never over it.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg cupola-light
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+wait --id needs-you-list --timeout 20
+order --axis y --ids sidebar-needs-you,needs-you-list,sidebar-search
+shot ux-duo-2-light-bell-list
+tap --id sidebar-needs-you
+wait --id needs-you-list --gone --timeout 5
+# Manage Projects: swipe a Project, Delete, one confirmation, and it (with its chats) is gone.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg cupola-light --arg=-diagnostics-manage-projects-open
+wait --id project-include:diagnostic-host:read-project --timeout 30
+shot ux-duo-2-light-manage
+swipe left --from-label "Read status"
+wait --id project-delete:read-project --timeout 10
+shot ux-duo-2-light-manage-swipe
+tap --id project-delete:read-project
+wait --label "Delete “Read status”?" --timeout 10
+# The consequence sentence is read in the confirm capture (the popover does not expose it reliably).
+shot ux-duo-2-light-manage-confirm
+tap --id project-delete-confirm
+wait --id project-include:diagnostic-host:read-project --gone --timeout 15
+shot ux-duo-2-light-manage-deleted
+# What the device forgot is asserted by ux-duo-2-project-delete.wctl (needs the --driver build).
+# Dark.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+tap --id sidebar-session-filter
+wait --label "Select chats" --timeout 10
+shot ux-duo-2-dark-menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --fixture sidebar-open --arg=-diagnostics-sidebar-selecting
+wait --id threads-select-all --timeout 30
+tap --id threads-select-all
+wait --id threads-selection-count --contains "selected" --timeout 10
+shot ux-duo-2-dark-selecting
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture theme --arg cupola-dark --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+wait --id sidebar-needs-you --gone --timeout 5
+wait --id needs-you-list --gone --timeout 3
+shot ux-duo-2-dark-bell-empty
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg cupola-dark
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+wait --id needs-you-list --timeout 20
+shot ux-duo-2-dark-bell-list
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --arg=-diagnostics-manage-projects-open
+wait --id project-include:diagnostic-host:read-project --timeout 30
+shot ux-duo-2-dark-manage

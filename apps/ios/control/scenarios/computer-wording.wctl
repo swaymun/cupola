@@ -1,0 +1,35 @@
+# Generic paired-host copy: unknown platforms say computer, not Mac.
+# These isolated fixtures never pair a real host or start provider work.
+launch --fixture unpaired
+wait --id welcome-add-computer --timeout 30
+wait --contains "Chat with agents on your computer"
+shot computer-wording-welcome
+sidebar open
+wait --id sidebar-add-computer
+shot computer-wording-empty-chats
+
+# Select the offline state before opening Automations; do not wait for a poll.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture mac-offline
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-automations --timeout 20
+signal mac-gone
+button home
+activate
+wait --contains "disconnected" --timeout 20
+tap --id sidebar-automations
+wait --id automations-offline --timeout 20
+wait --id automations-offline --contains "offline" --timeout 10
+# The offline line is the only message: no second failure, no empty-list row.
+wait --contains "Connect to your computer" --never 1
+# Offline is a red dot: no Try again beside it.
+wait --id automations-retry --gone --timeout 5
+shot computer-wording-automations-offline
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id project-thread:claude:9c4f2e17-3b8a-4d5c-a6e1-7f0b2c3d4e5f --timeout 20
+signal mac-waiting
+wait --label "Waiting for you on your computer" --timeout 10
+shot computer-wording-approvals-waiting

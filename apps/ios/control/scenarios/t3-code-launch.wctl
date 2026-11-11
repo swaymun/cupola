@@ -1,0 +1,102 @@
+# Computer default on: the fresh draft starts in T3 Code without a menu tap.
+# All sends below use the existing synthetic host; no real T3/model work.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --fixture t3-code-default-on
+wait --id new-chat-draft --timeout 30
+wait --id composer-start-in-t3 --timeout 15
+shot t3-default-connected
+# A draft override is independent of the saved computer default.
+tap --id composer-start-in-t3
+wait --id composer-start-in-t3 --gone --timeout 10
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id computer-start-new-chats-in-t3 --contains "1" --timeout 15
+wait --id computer-new-chat-default-loading --gone --timeout 10
+shot t3-default-setting-on
+# Read/write in Settings, then leave and reopen to read the saved host value.
+tap --id computer-start-new-chats-in-t3
+wait --id computer-start-new-chats-in-t3 --contains "0" --timeout 10
+wait --id computer-new-chat-default-loading --gone --timeout 10
+back
+tap --id settings-computer:diagnostic-host
+wait --id computer-start-new-chats-in-t3 --contains "0" --timeout 15
+tap --id computer-start-new-chats-in-t3
+wait --id computer-start-new-chats-in-t3 --contains "1" --timeout 10
+wait --id computer-new-chat-default-loading --gone --timeout 10
+back
+back
+wait --id new-chat-draft --timeout 10
+wait --id composer-start-in-t3 --gone --timeout 10
+shot t3-default-draft-override
+# Same default on, but T3 Code disconnected: normal provider, visible reason,
+# and a working connection route. The fixture keeps the Project's folder.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --fixture t3-code-default-on --fixture t3-code-default-disconnected
+wait --id new-chat-draft --timeout 30
+wait --id new-chat-t3-default-fallback --contains "T3 Code isn’t connected on" --timeout 15
+wait --id composer-start-in-t3 --gone --timeout 10
+wait --id project-agent-picker --timeout 10
+shot t3-default-disconnected
+tap --id new-chat-t3-default-connect
+wait --id t3code-connect --timeout 10
+tap --id t3code-connect
+wait --id t3code-status --contains "Connected" --timeout 15
+swipe down --from connected-apps-title
+wait --id composer-start-in-t3 --timeout 15
+wait --id new-chat-t3-default-fallback --gone --timeout 10
+shot t3-default-after-connect
+
+# New chat starts a thread in T3 Code on the computer, on exactly the chosen
+# provider and model. With T3 Code connected and the Project's folder known,
+# the New chat toolbar offers Start in T3 Code for Claude and Codex; its
+# selected state shows the choice, and tapping it turns it off. Providers and
+# models come from the T3 catalog. The first launch gets no answer: the
+# message stays in the composer and an open notice says it may have started
+# and to check T3 Code. Send then asks first (a second launch could start a
+# second thread); Send again anyway starts it: the thread's conversation
+# opens at once with the message and "Starting in T3 Code…", and when T3
+# Code's agent session joins it (4 s later in the fixture) the line goes and
+# the reply shows in the same conversation. Host response fixture only: no T3
+# Code or model work.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-launch
+wait --id new-chat-draft --timeout 30
+wait --id new-chat-attach --timeout 10
+shot t3-launch-menu
+tap --id new-chat-attach
+tap --id new-chat-add-t3
+wait --id composer-start-in-t3 --timeout 5
+wait --id new-chat-t3-note --gone --timeout 5
+# T3 destination offers only its connected compatible providers and models.
+tap --id project-agent-picker
+wait --id new-chat-agent:claude --timeout 10
+assert --id new-chat-agent:opencode --gone
+tap --id new-chat-agent:claude
+wait --id new-chat-model:t3:claudeAgent:claude-sonnet-5-5 --timeout 10
+tap --id new-chat-model:t3:claudeAgent:claude-sonnet-5-5
+wait --id sheet-top --gone --timeout 10
+wait --id composer-start-in-t3 --timeout 10
+wait --id new-chat-t3-note --gone --timeout 5
+tap --id new-chat-draft --type TextArea
+type "Draft the release notes"
+shot t3-launch-on
+tap --id new-chat-send
+# Not a collapsed failure: the guidance shows without expanding anything.
+wait --id new-chat-t3-unconfirmed --contains "Not sure it started in T3 Code" --timeout 10
+wait --id new-chat-t3-unconfirmed --contains "Check T3 Code on your computer before trying again." --timeout 5
+wait --contains "Draft the release notes" --timeout 5
+wait --id composer-start-in-t3 --timeout 5
+shot t3-launch-unconfirmed
+tap --id new-chat-send
+wait --label "Send again anyway?" --timeout 5
+shot t3-launch-resend-confirm
+tap --label "Send again anyway" --type Button
+# The conversation opens at once, with the message and that it is starting.
+wait --id conversation-starting-notice --contains "Starting in T3 Code" --timeout 15
+wait --contains "Draft the release notes" --timeout 5
+shot t3-launch-pending
+# T3 Code's session joins the same conversation: the line goes, the reply shows.
+wait --contains "Started in T3 Code: drafting the release notes." --timeout 30
+wait --id conversation-starting-notice --gone --timeout 5
+wait --contains "Draft the release notes" --timeout 5
+shot t3-launch-bound

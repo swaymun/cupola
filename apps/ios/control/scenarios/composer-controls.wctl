@@ -1,0 +1,101 @@
+# devices: iphone iphone-27 ipad
+# nightly-ipad: the same composer row and native attachment menu in the detail column.
+# Offline Project/voice fixtures only. Native AX frames prove Permissions →
+# Dictate → Talk with voice, including AX5. No microphone or model work.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture voice-preview --fixture open-project-thread --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+driver off
+wait --id project-composer-access --timeout 30
+wait --id voice-start --label "Talk with voice"
+order --axis x --ids project-composer-access,dictate-message,voice-start
+wait --id composer-actions
+wait --id project-composer-model
+wait --id project-composer-effort
+shot composer-controls
+# Voice is reached directly, without opening Plus. Resulting state, not a tap.
+tap --id voice-start
+wait --id voice-panel --timeout 10
+driver on
+assert --path voice.chatID --equals '"fixture-parent-conversation"'
+assert --path voice.historyUnchanged --equals true
+assert --path fixtureSends.bodies --equals '[]'
+driver off
+wait --id voice-confirmation-summary
+wait --id voice-agent-caption --gone --timeout 3
+reveal up --id voice-confirmation-confirm --max-drags 0
+reveal up --id voice-end --max-drags 0
+shot composer-controls-voice
+tap --id voice-end
+wait --id voice-panel --gone --timeout 5
+wait --id message-draft
+order --axis x --ids project-composer-access,dictate-message,voice-start
+# Plus still exposes the media actions and opens the native file picker.
+tap --id composer-actions
+wait --label "Camera"
+wait --label "Add media"
+wait --label "Attach file"
+shot composer-controls-attachments
+tap --label "Attach file" --type Button
+wait --label "Cancel" --timeout 10
+shot composer-controls-file-picker
+# Full-slim iPad Files exposes Cancel as a 1 pt AX Group. Dismiss through
+# the existing importer binding; native file selection/cancel stays unverified.
+driver on
+dismiss
+assert --path presented --equals '[]' --timeout 10
+driver off
+wait --id message-draft --timeout 10
+# Questions and permissions remain visible above the new row.
+launch --fixture read-preview --fixture send-preview --fixture phone-approval-preview --arg command
+wait --id question-dock-open --timeout 20
+order --axis x --ids project-composer-access,dictate-message,voice-start
+# The request opens in front by itself; the composer row stays below it.
+wait --id approval-decline-fixture-command --timeout 5
+shot composer-controls-approval
+shot composer-controls-approval-open
+launch --fixture read-preview --fixture send-preview --fixture question-preview
+wait --id question-dock-open --timeout 20
+order --axis x --ids project-composer-access,dictate-message,voice-start
+wait --contains "Which day works best?" --timeout 5
+shot composer-controls-question
+shot composer-controls-question-open
+# Largest text keeps readable choices above a stable action row.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture voice-preview --fixture open-project-thread --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+driver off
+wait --id project-composer-access --timeout 30
+order --axis x --ids composer-actions,project-composer-access,dictate-message,voice-start,send-message
+order --axis y --ids project-composer-model,project-composer-access
+order --axis y --ids project-composer-model,project-composer-effort,project-composer-access
+wait --id conversation-loading --gone --timeout 15
+shot composer-controls-ax5
+# New chat preserves the same order. Before a thread exists, voice uses the
+# existing standalone sheet (the same behavior as the Action button shortcut).
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture fresh-agent-defaults --fixture send-states --fixture voice-preview --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+driver off
+wait --id new-chat-access --timeout 30
+order --axis x --ids new-chat-attach,new-chat-access,dictate-message,voice-start,new-chat-send
+order --axis y --ids project-agent-picker,new-chat-access
+order --axis y --ids project-agent-picker,new-chat-effort,new-chat-access
+wait --id new-chat-send --timeout 10
+tree --json
+shot composer-controls-new-chat-ax5
+tap --id voice-start
+wait --id voice-panel --timeout 10
+wait --id voice-session-bar:diagnostic-host --gone --timeout 5
+order --axis y --ids voice-sheet-computer,voice-confirmation-summary,voice-confirmation-cancel,voice-confirmation-confirm,voice-end
+wait --id voice-time-left --timeout 5
+tree --json
+shot composer-controls-new-chat-voice
+# Native frames and successful Cancel/End actions prove placement without
+# scrolling. The reveal helper counts retained iPad background content as an
+# occluder (#551); its failed receipt was inspected before using real taps.
+order --axis x --ids voice-mute,voice-end
+shot composer-controls-new-chat-voice-end-reachable
+tap --id voice-confirmation-cancel
+wait --id voice-confirmation --gone --timeout 5
+tap --id voice-end
+wait --id voice-panel --gone --timeout 5
+wait --id new-chat-draft
+order --axis x --ids new-chat-access,dictate-message,voice-start

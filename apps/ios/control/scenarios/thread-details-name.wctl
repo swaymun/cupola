@@ -1,0 +1,32 @@
+# devices: iphone
+# Thread details as a sheet on a phone-width window: once the name is changed
+# a swipe can't drop it, Cancel discards it and Done saves it. The fixture has
+# no computer, so Done's save fails: the sheet stays with the typed name and
+# the reason. iPad: thread-details-name-pane.wctl. Saving a name and refusing a
+# blank one are owned by WonderDiagnosticsTests/testThreadDetailsTitle*.
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview
+wait --id conversation-title-menu --timeout 20
+tap --id conversation-title-menu
+tap --label "Chat details"
+wait --id thread-details-rename --timeout 10
+tap --id thread-details-rename
+wait --id thread-details-name --timeout 10
+wait --id thread-details-cancel --gone --timeout 2
+tap --id thread-details-name
+type " renamed"
+wait --id thread-details-cancel --timeout 5
+shot iphone-details-name-typed
+swipe down --from thread-details-done
+wait --id thread-details-name --contains "renamed" --timeout 5
+tap --id thread-details-done
+wait --contains "The name wasn" --timeout 20
+wait --id thread-details-name --contains "renamed" --timeout 2
+shot iphone-details-done-failed
+tap --id thread-details-cancel
+wait --id thread-details-name --gone --timeout 5
+tap --id conversation-title-menu
+tap --label "Chat details"
+wait --id thread-details-rename --timeout 10
+tap --id thread-details-rename
+wait --id thread-details-name --timeout 10
+wait --id thread-details-cancel --gone --timeout 2

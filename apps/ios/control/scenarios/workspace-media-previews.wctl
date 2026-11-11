@@ -1,0 +1,38 @@
+# Files previews beyond text: an EPUB book and a GLB model have no preview and
+# say to open them on the computer; the photo viewer offers Share, Copy and
+# Save with the sketch sheet. Back from a preview returns to the Files list,
+# which stays open.
+launch --fixture read-preview --fixture send-preview --fixture files-preview --fixture project-files-conversation-preview --fixture workspace-document-preview --fixture artifact-annotation-preview
+wait --id conversation-files-pill
+tap --id conversation-files-pill
+wait --id workspace-file-list
+swipe up --in workspace-file-list
+swipe up --in workspace-file-list
+tap --id workspace-file-entry:keepers-log.epub --timeout 5
+wait --id workspace-preview-unavailable --timeout 10
+wait --contains "Open it on your computer"
+shot epub-no-preview
+tap --id workspace-preview-back
+wait --id workspace-file-list
+swipe up --in workspace-file-list
+swipe up --in workspace-file-list
+tap --id workspace-file-entry:house.glb --timeout 5
+wait --id workspace-preview-unavailable --timeout 10
+shot glb-no-preview
+tap --id workspace-preview-back
+wait --id workspace-file-list
+swipe up --in workspace-file-list
+swipe up --in workspace-file-list
+tap --id workspace-file-entry:mug.jpg --timeout 5
+wait --id photo-viewer-share --timeout 10
+wait --id photo-viewer-save
+clipboard --clear
+shot photo-before-copy
+tap --id photo-viewer-copy
+wait --contains "Image copied"
+shot photo-after-copy
+# This is a read-only preview, so no durable attachment destination exists.
+wait --id workspace-sketch-open
+wait --id workspace-sketch-unavailable
+shot sketch-unavailable-in-read-only-preview
+wait --id photo-viewer-copy

@@ -1,0 +1,28 @@
+# Automations: a failed run shows the computer's reason; Run now starts a run
+# and says where its reply goes; Delete asks first and removes the row; a
+# refused Run now or Delete explains itself in the computer's words.
+launch --fixture automations-fixture --fixture automations-failed-run
+wait --id automation-last-failure:fixture-morning-schedule --timeout 15
+wait --contains "paired phone or iPad" --timeout 5
+shot automations-failed-run
+launch --fixture automations-fixture --fixture automations-existing-project
+wait --id automation-run:fixture-project-schedule --timeout 15
+tap --id automation-run:fixture-project-schedule
+wait --id automation-run-notice:fixture-project-schedule --timeout 10
+wait --id automation-running:fixture-project-schedule --timeout 10
+shot automations-run-now
+tap --id automation-delete:fixture-morning-schedule
+wait --id automation-delete-confirm --timeout 10
+shot automations-delete-confirm
+tap --id automation-delete-confirm
+wait --id automation-row:fixture-morning-schedule --gone --timeout 10
+wait --id automation-row:fixture-project-schedule --timeout 5
+launch --fixture automations-fixture --fixture automations-run-refused --fixture automations-delete-refused
+wait --id automation-run:fixture-morning-schedule --timeout 15
+tap --id automation-run:fixture-morning-schedule
+wait --contains "The selected agent is offline." --timeout 10
+tap --id automation-delete:fixture-morning-schedule
+tap --id automation-delete-confirm
+wait --contains "Wait for this automation to finish" --timeout 10
+wait --id automation-row:fixture-morning-schedule --timeout 5
+shot automations-refused

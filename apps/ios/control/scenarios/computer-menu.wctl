@@ -1,0 +1,67 @@
+# nightly-ipad: the computer menu presents as a popover on iPad
+# The computer view always shows the whole screen; the menu lists computers (no windows).
+# Give control back is the native active-control action in every layout (#533).
+# Each section relaunches, which closes the computer; on iPad it sits in the
+# companion pane, which has no Close (its pill closes it), so no Close tap here.
+# Synthetic transport; no model work or native input is sent.
+launch --fixture read-preview --fixture send-preview --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture computer-simulator-fixture --arg=-computer.fillsViewport --arg unset
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+wait --id computer-session-connection-picker --timeout 15
+shot computer-zoom-first-frame
+# A non-Bool launch override selects the unset default without inheriting saved menu choices.
+wait --id computer-session-more --contains "100 percent" --timeout 5
+tap --id computer-session-connection-picker
+wait --id computer-session-whole-screen --contains Selected --timeout 15
+shot computer-menu-current
+tap --id computer-session-whole-screen
+wait --id computer-session-take-control --timeout 15
+wait --id computer-session-window-view-only --gone
+tap --id computer-session-take-control
+wait --id computer-session-done --contains "Give control back" --timeout 15
+tap --id computer-session-more
+wait --label Trackpad
+tap --label Trackpad
+wait --label Trackpad --gone
+shot computer-control-active
+tap --id computer-session-done
+wait --id computer-session-take-control --timeout 15
+# An unavailable capture capability contributes no computer row.
+launch --fixture read-preview --fixture send-preview --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture computer-menu-unavailable
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+wait --id computer-session-connection-picker --timeout 15
+tap --id computer-session-connection-picker
+wait --id computer-session-no-screens --timeout 15
+wait --id computer-session-whole-screen --gone
+shot computer-menu-no-capture
+# Permission loss is recoverable on the host, so the computer remains listed.
+launch --fixture read-preview --fixture send-preview --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture computer-menu-permission
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+wait --id computer-session-connection-picker --timeout 15
+wait --id computer-session-notice --contains "On your Mac, allow Cupola" --timeout 15
+shot computer-permission-notice
+tap --id computer-session-connection-picker
+wait --id computer-session-whole-screen --timeout 15
+wait --id computer-session-capture-permission --contains "On your Mac, allow Cupola"
+wait --id computer-session-capture-permission --contains "Screen & System Audio Recording"
+wait --id computer-session-no-screens --gone
+shot computer-menu-permission-recovery
+
+# An older host rejects the window-inventory call before any successful response.
+# Its current computer row survives the first failed poll and reopening.
+launch --fixture read-preview --fixture send-preview --fixture computer-session-available-fixture --fixture computer-menu-old-host --fixture computer-simulator-fixture
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+wait --id computer-session-preview --contains Live --timeout 15
+tap --id computer-session-connection-picker
+wait --id computer-session-whole-screen --contains Selected --timeout 15
+wait --id computer-session-no-screens --gone
+shot computer-menu-old-host-first-poll
+tap --id computer-session-whole-screen
+wait --id computer-session-preview --contains Live --timeout 15
+tap --id computer-session-connection-picker
+wait --id computer-session-whole-screen --contains Selected --timeout 15
+wait --id computer-session-no-screens --gone
+shot computer-menu-old-host-reopened

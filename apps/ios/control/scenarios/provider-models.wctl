@@ -1,0 +1,22 @@
+# devices: iphone ipad
+# Settings > computer > Claude: the Models row under Runtime opens that
+# computer's model list, with search and Select all / Select none. Fixture
+# computer; nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture provider-updates --fixture default-models
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id connection-rename --timeout 10
+tap --id settings-provider:claude
+wait --id provider-models:claude --timeout 15
+shot provider-models-row
+tap --id provider-models:claude
+wait --id models-count:claude:diagnostic-host --contains "2 of 2" --timeout 15
+tap --id models-select-none:claude:diagnostic-host
+wait --id models-count:claude:diagnostic-host --contains "0 of 2" --timeout 10
+shot provider-models-none
+tap --id models-select-all:claude:diagnostic-host
+wait --id models-count:claude:diagnostic-host --contains "2 of 2" --timeout 10

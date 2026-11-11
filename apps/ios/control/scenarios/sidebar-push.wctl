@@ -1,0 +1,32 @@
+# nightly-ipad: the sidebar opens and closes on iPad despite remembered wide-layout visibility
+# The sidebar opens and closes deliberately on phone and iPad, regardless of
+# remembered wide-layout visibility. Repeating a visibility request is harmless.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions
+wait --id open-sidebar --timeout 30
+sidebar open
+sidebar open
+wait --id sidebar-search
+wait --id sidebar-automations --timeout 20
+order --ids sidebar-automations,project-row:read-project
+shot sidebar-push-open
+sidebar closed
+sidebar closed
+wait --id sidebar-search --gone
+wait --id open-sidebar
+shot sidebar-push-closed
+# iPad remembers the closed sidebar across launches. Select open again.
+# Closing the project's folder hides its threads; opening it shows them again
+# (sidebar-status adds unpinned threads, which live only in the folder).
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id project-disclosure:read-project --timeout 10
+wait --id project-thread:codex:5f2b8c31-9d4e-4a7b-b6c0-1e2f3a4b5c6d --timeout 20
+tap --id project-disclosure:read-project
+wait --label "Expand Read status" --timeout 10
+wait --id project-thread:codex:5f2b8c31-9d4e-4a7b-b6c0-1e2f3a4b5c6d --gone --timeout 5
+shot sidebar-push-folder-closed
+tap --id project-disclosure:read-project
+wait --label "Collapse Read status" --timeout 10
+wait --id project-thread:codex:5f2b8c31-9d4e-4a7b-b6c0-1e2f3a4b5c6d --timeout 5
+shot sidebar-push-folder-open

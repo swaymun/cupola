@@ -1,0 +1,25 @@
+# devices: iphone ipad duo
+# Record this run: fixture control starts through the production takeControl
+# path 1.5 seconds after launch, while simulator recording is already active.
+# Duo uses launch state because native taps remain gated on #387.
+# The generated fixture picture proves the renderer has content.
+driver on
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-control-active --fixture computer-full-screen --fixture computer-keyboard --fixture no-hardware-keyboard
+assert --path computer.hasPicture --equals true --timeout 30
+driver off
+wait --id computer-session-exit-full-screen --timeout 30
+wait --id computer-session-done --timeout 15
+wait --id computer-session-control-active --timeout 15
+wait --id computer-session-trackpad-toggle --timeout 10
+wait --id computer-session-keyboard --timeout 10
+# The keyboard fixture raises the system keyboard at control (a Duo's native taps are unavailable, #387).
+wait --id computer-session-shortcuts-row --timeout 10
+wait --id computer-session-shortcut-all-windows --timeout 10
+wait --id computer-session-shortcut-applications --timeout 10
+wait --id computer-session-shortcut-app-switcher --timeout 10
+wait --id computer-session-key-escape --timeout 10
+wait --id computer-session-clipboard --timeout 10
+swipe left --in computer-session-shortcuts-row
+wait --id computer-session-key-tab --timeout 10
+wait --id computer-viewport-appearances --contains "keyboards: 1;" --timeout 5
+shot computer-full-screen-recording-controls

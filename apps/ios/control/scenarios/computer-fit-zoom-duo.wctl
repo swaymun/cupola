@@ -1,0 +1,51 @@
+# devices: duo
+# UX-DUO-5 (issue 20): the computer view opens at Fit on the unfolded Duo, a pinch
+# or the menu zoom is temporary, and any re-layout (rotation, folding the pane
+# to one screen) puts the picture back at Fit. Owned fixture: the synthetic
+# computer picture beside the chat; unrequestedZoomFrames counts frames drawn
+# zoomed without a pinch (0 = Fit from the first frame, never corrected later);
+# the cover/uncover signals stand in for the Full screen button (#387); computer-dock-zoom is the pinch's production
+# action (magnify, once per launch: a re-layout rebuilds the model) because two-finger gestures are not drivable on the Duo (#387).
+driver on
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture open-project-thread --fixture rail-fixture --fixture computer-reconnect --fixture computer-dock --fixture no-hardware-keyboard --arg=-wonder.sidebar.hidden --arg=YES
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+assert --path computer.hasPicture --equals true --timeout 30
+assert --path computer.zoomScale --equals 1 --timeout 5
+# No frame was drawn zoomed on the way in: the open path starts at Fit.
+assert --path computer.unrequestedZoomFrames --equals 0
+shot computer-fit-duo-unfolded-portrait --display primary-1
+signal computer-dock-zoom
+assert --path computer.zoomScale --equals 2 --timeout 10
+shot computer-fit-duo-unfolded-zoomed --display primary-1
+# Resize the pane: the Full screen cover gives the picture the whole screen
+# (a new width), and closing it gives the pane back. Each lands at Fit.
+signal computer-dock-cover
+assert --path computer.zoomScale --equals 1 --timeout 10
+assert --path computer.unrequestedZoomFrames --equals 0
+shot computer-fit-duo-unfolded-cover --display primary-1
+signal computer-dock-uncover
+assert --path computer.zoomScale --equals 1 --timeout 10
+assert --path computer.unrequestedZoomFrames --equals 0
+shot computer-fit-duo-unfolded-uncovered --display primary-1
+orient landscape-left
+assert --path computer.zoomScale --equals 1 --timeout 15
+shot computer-fit-duo-unfolded-landscape --display primary-1
+orient portrait
+assert --path computer.zoomScale --equals 1 --timeout 15
+hinge 0
+assert --path computer.zoomScale --equals 1 --timeout 15
+assert --path computer.unrequestedZoomFrames --equals 0
+shot computer-fit-duo-folded
+# A fresh open folded (hinge closed): the first frame is already Fit.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture open-project-thread --fixture rail-fixture --fixture computer-reconnect --fixture computer-dock --fixture no-hardware-keyboard --arg=-wonder.sidebar.hidden --arg=YES
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+assert --path computer.hasPicture --equals true --timeout 30
+assert --path computer.zoomScale --equals 1
+assert --path computer.unrequestedZoomFrames --equals 0
+hinge 180
+assert --path computer.zoomScale --equals 1 --timeout 15
+assert --path computer.unrequestedZoomFrames --equals 0

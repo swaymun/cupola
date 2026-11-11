@@ -1,0 +1,56 @@
+# Long-press a user bubble and an agent bubble in a started Project thread: Copy
+# puts that message's whole text on the pasteboard. Nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture read-aloud-hold
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Reply 13. Continuing the project" --timeout 20
+clipboard --clear
+hold --contains "Reply 13. Continuing the project"
+wait --id select-message-text-action --timeout 10
+# The finished reply's Copy and Fork live in its footer, not in this menu.
+wait --id copy-message --gone --timeout 2
+shot copy-message-agent-menu
+tap --id select-message-text-action
+wait --id select-message-text --timeout 10
+tap --id select-message-done --type Button
+wait --id select-message-text --gone --timeout 10
+hold --contains "Please continue"
+wait --id copy-message --timeout 10
+tap --id copy-message
+clipboard --contains "Please continue" --contains "Continue the project at:" --not-contains "Reply 13"
+clipboard --show
+shot copy-message-user
+# Inline Copy under the finished reply: whole reply on the pasteboard, icon shows a checkmark.
+clipboard --clear
+reveal down --contains "Reply 13. Continuing the project"
+wait --id copy-reply --timeout 10
+tap --id copy-reply --nth 1
+# Which footers are on screen depends on the device (3 on iPhone, 4 on iPad, fewer on the folded Duo), so check that the second one put an agent reply, not the user text, on the pasteboard.
+clipboard --contains "." --not-contains "Please continue" --not-contains "Continue the project at:"
+shot copy-reply-inline
+# Select text: the same menu opens the whole message in a selectable sheet.
+hold --contains "Reply 13. Continuing the project"
+wait --id select-message-text-action --timeout 10
+tap --id select-message-text-action
+wait --id select-message-text --timeout 10
+wait --contains "Reply 13. Continuing the project at /p/app." --timeout 5
+shot select-message-text
+tap --id select-message-done --type Button
+wait --id select-message-text --gone --timeout 10
+# Read aloud: an agent bubble's menu reads that reply on this phone, then offers
+# Stop reading until it ends (read-aloud-hold keeps it reading). User bubbles
+# have no Read aloud.
+hold --contains "Reply 13. Continuing the project"
+wait --id read-message-aloud --timeout 10
+shot read-aloud-menu
+tap --id read-message-aloud
+hold --contains "Reply 13. Continuing the project"
+wait --id stop-reading-message --timeout 10
+shot read-aloud-stop-menu
+tap --id stop-reading-message
+hold --contains "Please continue"
+wait --id copy-message --timeout 10
+wait --id read-message-aloud --gone --timeout 2
+tap --id copy-message

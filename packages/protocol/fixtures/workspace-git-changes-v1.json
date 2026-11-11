@@ -1,0 +1,15 @@
+{
+  "scope": "branch",
+  "available": true,
+  "detail": null,
+  "branch": "agent/branch-chip",
+  "baseRef": "origin/main",
+  "files": [
+    { "path": "Assets/logo.png", "originalPath": null, "status": "modified", "binary": true, "additions": null, "deletions": null },
+    { "path": "Sources/Branch.swift", "originalPath": "Sources/Chip.swift", "status": "renamed", "binary": false, "additions": 12, "deletions": 4 },
+    { "path": "Sources/New.swift", "originalPath": null, "status": "untracked", "binary": false, "additions": 10, "deletions": 0 },
+    { "path": "Sources/Old.swift", "originalPath": null, "status": "deleted", "binary": false, "additions": 0, "deletions": 9 }
+  ],
+  "totals": { "files": 4, "additions": 22, "deletions": 13 },
+  "truncated": false
+}

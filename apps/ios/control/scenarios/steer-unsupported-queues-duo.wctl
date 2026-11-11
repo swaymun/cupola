@@ -1,0 +1,97 @@
+# devices: duo
+# The Duo cover and unfolded layouts of steer-unsupported-queues.wctl. The Duo
+# rig reports no touchscreen (#387), so the semantic Send drives the same
+# primary action as the button; AX reads and shots inspect the real UI (the
+# unfolded shots read the inner display, primary-1).
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture opencode-fixture --fixture open-project-thread --fixture theme --arg cupola-light
+assert --path composer.steers --equals false --timeout 20
+assert --path composer.placeholder --equals '"Queue a message"'
+driver off
+wait --id message-draft --timeout 15
+wait --contains "can’t take a message" --gone --timeout 2
+shot steer-unsupported-duo-folded-light-idle
+driver on
+type "Then update the docs"
+shot steer-unsupported-duo-folded-light-typed
+tap --id send-message
+assert --path composer.text --equals '""' --timeout 15
+assert --path fixtureSends.queued --equals 1 --timeout 15
+assert --path fixtureSends.steered --equals 0
+assert --path fixtureSends.duplicates --equals 0
+driver off
+wait --contains "Queued message: Then update the docs" --timeout 15
+wait --label "Queued message actions" --timeout 15
+wait --contains "can’t take a message" --gone --timeout 2
+shot steer-unsupported-duo-folded-light-queued
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture opencode-fixture --fixture open-project-thread --fixture theme --arg cupola-dark
+assert --path composer.steers --equals false --timeout 20
+assert --path composer.placeholder --equals '"Queue a message"'
+driver off
+wait --id message-draft --timeout 15
+wait --contains "can’t take a message" --gone --timeout 2
+shot steer-unsupported-duo-folded-dark-idle
+driver on
+type "Then update the docs"
+shot steer-unsupported-duo-folded-dark-typed
+tap --id send-message
+assert --path composer.text --equals '""' --timeout 15
+assert --path fixtureSends.queued --equals 1 --timeout 15
+assert --path fixtureSends.steered --equals 0
+assert --path fixtureSends.duplicates --equals 0
+driver off
+wait --contains "Queued message: Then update the docs" --timeout 15
+wait --label "Queued message actions" --timeout 15
+wait --contains "can’t take a message" --gone --timeout 2
+shot steer-unsupported-duo-folded-dark-queued
+hinge 180
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture opencode-fixture --fixture open-project-thread --fixture theme --arg cupola-light
+assert --path composer.steers --equals false --timeout 20
+assert --path composer.placeholder --equals '"Queue a message"'
+driver off
+wait --id message-draft --timeout 15
+wait --contains "can’t take a message" --gone --timeout 2
+shot steer-unsupported-duo-unfolded-light-idle --display primary-1
+driver on
+type "Then update the docs"
+shot steer-unsupported-duo-unfolded-light-typed --display primary-1
+tap --id send-message
+assert --path composer.text --equals '""' --timeout 15
+assert --path fixtureSends.queued --equals 1 --timeout 15
+assert --path fixtureSends.steered --equals 0
+assert --path fixtureSends.duplicates --equals 0
+driver off
+wait --contains "Queued message: Then update the docs" --timeout 15
+wait --label "Queued message actions" --timeout 15
+wait --contains "can’t take a message" --gone --timeout 2
+shot steer-unsupported-duo-unfolded-light-queued --display primary-1
+hinge 180
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture opencode-fixture --fixture open-project-thread --fixture theme --arg cupola-dark
+assert --path composer.steers --equals false --timeout 20
+assert --path composer.placeholder --equals '"Queue a message"'
+driver off
+wait --id message-draft --timeout 15
+wait --contains "can’t take a message" --gone --timeout 2
+shot steer-unsupported-duo-unfolded-dark-idle --display primary-1
+driver on
+type "Then update the docs"
+shot steer-unsupported-duo-unfolded-dark-typed --display primary-1
+tap --id send-message
+assert --path composer.text --equals '""' --timeout 15
+assert --path fixtureSends.queued --equals 1 --timeout 15
+assert --path fixtureSends.steered --equals 0
+assert --path fixtureSends.duplicates --equals 0
+driver off
+wait --contains "Queued message: Then update the docs" --timeout 15
+wait --label "Queued message actions" --timeout 15
+wait --contains "can’t take a message" --gone --timeout 2
+shot steer-unsupported-duo-unfolded-dark-queued --display primary-1

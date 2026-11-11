@@ -1,0 +1,52 @@
+# nightly-ipad: the Sketch sheet's canvas size and finger ink in an iPad sheet
+# Product composer + Sketch sheet, native finger ink, paste of an owned image,
+# markup and PNG attachment into an isolated durable draft. No sends or uploads.
+launch --fixture fixtures --fixture diagnostics-sketch --fixture diagnostics-sketch-canvas-held --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id fixture-copy-image
+wait --label "Draft attachments: 0"
+tap --id fixture-copy-image
+tap --id composer-actions
+tap --id composer-add-sketch
+# The half sheet and its controls come first; the canvas follows.
+wait --id sketch-preparing
+wait --id sketch-attach
+shot sketch-preparing
+signal sketch-canvas
+wait --id sketch-canvas
+wait --id sketch-preparing --gone
+shot sketch-half-sheet
+tap --id sketch-expand
+swipe up --in sketch-canvas
+wait --contains "1 strokes"
+shot sketch-drawing
+tap --id sketch-undo
+wait --contains "0 strokes"
+tap --id sketch-redo
+wait --contains "1 strokes"
+tap --id sketch-paste
+wait --contains "Image background" --timeout 15
+tap --id sketch-tool-marker
+swipe down --in sketch-canvas
+wait --contains "2 strokes"
+tap --id sketch-tool-lasso
+tap --id sketch-tool-eraser
+tap --id sketch-tool-pen
+tap --id sketch-ruler
+shot sketch-image-markup-ruler
+tap --id sketch-ruler
+tap --id sketch-crop
+wait --id sketch-crop-area
+tap --id sketch-crop-center
+wait --id sketch-crop-reset
+shot sketch-crop
+tap --id sketch-crop
+tap --id sketch-attach
+wait --label "Draft attachments: 1" --timeout 15
+wait --label "No pending send"
+wait --label "Local draft only"
+wait --contains "Keep this draft."
+shot sketch-attached
+tap --id camera-reload-draft
+wait --label "Draft attachments: 1"
+wait --contains "Keep this draft."
+shot sketch-durable-png

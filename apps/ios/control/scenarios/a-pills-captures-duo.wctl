@@ -1,0 +1,108 @@
+# devices: duo
+# A-PILLS captures on the Duo (no title-menu taps: Duo touch is not qualified, #387): folded cover (pills in the vertical bar) then unfolded inner display. Offline fixtures; nothing is sent.
+hinge 0
+orient portrait
+# folded / cupola-light: all pills, title menu, Settings > Pills, long chat with minimap
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg cupola-light --fixture open-project-thread --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id message-draft --timeout 30
+shot a-pills-folded-cupola-light-pills
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg cupola-light --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-pills
+tap --id settings-pills
+wait --id pills-reset --gone --timeout 10
+shot a-pills-folded-cupola-light-settings
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-held --fixture theme --arg cupola-light --fixture open-project-thread
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+shot a-pills-folded-cupola-light-minimap
+# folded / cupola-dark: all pills, title menu, Settings > Pills, long chat with minimap
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg cupola-dark --fixture open-project-thread --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id message-draft --timeout 30
+shot a-pills-folded-cupola-dark-pills
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg cupola-dark --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-pills
+tap --id settings-pills
+wait --id pills-reset --gone --timeout 10
+shot a-pills-folded-cupola-dark-settings
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-held --fixture theme --arg cupola-dark --fixture open-project-thread
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+shot a-pills-folded-cupola-dark-minimap
+# folded / nord: all pills, title menu, Settings > Pills, long chat with minimap
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg nord --fixture open-project-thread --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id message-draft --timeout 30
+shot a-pills-folded-nord-pills
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg nord --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-pills
+tap --id settings-pills
+wait --id pills-reset --gone --timeout 10
+shot a-pills-folded-nord-settings
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-held --fixture theme --arg nord --fixture open-project-thread
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+shot a-pills-folded-nord-minimap
+# folded / misty-forest: all pills, title menu, Settings > Pills, long chat with minimap
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg misty-forest --fixture open-project-thread --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id message-draft --timeout 30
+shot a-pills-folded-misty-forest-pills
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg misty-forest --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-pills
+tap --id settings-pills
+wait --id pills-reset --gone --timeout 10
+shot a-pills-folded-misty-forest-settings
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-held --fixture theme --arg misty-forest --fixture open-project-thread
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+shot a-pills-folded-misty-forest-minimap
+hinge 180
+orient portrait
+# unfolded / cupola-light: all pills, title menu, Settings > Pills, long chat with minimap
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg cupola-light --fixture open-project-thread --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id message-draft --timeout 30
+shot a-pills-unfolded-cupola-light-pills
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-held --fixture theme --arg cupola-light --fixture open-project-thread
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+shot a-pills-unfolded-cupola-light-minimap
+# unfolded / cupola-dark: all pills, title menu, Settings > Pills, long chat with minimap
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg cupola-dark --fixture open-project-thread --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id message-draft --timeout 30
+shot a-pills-unfolded-cupola-dark-pills
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-held --fixture theme --arg cupola-dark --fixture open-project-thread
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+shot a-pills-unfolded-cupola-dark-minimap
+# unfolded / nord: all pills, title menu, Settings > Pills, long chat with minimap
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg nord --fixture open-project-thread --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id message-draft --timeout 30
+shot a-pills-unfolded-nord-pills
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-held --fixture theme --arg nord --fixture open-project-thread
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+shot a-pills-unfolded-nord-minimap
+# unfolded / misty-forest: all pills, title menu, Settings > Pills, long chat with minimap
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg misty-forest --fixture open-project-thread --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id message-draft --timeout 30
+shot a-pills-unfolded-misty-forest-pills
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-held --fixture theme --arg misty-forest --fixture open-project-thread
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+shot a-pills-unfolded-misty-forest-minimap
+hinge 0
+orient portrait

@@ -1,0 +1,13 @@
+{
+  "valid": [
+    "first\nsecond\t🙂",
+    "",
+    "é",
+    "\t\n"
+  ],
+  "invalid": [
+    "bad\u0000value",
+    "escape\u001b",
+    "carriage\rreturn"
+  ]
+}

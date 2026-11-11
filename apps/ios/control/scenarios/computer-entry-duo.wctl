@@ -1,0 +1,100 @@
+# devices: duo
+# Launch fixtures + semantic production actions; native Duo taps remain gated on #387.
+# Capture the cover when folded and the active inner display when open or at the hinge.
+# The hinge viewer uses computer-fold; native 90-degree telemetry stays unverified.
+driver on
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-picture --fixture computer-menu-fixture --fixture open-project-thread --fixture rail-fixture --arg=-wonder.sidebar.hidden --arg=YES
+signal computer-retry-ready
+wait --id computer-status-pill --timeout 30
+signal mac-waiting
+wait --id computer-status-pill --contains "2 dialogs waiting" --timeout 15
+shot computer-entry-duo-folded-badge
+driver on
+tap --id computer-status-pill
+assert --path computer.hasPicture --equals true --timeout 15
+assert --path computer.sourceKind --equals '"display"' --timeout 15
+assert --path computer.hasPicture --equals true --timeout 15
+assert --path computer.controlling --equals false
+wait --id computer-session-dialogs --contains "2 dialogs waiting" --timeout 10
+shot computer-entry-duo-folded-whole-screen
+driver on
+tap --id computer-session-dialogs
+assert --path computer.sourceKind --equals '"window"' --timeout 15
+assert --path computer.hasPicture --equals true --timeout 20
+assert --path computer.sourceID --equals '"app:UserNotificationCenter#31507"'
+shot computer-entry-duo-folded-dialog
+driver on
+dismiss
+wait --id computer-status-pill --contains "Closed" --timeout 10
+tap --id computer-status-pill
+assert --path computer.hasPicture --equals true --timeout 15
+assert --path computer.sourceKind --equals '"display"' --timeout 15
+assert --path computer.hasPicture --equals true --timeout 15
+dismiss
+wait --id computer-status-pill --contains "Closed" --timeout 10
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-picture --fixture computer-menu-fixture --fixture open-project-thread --fixture rail-fixture --arg=-wonder.sidebar.hidden --arg=YES
+signal computer-retry-ready
+wait --id computer-status-pill --timeout 30
+signal mac-waiting
+wait --id computer-status-pill --contains "2 dialogs waiting" --timeout 15
+shot computer-entry-duo-unfolded-badge --display primary-1
+driver on
+tap --id computer-status-pill
+assert --path computer.hasPicture --equals true --timeout 15
+assert --path computer.sourceKind --equals '"display"' --timeout 15
+assert --path computer.hasPicture --equals true --timeout 15
+assert --path computer.controlling --equals false
+wait --id computer-session-dialogs --contains "2 dialogs waiting" --timeout 10
+shot computer-entry-duo-unfolded-whole-screen --display primary-1
+driver on
+tap --id computer-session-dialogs
+assert --path computer.sourceKind --equals '"window"' --timeout 15
+assert --path computer.hasPicture --equals true --timeout 20
+assert --path computer.sourceID --equals '"app:UserNotificationCenter#31507"'
+shot computer-entry-duo-unfolded-dialog --display primary-1
+driver on
+dismiss
+wait --id computer-status-pill --contains "Closed" --timeout 10
+tap --id computer-status-pill
+assert --path computer.hasPicture --equals true --timeout 15
+assert --path computer.sourceKind --equals '"display"' --timeout 15
+assert --path computer.hasPicture --equals true --timeout 15
+dismiss
+wait --id computer-status-pill --contains "Closed" --timeout 10
+hinge 90
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-picture --fixture computer-menu-fixture --fixture open-project-thread --fixture rail-fixture --arg=-wonder.sidebar.hidden --arg=YES --fixture computer-fold
+signal computer-retry-ready
+wait --id computer-status-pill --timeout 30
+signal mac-waiting
+wait --id computer-status-pill --contains "2 dialogs waiting" --timeout 15
+shot computer-entry-duo-hinge-badge --display primary-1
+driver on
+tap --id computer-status-pill
+assert --path computer.hasPicture --equals true --timeout 15
+assert --path computer.sourceKind --equals '"display"' --timeout 15
+assert --path computer.hasPicture --equals true --timeout 15
+assert --path computer.controlling --equals false
+wait --id computer-session-dialogs --contains "2 dialogs waiting" --timeout 10
+shot computer-entry-duo-hinge-whole-screen --display primary-1
+driver on
+tap --id computer-session-dialogs
+assert --path computer.sourceKind --equals '"window"' --timeout 15
+assert --path computer.hasPicture --equals true --timeout 20
+assert --path computer.sourceID --equals '"app:UserNotificationCenter#31507"'
+shot computer-entry-duo-hinge-dialog --display primary-1
+driver on
+dismiss
+wait --id computer-status-pill --contains "Closed" --timeout 10
+tap --id computer-status-pill
+assert --path computer.hasPicture --equals true --timeout 15
+assert --path computer.sourceKind --equals '"display"' --timeout 15
+assert --path computer.hasPicture --equals true --timeout 15
+dismiss
+wait --id computer-status-pill --contains "Closed" --timeout 10
+hinge 0
+orient portrait

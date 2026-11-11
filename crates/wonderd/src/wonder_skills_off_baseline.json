@@ -1,0 +1,3231 @@
+{
+  "claude": [
+    {
+      "method": "thread/start",
+      "params": {
+        "cwd": "<fixture>/project-source",
+        "model": "claude:sonnet",
+        "serviceTier": "default",
+        "wonderPolicy": {
+          "approvalMode": "auto",
+          "deniedRoots": [],
+          "mode": "workspace",
+          "planMode": false,
+          "readRoots": [
+            "/"
+          ],
+          "workspace": "<fixture>/project-media/00000000-0000-4000-8000-0000000000aa",
+          "writeRoots": [
+            "<fixture>/project-source"
+          ]
+        },
+        "wonderProject": {
+          "additionalDirectories": [],
+          "cwd": "<fixture>/project-source",
+          "trustedConfigurations": []
+        }
+      }
+    },
+    {
+      "method": "turn/start",
+      "params": {
+        "clientUserMessageId": "00000000-0000-4000-8000-000000000003",
+        "config": {
+          "mcp_servers.cua_driver": {
+            "command": "/usr/bin/true",
+            "enabled": false
+          }
+        },
+        "dynamicTools": [
+          {
+            "description": "List the threads of this Project (not other Projects) with their id, title, provider, model, status (working, waiting or idle), waitingOn (approval, question, queue, computer or null), queued message count and last activity. Read-only.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "cursor": {
+                  "description": "nextCursor from the previous page.",
+                  "type": "string"
+                },
+                "limit": {
+                  "maximum": 50,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [],
+              "type": "object"
+            },
+            "name": "wonder_thread_list",
+            "type": "function"
+          },
+          {
+            "description": "Read messages from another thread of this Project: user and agent text plus one-line summaries of commands and tool use, never raw output. Pages forward: pass the previous nextPosition as afterPosition. A long item is cut at maxCharsPerItem; continue it with textOffset (applies to the first returned item). Read-only.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "afterPosition": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "limit": {
+                  "maximum": 50,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "maxCharsPerItem": {
+                  "maximum": 20000,
+                  "minimum": 200,
+                  "type": "integer"
+                },
+                "textOffset": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "threadId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "threadId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_thread_read",
+            "type": "function"
+          },
+          {
+            "description": "Send a message to another thread of this Project. mode queue (default) runs it after the thread's current work; steer adds it to the thread's running response and works only on providers that support it. The thread sees who wrote it. The target's access cannot be wider than yours. Reuse clientRequestId on retries. Returns outcome: delivered (the thread started on it), pending (queued behind its current work or waiting for the computer; follow it with wonder_thread_wait and the messageId), failed (with error, the reason it was not delivered) or uncertain.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "clientRequestId": {
+                  "description": "A new UUID for this action (8-4-4-4-12 hexadecimal). Reuse it when you retry the same action; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "message": {
+                  "maxLength": 32768,
+                  "type": "string"
+                },
+                "mode": {
+                  "enum": [
+                    "queue",
+                    "steer"
+                  ],
+                  "type": "string"
+                },
+                "threadId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "threadId",
+                "message",
+                "clientRequestId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_thread_send",
+            "type": "function"
+          },
+          {
+            "description": "Wait for a thread's current work to finish. Returns finished, idle (nothing was running) or still_running after the timeout (default 600 s, at most 1800 s). A timeout never stops the thread; wait again or read it later. With messageId, messageState and error say how that message was delivered. For a thread you delegated, taskResult is its task's recorded outcome and final reply, kept by Cupola across restarts. waitingOn says what a running thread is waiting for: approval, question (the owner must answer), queue, computer or null.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "messageId": {
+                  "description": "Wait for this message only, as returned by wonder_thread_send or wonder_delegate.",
+                  "type": "string"
+                },
+                "threadId": {
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "maximum": 1800,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "threadId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_thread_wait",
+            "type": "function"
+          },
+          {
+            "description": "Create a new thread in this Project's folder on the chosen provider and model, and give it a task. It receives only the prompt (after one line naming its role, unless the role is general), not your conversation, so include everything it needs. Its access is at most yours. mode async returns at once; Cupola tells you when it finishes. mode wait blocks like wonder_thread_wait. Reuse clientRequestId on retries. Use wonder_models to see valid models, efforts and speeds.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "accessMode": {
+                  "description": "Defaults to yours; cannot be wider. OpenCode and Cursor use their own permission settings on the computer, recorded as workspace; omit accessMode for them.",
+                  "enum": [
+                    "read_only",
+                    "workspace",
+                    "full_access"
+                  ],
+                  "type": "string"
+                },
+                "claudeApproval": {
+                  "enum": [
+                    "ask",
+                    "accept_edits",
+                    "auto"
+                  ],
+                  "type": "string"
+                },
+                "clientRequestId": {
+                  "description": "A new UUID for this action (8-4-4-4-12 hexadecimal). Reuse it when you retry the same action; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "effort": {
+                  "description": "An effort the model lists in wonder_models; omit for its default.",
+                  "type": "string"
+                },
+                "folder": {
+                  "description": "Absolute path of one of this Project's folders or a Git worktree of one, for the thread to work in; omit for your own folder.",
+                  "type": "string"
+                },
+                "maxChildren": {
+                  "description": "Most threads you may have delegated, counting this one; can only lower the owner's limit (default 16).",
+                  "maximum": 64,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "mode": {
+                  "enum": [
+                    "async",
+                    "wait"
+                  ],
+                  "type": "string"
+                },
+                "model": {
+                  "description": "A model id from wonder_models; omit for the provider's default.",
+                  "type": "string"
+                },
+                "prompt": {
+                  "maxLength": 32768,
+                  "type": "string"
+                },
+                "provider": {
+                  "enum": [
+                    "codex",
+                    "claude",
+                    "opencode",
+                    "cursor"
+                  ],
+                  "type": "string"
+                },
+                "role": {
+                  "enum": [
+                    "implementation",
+                    "research",
+                    "review",
+                    "design",
+                    "test",
+                    "general"
+                  ],
+                  "type": "string"
+                },
+                "serviceTier": {
+                  "description": "A speed the model lists in wonder_models; omit for its default. A faster speed than yours is not allowed.",
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "maximum": 1800,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "title": {
+                  "maxLength": 80,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "clientRequestId",
+                "prompt",
+                "provider"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_delegate",
+            "type": "function"
+          },
+          {
+            "description": "List the providers and models you can delegate to with wonder_delegate: whether each provider is available (with the reason when not), each model's efforts, speeds (serviceTiers) and defaults, and the settings a delegated thread inherits from you. Read-only.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "limit": {
+                  "maximum": 50,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "provider": {
+                  "enum": [
+                    "codex",
+                    "claude",
+                    "opencode",
+                    "cursor"
+                  ],
+                  "type": "string"
+                },
+                "search": {
+                  "description": "Only models whose id or name contains this text.",
+                  "maxLength": 100,
+                  "type": "string"
+                }
+              },
+              "required": [],
+              "type": "object"
+            },
+            "name": "wonder_models",
+            "type": "function"
+          },
+          {
+            "description": "Stop the current response of a thread you delegated (directly or through your delegated threads), never your own or anyone else's. With cancelQueued, its queued messages are cancelled too. Its task result reads stopped. Threads it delegated keep running; stop them separately. Reuse clientRequestId on retries.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "cancelQueued": {
+                  "type": "boolean"
+                },
+                "clientRequestId": {
+                  "description": "A new UUID for this action (8-4-4-4-12 hexadecimal). Reuse it when you retry the same action; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "threadId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "threadId",
+                "clientRequestId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_thread_stop",
+            "type": "function"
+          },
+          {
+            "description": "Show the reader a visual in this conversation: drawn natively on their phone in their own theme, its opening parts inline and the whole of it behind Expand. Use it when a picture beats prose on a small screen: comparisons, plans, mockups, tables, dashboards, timelines and visual explanations. Pass title and exactly one of components (a wonder-ui v1 document; prefer it for simple data such as tables, stats, charts, steps, checklists and callouts) or html (a self-contained page; prefer it for layout and mockups). In HTML, colour with CSS variables so the reader's theme applies: --background, --foreground, --muted, --muted-foreground, --card, --border, --primary, --accent, --success, --warning, --destructive, --info, --chart-1 to --chart-6 and --radius; literal colours are only approximated by the nearest theme tone. Size with px, %, em or rem, never vh. Embed pictures as data: URLs (PNG, JPEG, GIF or WebP); nothing is fetched. Scripts run once offscreen without network, and only the page they leave is shown. The result lists what will show, what was left out and why, and warnings: fix them and call again with replace set to the returned visualId, and the earlier visual shows as updated. To check how it will look first, pass preview true: nothing is posted, and the result shows it at phone width in standard and large text where the computer can draw it. The visual does not replace your reply; still answer in text.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "components": {
+                  "description": "A wonder-ui v1 document: {\"version\":1,\"fallback\":\"the facts in plain text\",\"components\":[{\"id\":\"plan\",\"type\":\"table\",\"title\":\"Plan\",\"columns\":[...],\"rows\":[[...]]}]}. Types: card, table, list, keyValue, chart (bars, or labels with series), progress, diagram, callout, stats, steps, checklist, badges, mockup. At most 24 components, 80 data items and 32 KB.",
+                  "type": "object"
+                },
+                "html": {
+                  "description": "A self-contained HTML page or fragment, at most 6 MB including embedded pictures.",
+                  "maxLength": 6291456,
+                  "type": "string"
+                },
+                "preview": {
+                  "description": "true to see the visual without posting it: pictures at phone width (390 points) in standard and large text, and exact part counts, where this computer can draw them; elsewhere the checks alone.",
+                  "type": "boolean"
+                },
+                "replace": {
+                  "description": "The visualId of an earlier visual in this conversation that this one updates.",
+                  "type": "string"
+                },
+                "title": {
+                  "description": "A short name, shown as the visual's heading.",
+                  "maxLength": 120,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "title"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_show_visual",
+            "type": "function"
+          },
+          {
+            "description": "Ask the owner for a secret by name and explain why you need it. Their phone collects the value privately after device authentication and saves it in this Project's Keychain vault on the host computer. Returns an opaque secretRef, never the value. Reuse the ref with wonder_run_with_secret in later turns of this chat. An existing grant to this chat returns immediately. Never ask for values in chat or read the Keychain directly. Waits up to timeoutSeconds (default 600, maximum 1800). Reuse clientRequestId on retries.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "clientRequestId": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "name": {
+                  "description": "Stable secret name, such as DEPLOY_TOKEN. Letters, digits, dots, dashes and underscores only.",
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                "purpose": {
+                  "maxLength": 500,
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "maximum": 1800,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "name",
+                "purpose"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_request_secret",
+            "type": "function"
+          },
+          {
+            "description": "Run a bounded shell command in this chat's folder using a saved secretRef. Requires the chat's existing Full access grant; unavailable in read-only/workspace modes. delivery file sets the named environment variable to a temporary 0600 file path; delivery env sets it to the value. The host removes the file and ends the process group on completion, error, timeout or cancellation, and redacts output before returning it. Do not echo, copy, encode or persist secrets. Use file delivery where possible. The ref is valid only for this Project and an owner-approved chat.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "command": {
+                  "maxLength": 16384,
+                  "type": "string"
+                },
+                "delivery": {
+                  "enum": [
+                    "file",
+                    "env"
+                  ],
+                  "type": "string"
+                },
+                "secretRef": {
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "maximum": 120,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "variable": {
+                  "maxLength": 64,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "secretRef",
+                "command",
+                "delivery",
+                "variable"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_run_with_secret",
+            "type": "function"
+          },
+          {
+            "description": "Ask the owner to take over the computer for something only they should do, such as signing in, a passkey or a payment. Cupola notifies their phone; they take control there, then give it back. Blocks until returned (the owner gave control back: look again before continuing, as the screen may have changed), declined (do without it or ask in your reply) or expired (default 600 s, at most 1800 s). While the owner has control, Cupola refuses the computer-use actions it runs for you; Codex's own computer use cannot be paused, so do not use the computer until this returns. Reuse clientRequestId on retries.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "app": {
+                  "description": "The app to do it in, e.g. Google Chrome.",
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                "clientRequestId": {
+                  "description": "A new UUID for this action (8-4-4-4-12 hexadecimal). Reuse it when you retry the same action; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "reason": {
+                  "description": "What the owner should do, in plain words, e.g. Sign in to GitHub in Chrome.",
+                  "maxLength": 500,
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "maximum": 1800,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "reason",
+                "clientRequestId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_request_takeover",
+            "type": "function"
+          },
+          {
+            "description": "Schedule a later turn: Cupola sends prompt as a message to this chat (or threadId, another chat of this Project with no wider access than yours) once at a time, or on a repeating schedule. Use it to check back on something (\"check CI in 20 minutes\") or for a routine (\"every weekday at 9, summarise new PRs\"). The prompt is all the later turn gets as its request, so make it self-contained. It shows in the owner's Automations, where they can pause or delete it. Runs need this computer on. Returns message, a sentence to pass on to the reader, and the next run time.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "clientRequestId": {
+                  "description": "A new UUID for this schedule. Reuse it when you retry; never reuse it for a different schedule.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "name": {
+                  "description": "A short name the owner sees, e.g. Check CI.",
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                "notify": {
+                  "description": "Which runs notify the owner; default all_runs.",
+                  "enum": [
+                    "all_runs",
+                    "failed_runs_only"
+                  ],
+                  "type": "string"
+                },
+                "prompt": {
+                  "maxLength": 8000,
+                  "type": "string"
+                },
+                "threadId": {
+                  "description": "Omit for this chat.",
+                  "type": "string"
+                },
+                "timezone": {
+                  "description": "An IANA time zone such as Europe/London; use the reader's own when you know it.",
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                "when": {
+                  "additionalProperties": false,
+                  "description": "Exactly one of at (one run at that time: RFC 3339, or a local time such as 2026-10-26T09:00 read in timezone), inMinutes (one run that many minutes from now) or every (a repeating schedule).",
+                  "maxProperties": 1,
+                  "minProperties": 1,
+                  "properties": {
+                    "at": {
+                      "type": "string"
+                    },
+                    "every": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "frequency": {
+                          "enum": [
+                            "minutely",
+                            "hourly",
+                            "daily",
+                            "weekly",
+                            "monthly"
+                          ],
+                          "type": "string"
+                        },
+                        "hour": {
+                          "description": "Daily, weekly or monthly; default 9.",
+                          "maximum": 23,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "interval": {
+                          "description": "Minutely: every N minutes. Hourly: every N hours, N dividing 24. Omit otherwise.",
+                          "maximum": 1440,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "minute": {
+                          "description": "Hourly, daily, weekly or monthly; default 0.",
+                          "maximum": 59,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "monthDay": {
+                          "description": "Monthly: the day of the month; a month without it is skipped.",
+                          "maximum": 31,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "weekdays": {
+                          "description": "Daily or weekly: the days it runs. Required for weekly.",
+                          "items": {
+                            "enum": [
+                              "MO",
+                              "TU",
+                              "WE",
+                              "TH",
+                              "FR",
+                              "SA",
+                              "SU"
+                            ],
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "frequency"
+                      ],
+                      "type": "object"
+                    },
+                    "inMinutes": {
+                      "maximum": 525600,
+                      "minimum": 1,
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "required": [
+                "name",
+                "prompt",
+                "when",
+                "timezone",
+                "clientRequestId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_schedule",
+            "type": "function"
+          },
+          {
+            "description": "List the automations of this Project's chats: name, schedule, status (active, paused or done), next run, destination chat and whether an agent made it. Read-only.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {},
+              "required": [],
+              "type": "object"
+            },
+            "name": "wonder_schedules",
+            "type": "function"
+          },
+          {
+            "description": "Change, pause, resume or delete an automation an agent made in this Project (from wonder_schedules). Those the owner made can only be changed by them in Automations. status deleted removes it and takes no other field.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "automationId": {
+                  "type": "string"
+                },
+                "name": {
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                "notify": {
+                  "enum": [
+                    "all_runs",
+                    "failed_runs_only"
+                  ],
+                  "type": "string"
+                },
+                "prompt": {
+                  "maxLength": 8000,
+                  "type": "string"
+                },
+                "status": {
+                  "enum": [
+                    "active",
+                    "paused",
+                    "deleted"
+                  ],
+                  "type": "string"
+                },
+                "timezone": {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                "when": {
+                  "additionalProperties": false,
+                  "description": "Exactly one of at (one run at that time: RFC 3339, or a local time such as 2026-10-26T09:00 read in timezone), inMinutes (one run that many minutes from now) or every (a repeating schedule).",
+                  "maxProperties": 1,
+                  "minProperties": 1,
+                  "properties": {
+                    "at": {
+                      "type": "string"
+                    },
+                    "every": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "frequency": {
+                          "enum": [
+                            "minutely",
+                            "hourly",
+                            "daily",
+                            "weekly",
+                            "monthly"
+                          ],
+                          "type": "string"
+                        },
+                        "hour": {
+                          "description": "Daily, weekly or monthly; default 9.",
+                          "maximum": 23,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "interval": {
+                          "description": "Minutely: every N minutes. Hourly: every N hours, N dividing 24. Omit otherwise.",
+                          "maximum": 1440,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "minute": {
+                          "description": "Hourly, daily, weekly or monthly; default 0.",
+                          "maximum": 59,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "monthDay": {
+                          "description": "Monthly: the day of the month; a month without it is skipped.",
+                          "maximum": 31,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "weekdays": {
+                          "description": "Daily or weekly: the days it runs. Required for weekly.",
+                          "items": {
+                            "enum": [
+                              "MO",
+                              "TU",
+                              "WE",
+                              "TH",
+                              "FR",
+                              "SA",
+                              "SU"
+                            ],
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "frequency"
+                      ],
+                      "type": "object"
+                    },
+                    "inMinutes": {
+                      "maximum": 525600,
+                      "minimum": 1,
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "required": [
+                "automationId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_schedule_update",
+            "type": "function"
+          },
+          {
+            "description": "Send the owner a notification on their phone now, without ending your turn: for example a digest of long work, or that something is ready to look at. Use it sparingly, for things worth interrupting them for; your final reply already notifies them. A tap opens this chat or the file you name. Each chat may send 3 every 10 minutes; a notification with the same dedupeKey as one still waiting to be sent updates it instead of sending another; once that one has been sent, the same key sends a new notification. Returns state queued (on its way, not confirmed delivered), coalesced or rate_limited.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "body": {
+                  "description": "One or two plain sentences.",
+                  "maxLength": 180,
+                  "type": "string"
+                },
+                "clientRequestId": {
+                  "description": "A new UUID for this notification. Reuse it when you retry; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "dedupeKey": {
+                  "description": "The same key for updates about the same thing, e.g. ci-status.",
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                "open": {
+                  "additionalProperties": false,
+                  "description": "What a tap opens: this chat (default) or a file of this Project by its fileId.",
+                  "properties": {
+                    "fileId": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "enum": [
+                        "thread",
+                        "file"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ],
+                  "type": "object"
+                },
+                "title": {
+                  "description": "A few words, e.g. Tests pass.",
+                  "maxLength": 60,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "title",
+                "body",
+                "clientRequestId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_notify",
+            "type": "function"
+          },
+          {
+            "description": "Read this computer's Cupola preferences, or change some when the owner asks you to (for example \"make new chats start in T3 Code\", \"use Sonnet by default for Claude\", \"include worktrees\", \"auto-archive after a week\"). Without update it returns the new-chat defaults (startsInT3Code and each provider's default model, effort and speed), the Project settings (includeWorktrees, autoArchive, resumeAfterLimit, continueAfterRestart) and each provider's custom instruction. With update it changes only the fields you give and returns before and after; the owner sees the new values in Settings the next time it opens. Changing needs a full access thread; otherwise tell the owner they can change it in Settings. Only change what the owner asked for. Computer use, tools, access and approvals are not available here.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "update": {
+                  "additionalProperties": false,
+                  "minProperties": 1,
+                  "properties": {
+                    "autoArchive": {
+                      "additionalProperties": false,
+                      "description": "Archive threads idle this many days (0 is off) and, if onMerge, those whose pull request merged.",
+                      "properties": {
+                        "idleDays": {
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "onMerge": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "idleDays",
+                        "onMerge"
+                      ],
+                      "type": "object"
+                    },
+                    "continueAfterRestart": {
+                      "type": "boolean"
+                    },
+                    "customInstruction": {
+                      "additionalProperties": false,
+                      "description": "A provider's custom instruction (up to 4,000 characters); the text is kept while it is off.",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "family": {
+                          "enum": [
+                            "codex",
+                            "claude",
+                            "opencode",
+                            "cursor"
+                          ],
+                          "type": "string"
+                        },
+                        "text": {
+                          "maxLength": 4000,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "family",
+                        "enabled",
+                        "text"
+                      ],
+                      "type": "object"
+                    },
+                    "defaultModel": {
+                      "additionalProperties": false,
+                      "description": "A provider's default for new chats. model must be one wonder_models lists for it; null returns to the provider's first model. Effort and serviceTier left out keep their saved values (dropped only if the new model does not offer them).",
+                      "properties": {
+                        "effort": {
+                          "type": "string"
+                        },
+                        "family": {
+                          "enum": [
+                            "codex",
+                            "claude",
+                            "opencode",
+                            "cursor"
+                          ],
+                          "type": "string"
+                        },
+                        "model": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "serviceTier": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "family",
+                        "model"
+                      ],
+                      "type": "object"
+                    },
+                    "includeWorktrees": {
+                      "type": "boolean"
+                    },
+                    "resumeAfterLimit": {
+                      "type": "boolean"
+                    },
+                    "startsInT3Code": {
+                      "description": "New chats start in T3 Code.",
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "name": "wonder_preferences",
+            "type": "function"
+          },
+          {
+            "description": "Work with the owner's T3 Code threads, once the owner connected T3 Code in Cupola. action search: find threads by title, branch, pull request or message text (needs query; returns threadId values). The other actions take a threadId from search, or default to the T3 thread this chat continues. action status: its branch, worktree folder and pull requests, and whether it is settled, snoozed or archived. action organize: pin, unpin, snooze (needs snoozedUntil), unsnooze, settle, unsettle, archive, unarchive or mark_unread. action rename: give it a new title. action fork: copy it into a new T3 thread with the same setup; no turn runs there yet. Only threads of T3 projects that use this Project's folders are reachable. Changing a thread (organize, rename, fork) is refused in a read-only chat. Returns a plain error when T3 Code is not connected or has no such thread.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "action": {
+                  "enum": [
+                    "search",
+                    "status",
+                    "organize",
+                    "rename",
+                    "fork"
+                  ],
+                  "type": "string"
+                },
+                "limit": {
+                  "description": "For search.",
+                  "maximum": 50,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "organize": {
+                  "description": "For action organize.",
+                  "enum": [
+                    "pin",
+                    "unpin",
+                    "snooze",
+                    "unsnooze",
+                    "settle",
+                    "unsettle",
+                    "archive",
+                    "unarchive",
+                    "mark_unread"
+                  ],
+                  "type": "string"
+                },
+                "query": {
+                  "description": "For search.",
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                "snoozedUntil": {
+                  "description": "An ISO 8601 time, for organize snooze.",
+                  "type": "string"
+                },
+                "threadId": {
+                  "description": "The T3 thread to act on, from search. Defaults to this chat's own T3 thread.",
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                "title": {
+                  "description": "For rename, or the fork's title.",
+                  "maxLength": 200,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "action"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_code_thread",
+            "type": "function"
+          },
+          {
+            "description": "Experimental. Show the screen of another computer, reached over SSH, to the owner as a view-only stream under the computer icon on their phone, with a Stop button. host is an alias from the owner's own SSH config (never an address or user@host); its host key must already be pinned. The first probe or add for a host asks the owner to Allow it on their phone and waits (up to timeoutSeconds): nothing connects before they do. Steps: probe lists which transports the host offers (x11: x11vnc on an X display or a private Xvfb; vnc: a VNC server without a password on the host's loopback; screenshot: periodic captures), then add with the transport you pick. You never receive the pixels, only the stream's state; the owner sees the screen. To work in a private display, add with startDisplay, then use the returned display from your own shell tools. Streams stop with stop, the owner's Stop, an error or when Cupola quits; there is no automatic reconnect. At most 2 streams per Project. Read-only threads cannot use this tool.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "action": {
+                  "enum": [
+                    "probe",
+                    "add",
+                    "list",
+                    "stop"
+                  ],
+                  "type": "string"
+                },
+                "clientRequestId": {
+                  "description": "A new UUID for this add. Reuse it when you retry the same add; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "display": {
+                  "description": "For add with x11 or screenshot: an existing X display such as :0, as probe reported.",
+                  "maxLength": 8,
+                  "type": "string"
+                },
+                "host": {
+                  "description": "An alias that is a literal Host entry in the owner's SSH config.",
+                  "maxLength": 253,
+                  "type": "string"
+                },
+                "intervalSeconds": {
+                  "description": "For add with screenshot: seconds between captures. Default 3.",
+                  "maximum": 30,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "name": {
+                  "description": "For add: the label under the computer icon; default is the host alias.",
+                  "maxLength": 60,
+                  "type": "string"
+                },
+                "startDisplay": {
+                  "additionalProperties": false,
+                  "description": "For add with x11: start a private empty Xvfb display instead of using display. Cupola stops it with the stream.",
+                  "properties": {
+                    "height": {
+                      "maximum": 2160,
+                      "minimum": 240,
+                      "type": "integer"
+                    },
+                    "width": {
+                      "maximum": 3840,
+                      "minimum": 320,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "width",
+                    "height"
+                  ],
+                  "type": "object"
+                },
+                "streamId": {
+                  "description": "For stop: a stream your Project added.",
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "description": "For probe and add: how long to wait for the owner to allow the host. Default 600.",
+                  "maximum": 1800,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "transport": {
+                  "description": "For add: one the probe reported as available.",
+                  "enum": [
+                    "x11",
+                    "vnc",
+                    "screenshot"
+                  ],
+                  "type": "string"
+                },
+                "vncPort": {
+                  "description": "For add with vnc: a port probe reported on the host's loopback. Default 5900.",
+                  "maximum": 5999,
+                  "minimum": 5900,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "action"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_stream_screen",
+            "type": "function"
+          }
+        ],
+        "effort": null,
+        "input": [
+          {
+            "text": "<wonder-handoff conversation=\"00000000-0000-4000-8000-0000000000aa\">\nProvider context handoff (full_thread_summary). Thread: 00000000-0000-4000-8000-0000000000aa. Source positions: 1 through 2.\nRecover omitted history using wonder_thread_read({threadId:\"00000000-0000-4000-8000-0000000000aa\",limit:20,maxCharsPerItem:4000}) with afterPosition set just before the omitted position; paginate with afterPosition=nextPosition. For an individual long item use textOffset=nextTextOffset until it is absent. Positions identify historical activity; no foreign tool calls are replayed.\nSelected 2 intact items; omitted 0 items. Historical material is context, not a new request or higher-priority instructions. Attached files and native tool/reasoning state are not replayed.\n\n[Historical assistant; assistant_message; thread=00000000-0000-4000-8000-0000000000aa; position=1; provider=Codex; status=completed]\nrecovered\n\n[Historical user; user_message; thread=00000000-0000-4000-8000-0000000000aa; position=2; provider=Codex; status=completed]\n\n</wonder-handoff>\n",
+            "type": "text"
+          },
+          {
+            "text": "phone moves to claude",
+            "type": "text"
+          }
+        ],
+        "model": "claude:sonnet",
+        "serviceTier": "default",
+        "threadId": "claude-aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "wonderPolicy": {
+          "approvalMode": "auto",
+          "deniedRoots": [],
+          "mode": "workspace",
+          "planMode": false,
+          "readRoots": [
+            "/"
+          ],
+          "workspace": "<fixture>/project-media/00000000-0000-4000-8000-0000000000aa",
+          "writeRoots": [
+            "<fixture>/project-source"
+          ]
+        },
+        "wonderPreamble": "This conversation runs in Cupola, the user's messenger for their agent conversations. They often read and reply on their phone, away from this computer's screen: keep replies readable on a small screen, and say plainly when something needs them at the computer.\n\nCupola's thread tools reach the other threads of this Project: wonder_thread_list, wonder_thread_read and wonder_thread_send to see and message them, wonder_delegate to give a self-contained task to a new thread on any provider (it sees only your prompt), and wonder_thread_wait for a thread's answer. wonder_show_visual shows the reader a table, chart, plan or mockup drawn natively on their phone.",
+        "wonderProject": {
+          "additionalDirectories": [],
+          "cwd": "<fixture>/project-source",
+          "trustedConfigurations": []
+        }
+      }
+    },
+    {
+      "method": "turn/start",
+      "params": {
+        "clientUserMessageId": "00000000-0000-4000-8000-000000000004",
+        "config": {
+          "mcp_servers.cua_driver": {
+            "command": "/usr/bin/true",
+            "enabled": false
+          }
+        },
+        "dynamicTools": [
+          {
+            "description": "List the threads of this Project (not other Projects) with their id, title, provider, model, status (working, waiting or idle), waitingOn (approval, question, queue, computer or null), queued message count and last activity. Read-only.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "cursor": {
+                  "description": "nextCursor from the previous page.",
+                  "type": "string"
+                },
+                "limit": {
+                  "maximum": 50,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [],
+              "type": "object"
+            },
+            "name": "wonder_thread_list",
+            "type": "function"
+          },
+          {
+            "description": "Read messages from another thread of this Project: user and agent text plus one-line summaries of commands and tool use, never raw output. Pages forward: pass the previous nextPosition as afterPosition. A long item is cut at maxCharsPerItem; continue it with textOffset (applies to the first returned item). Read-only.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "afterPosition": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "limit": {
+                  "maximum": 50,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "maxCharsPerItem": {
+                  "maximum": 20000,
+                  "minimum": 200,
+                  "type": "integer"
+                },
+                "textOffset": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "threadId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "threadId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_thread_read",
+            "type": "function"
+          },
+          {
+            "description": "Send a message to another thread of this Project. mode queue (default) runs it after the thread's current work; steer adds it to the thread's running response and works only on providers that support it. The thread sees who wrote it. The target's access cannot be wider than yours. Reuse clientRequestId on retries. Returns outcome: delivered (the thread started on it), pending (queued behind its current work or waiting for the computer; follow it with wonder_thread_wait and the messageId), failed (with error, the reason it was not delivered) or uncertain.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "clientRequestId": {
+                  "description": "A new UUID for this action (8-4-4-4-12 hexadecimal). Reuse it when you retry the same action; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "message": {
+                  "maxLength": 32768,
+                  "type": "string"
+                },
+                "mode": {
+                  "enum": [
+                    "queue",
+                    "steer"
+                  ],
+                  "type": "string"
+                },
+                "threadId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "threadId",
+                "message",
+                "clientRequestId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_thread_send",
+            "type": "function"
+          },
+          {
+            "description": "Wait for a thread's current work to finish. Returns finished, idle (nothing was running) or still_running after the timeout (default 600 s, at most 1800 s). A timeout never stops the thread; wait again or read it later. With messageId, messageState and error say how that message was delivered. For a thread you delegated, taskResult is its task's recorded outcome and final reply, kept by Cupola across restarts. waitingOn says what a running thread is waiting for: approval, question (the owner must answer), queue, computer or null.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "messageId": {
+                  "description": "Wait for this message only, as returned by wonder_thread_send or wonder_delegate.",
+                  "type": "string"
+                },
+                "threadId": {
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "maximum": 1800,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "threadId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_thread_wait",
+            "type": "function"
+          },
+          {
+            "description": "Create a new thread in this Project's folder on the chosen provider and model, and give it a task. It receives only the prompt (after one line naming its role, unless the role is general), not your conversation, so include everything it needs. Its access is at most yours. mode async returns at once; Cupola tells you when it finishes. mode wait blocks like wonder_thread_wait. Reuse clientRequestId on retries. Use wonder_models to see valid models, efforts and speeds.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "accessMode": {
+                  "description": "Defaults to yours; cannot be wider. OpenCode and Cursor use their own permission settings on the computer, recorded as workspace; omit accessMode for them.",
+                  "enum": [
+                    "read_only",
+                    "workspace",
+                    "full_access"
+                  ],
+                  "type": "string"
+                },
+                "claudeApproval": {
+                  "enum": [
+                    "ask",
+                    "accept_edits",
+                    "auto"
+                  ],
+                  "type": "string"
+                },
+                "clientRequestId": {
+                  "description": "A new UUID for this action (8-4-4-4-12 hexadecimal). Reuse it when you retry the same action; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "effort": {
+                  "description": "An effort the model lists in wonder_models; omit for its default.",
+                  "type": "string"
+                },
+                "folder": {
+                  "description": "Absolute path of one of this Project's folders or a Git worktree of one, for the thread to work in; omit for your own folder.",
+                  "type": "string"
+                },
+                "maxChildren": {
+                  "description": "Most threads you may have delegated, counting this one; can only lower the owner's limit (default 16).",
+                  "maximum": 64,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "mode": {
+                  "enum": [
+                    "async",
+                    "wait"
+                  ],
+                  "type": "string"
+                },
+                "model": {
+                  "description": "A model id from wonder_models; omit for the provider's default.",
+                  "type": "string"
+                },
+                "prompt": {
+                  "maxLength": 32768,
+                  "type": "string"
+                },
+                "provider": {
+                  "enum": [
+                    "codex",
+                    "claude",
+                    "opencode",
+                    "cursor"
+                  ],
+                  "type": "string"
+                },
+                "role": {
+                  "enum": [
+                    "implementation",
+                    "research",
+                    "review",
+                    "design",
+                    "test",
+                    "general"
+                  ],
+                  "type": "string"
+                },
+                "serviceTier": {
+                  "description": "A speed the model lists in wonder_models; omit for its default. A faster speed than yours is not allowed.",
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "maximum": 1800,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "title": {
+                  "maxLength": 80,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "clientRequestId",
+                "prompt",
+                "provider"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_delegate",
+            "type": "function"
+          },
+          {
+            "description": "List the providers and models you can delegate to with wonder_delegate: whether each provider is available (with the reason when not), each model's efforts, speeds (serviceTiers) and defaults, and the settings a delegated thread inherits from you. Read-only.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "limit": {
+                  "maximum": 50,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "provider": {
+                  "enum": [
+                    "codex",
+                    "claude",
+                    "opencode",
+                    "cursor"
+                  ],
+                  "type": "string"
+                },
+                "search": {
+                  "description": "Only models whose id or name contains this text.",
+                  "maxLength": 100,
+                  "type": "string"
+                }
+              },
+              "required": [],
+              "type": "object"
+            },
+            "name": "wonder_models",
+            "type": "function"
+          },
+          {
+            "description": "Stop the current response of a thread you delegated (directly or through your delegated threads), never your own or anyone else's. With cancelQueued, its queued messages are cancelled too. Its task result reads stopped. Threads it delegated keep running; stop them separately. Reuse clientRequestId on retries.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "cancelQueued": {
+                  "type": "boolean"
+                },
+                "clientRequestId": {
+                  "description": "A new UUID for this action (8-4-4-4-12 hexadecimal). Reuse it when you retry the same action; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "threadId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "threadId",
+                "clientRequestId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_thread_stop",
+            "type": "function"
+          },
+          {
+            "description": "Show the reader a visual in this conversation: drawn natively on their phone in their own theme, its opening parts inline and the whole of it behind Expand. Use it when a picture beats prose on a small screen: comparisons, plans, mockups, tables, dashboards, timelines and visual explanations. Pass title and exactly one of components (a wonder-ui v1 document; prefer it for simple data such as tables, stats, charts, steps, checklists and callouts) or html (a self-contained page; prefer it for layout and mockups). In HTML, colour with CSS variables so the reader's theme applies: --background, --foreground, --muted, --muted-foreground, --card, --border, --primary, --accent, --success, --warning, --destructive, --info, --chart-1 to --chart-6 and --radius; literal colours are only approximated by the nearest theme tone. Size with px, %, em or rem, never vh. Embed pictures as data: URLs (PNG, JPEG, GIF or WebP); nothing is fetched. Scripts run once offscreen without network, and only the page they leave is shown. The result lists what will show, what was left out and why, and warnings: fix them and call again with replace set to the returned visualId, and the earlier visual shows as updated. To check how it will look first, pass preview true: nothing is posted, and the result shows it at phone width in standard and large text where the computer can draw it. The visual does not replace your reply; still answer in text.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "components": {
+                  "description": "A wonder-ui v1 document: {\"version\":1,\"fallback\":\"the facts in plain text\",\"components\":[{\"id\":\"plan\",\"type\":\"table\",\"title\":\"Plan\",\"columns\":[...],\"rows\":[[...]]}]}. Types: card, table, list, keyValue, chart (bars, or labels with series), progress, diagram, callout, stats, steps, checklist, badges, mockup. At most 24 components, 80 data items and 32 KB.",
+                  "type": "object"
+                },
+                "html": {
+                  "description": "A self-contained HTML page or fragment, at most 6 MB including embedded pictures.",
+                  "maxLength": 6291456,
+                  "type": "string"
+                },
+                "preview": {
+                  "description": "true to see the visual without posting it: pictures at phone width (390 points) in standard and large text, and exact part counts, where this computer can draw them; elsewhere the checks alone.",
+                  "type": "boolean"
+                },
+                "replace": {
+                  "description": "The visualId of an earlier visual in this conversation that this one updates.",
+                  "type": "string"
+                },
+                "title": {
+                  "description": "A short name, shown as the visual's heading.",
+                  "maxLength": 120,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "title"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_show_visual",
+            "type": "function"
+          },
+          {
+            "description": "Ask the owner for a secret by name and explain why you need it. Their phone collects the value privately after device authentication and saves it in this Project's Keychain vault on the host computer. Returns an opaque secretRef, never the value. Reuse the ref with wonder_run_with_secret in later turns of this chat. An existing grant to this chat returns immediately. Never ask for values in chat or read the Keychain directly. Waits up to timeoutSeconds (default 600, maximum 1800). Reuse clientRequestId on retries.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "clientRequestId": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "name": {
+                  "description": "Stable secret name, such as DEPLOY_TOKEN. Letters, digits, dots, dashes and underscores only.",
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                "purpose": {
+                  "maxLength": 500,
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "maximum": 1800,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "name",
+                "purpose"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_request_secret",
+            "type": "function"
+          },
+          {
+            "description": "Run a bounded shell command in this chat's folder using a saved secretRef. Requires the chat's existing Full access grant; unavailable in read-only/workspace modes. delivery file sets the named environment variable to a temporary 0600 file path; delivery env sets it to the value. The host removes the file and ends the process group on completion, error, timeout or cancellation, and redacts output before returning it. Do not echo, copy, encode or persist secrets. Use file delivery where possible. The ref is valid only for this Project and an owner-approved chat.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "command": {
+                  "maxLength": 16384,
+                  "type": "string"
+                },
+                "delivery": {
+                  "enum": [
+                    "file",
+                    "env"
+                  ],
+                  "type": "string"
+                },
+                "secretRef": {
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "maximum": 120,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "variable": {
+                  "maxLength": 64,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "secretRef",
+                "command",
+                "delivery",
+                "variable"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_run_with_secret",
+            "type": "function"
+          },
+          {
+            "description": "Ask the owner to take over the computer for something only they should do, such as signing in, a passkey or a payment. Cupola notifies their phone; they take control there, then give it back. Blocks until returned (the owner gave control back: look again before continuing, as the screen may have changed), declined (do without it or ask in your reply) or expired (default 600 s, at most 1800 s). While the owner has control, Cupola refuses the computer-use actions it runs for you; Codex's own computer use cannot be paused, so do not use the computer until this returns. Reuse clientRequestId on retries.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "app": {
+                  "description": "The app to do it in, e.g. Google Chrome.",
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                "clientRequestId": {
+                  "description": "A new UUID for this action (8-4-4-4-12 hexadecimal). Reuse it when you retry the same action; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "reason": {
+                  "description": "What the owner should do, in plain words, e.g. Sign in to GitHub in Chrome.",
+                  "maxLength": 500,
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "maximum": 1800,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "reason",
+                "clientRequestId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_request_takeover",
+            "type": "function"
+          },
+          {
+            "description": "Schedule a later turn: Cupola sends prompt as a message to this chat (or threadId, another chat of this Project with no wider access than yours) once at a time, or on a repeating schedule. Use it to check back on something (\"check CI in 20 minutes\") or for a routine (\"every weekday at 9, summarise new PRs\"). The prompt is all the later turn gets as its request, so make it self-contained. It shows in the owner's Automations, where they can pause or delete it. Runs need this computer on. Returns message, a sentence to pass on to the reader, and the next run time.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "clientRequestId": {
+                  "description": "A new UUID for this schedule. Reuse it when you retry; never reuse it for a different schedule.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "name": {
+                  "description": "A short name the owner sees, e.g. Check CI.",
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                "notify": {
+                  "description": "Which runs notify the owner; default all_runs.",
+                  "enum": [
+                    "all_runs",
+                    "failed_runs_only"
+                  ],
+                  "type": "string"
+                },
+                "prompt": {
+                  "maxLength": 8000,
+                  "type": "string"
+                },
+                "threadId": {
+                  "description": "Omit for this chat.",
+                  "type": "string"
+                },
+                "timezone": {
+                  "description": "An IANA time zone such as Europe/London; use the reader's own when you know it.",
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                "when": {
+                  "additionalProperties": false,
+                  "description": "Exactly one of at (one run at that time: RFC 3339, or a local time such as 2026-10-26T09:00 read in timezone), inMinutes (one run that many minutes from now) or every (a repeating schedule).",
+                  "maxProperties": 1,
+                  "minProperties": 1,
+                  "properties": {
+                    "at": {
+                      "type": "string"
+                    },
+                    "every": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "frequency": {
+                          "enum": [
+                            "minutely",
+                            "hourly",
+                            "daily",
+                            "weekly",
+                            "monthly"
+                          ],
+                          "type": "string"
+                        },
+                        "hour": {
+                          "description": "Daily, weekly or monthly; default 9.",
+                          "maximum": 23,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "interval": {
+                          "description": "Minutely: every N minutes. Hourly: every N hours, N dividing 24. Omit otherwise.",
+                          "maximum": 1440,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "minute": {
+                          "description": "Hourly, daily, weekly or monthly; default 0.",
+                          "maximum": 59,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "monthDay": {
+                          "description": "Monthly: the day of the month; a month without it is skipped.",
+                          "maximum": 31,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "weekdays": {
+                          "description": "Daily or weekly: the days it runs. Required for weekly.",
+                          "items": {
+                            "enum": [
+                              "MO",
+                              "TU",
+                              "WE",
+                              "TH",
+                              "FR",
+                              "SA",
+                              "SU"
+                            ],
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "frequency"
+                      ],
+                      "type": "object"
+                    },
+                    "inMinutes": {
+                      "maximum": 525600,
+                      "minimum": 1,
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "required": [
+                "name",
+                "prompt",
+                "when",
+                "timezone",
+                "clientRequestId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_schedule",
+            "type": "function"
+          },
+          {
+            "description": "List the automations of this Project's chats: name, schedule, status (active, paused or done), next run, destination chat and whether an agent made it. Read-only.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {},
+              "required": [],
+              "type": "object"
+            },
+            "name": "wonder_schedules",
+            "type": "function"
+          },
+          {
+            "description": "Change, pause, resume or delete an automation an agent made in this Project (from wonder_schedules). Those the owner made can only be changed by them in Automations. status deleted removes it and takes no other field.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "automationId": {
+                  "type": "string"
+                },
+                "name": {
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                "notify": {
+                  "enum": [
+                    "all_runs",
+                    "failed_runs_only"
+                  ],
+                  "type": "string"
+                },
+                "prompt": {
+                  "maxLength": 8000,
+                  "type": "string"
+                },
+                "status": {
+                  "enum": [
+                    "active",
+                    "paused",
+                    "deleted"
+                  ],
+                  "type": "string"
+                },
+                "timezone": {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                "when": {
+                  "additionalProperties": false,
+                  "description": "Exactly one of at (one run at that time: RFC 3339, or a local time such as 2026-10-26T09:00 read in timezone), inMinutes (one run that many minutes from now) or every (a repeating schedule).",
+                  "maxProperties": 1,
+                  "minProperties": 1,
+                  "properties": {
+                    "at": {
+                      "type": "string"
+                    },
+                    "every": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "frequency": {
+                          "enum": [
+                            "minutely",
+                            "hourly",
+                            "daily",
+                            "weekly",
+                            "monthly"
+                          ],
+                          "type": "string"
+                        },
+                        "hour": {
+                          "description": "Daily, weekly or monthly; default 9.",
+                          "maximum": 23,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "interval": {
+                          "description": "Minutely: every N minutes. Hourly: every N hours, N dividing 24. Omit otherwise.",
+                          "maximum": 1440,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "minute": {
+                          "description": "Hourly, daily, weekly or monthly; default 0.",
+                          "maximum": 59,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "monthDay": {
+                          "description": "Monthly: the day of the month; a month without it is skipped.",
+                          "maximum": 31,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "weekdays": {
+                          "description": "Daily or weekly: the days it runs. Required for weekly.",
+                          "items": {
+                            "enum": [
+                              "MO",
+                              "TU",
+                              "WE",
+                              "TH",
+                              "FR",
+                              "SA",
+                              "SU"
+                            ],
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "frequency"
+                      ],
+                      "type": "object"
+                    },
+                    "inMinutes": {
+                      "maximum": 525600,
+                      "minimum": 1,
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "required": [
+                "automationId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_schedule_update",
+            "type": "function"
+          },
+          {
+            "description": "Send the owner a notification on their phone now, without ending your turn: for example a digest of long work, or that something is ready to look at. Use it sparingly, for things worth interrupting them for; your final reply already notifies them. A tap opens this chat or the file you name. Each chat may send 3 every 10 minutes; a notification with the same dedupeKey as one still waiting to be sent updates it instead of sending another; once that one has been sent, the same key sends a new notification. Returns state queued (on its way, not confirmed delivered), coalesced or rate_limited.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "body": {
+                  "description": "One or two plain sentences.",
+                  "maxLength": 180,
+                  "type": "string"
+                },
+                "clientRequestId": {
+                  "description": "A new UUID for this notification. Reuse it when you retry; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "dedupeKey": {
+                  "description": "The same key for updates about the same thing, e.g. ci-status.",
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                "open": {
+                  "additionalProperties": false,
+                  "description": "What a tap opens: this chat (default) or a file of this Project by its fileId.",
+                  "properties": {
+                    "fileId": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "enum": [
+                        "thread",
+                        "file"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ],
+                  "type": "object"
+                },
+                "title": {
+                  "description": "A few words, e.g. Tests pass.",
+                  "maxLength": 60,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "title",
+                "body",
+                "clientRequestId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_notify",
+            "type": "function"
+          },
+          {
+            "description": "Read this computer's Cupola preferences, or change some when the owner asks you to (for example \"make new chats start in T3 Code\", \"use Sonnet by default for Claude\", \"include worktrees\", \"auto-archive after a week\"). Without update it returns the new-chat defaults (startsInT3Code and each provider's default model, effort and speed), the Project settings (includeWorktrees, autoArchive, resumeAfterLimit, continueAfterRestart) and each provider's custom instruction. With update it changes only the fields you give and returns before and after; the owner sees the new values in Settings the next time it opens. Changing needs a full access thread; otherwise tell the owner they can change it in Settings. Only change what the owner asked for. Computer use, tools, access and approvals are not available here.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "update": {
+                  "additionalProperties": false,
+                  "minProperties": 1,
+                  "properties": {
+                    "autoArchive": {
+                      "additionalProperties": false,
+                      "description": "Archive threads idle this many days (0 is off) and, if onMerge, those whose pull request merged.",
+                      "properties": {
+                        "idleDays": {
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "onMerge": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "idleDays",
+                        "onMerge"
+                      ],
+                      "type": "object"
+                    },
+                    "continueAfterRestart": {
+                      "type": "boolean"
+                    },
+                    "customInstruction": {
+                      "additionalProperties": false,
+                      "description": "A provider's custom instruction (up to 4,000 characters); the text is kept while it is off.",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "family": {
+                          "enum": [
+                            "codex",
+                            "claude",
+                            "opencode",
+                            "cursor"
+                          ],
+                          "type": "string"
+                        },
+                        "text": {
+                          "maxLength": 4000,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "family",
+                        "enabled",
+                        "text"
+                      ],
+                      "type": "object"
+                    },
+                    "defaultModel": {
+                      "additionalProperties": false,
+                      "description": "A provider's default for new chats. model must be one wonder_models lists for it; null returns to the provider's first model. Effort and serviceTier left out keep their saved values (dropped only if the new model does not offer them).",
+                      "properties": {
+                        "effort": {
+                          "type": "string"
+                        },
+                        "family": {
+                          "enum": [
+                            "codex",
+                            "claude",
+                            "opencode",
+                            "cursor"
+                          ],
+                          "type": "string"
+                        },
+                        "model": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "serviceTier": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "family",
+                        "model"
+                      ],
+                      "type": "object"
+                    },
+                    "includeWorktrees": {
+                      "type": "boolean"
+                    },
+                    "resumeAfterLimit": {
+                      "type": "boolean"
+                    },
+                    "startsInT3Code": {
+                      "description": "New chats start in T3 Code.",
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "name": "wonder_preferences",
+            "type": "function"
+          },
+          {
+            "description": "Work with the owner's T3 Code threads, once the owner connected T3 Code in Cupola. action search: find threads by title, branch, pull request or message text (needs query; returns threadId values). The other actions take a threadId from search, or default to the T3 thread this chat continues. action status: its branch, worktree folder and pull requests, and whether it is settled, snoozed or archived. action organize: pin, unpin, snooze (needs snoozedUntil), unsnooze, settle, unsettle, archive, unarchive or mark_unread. action rename: give it a new title. action fork: copy it into a new T3 thread with the same setup; no turn runs there yet. Only threads of T3 projects that use this Project's folders are reachable. Changing a thread (organize, rename, fork) is refused in a read-only chat. Returns a plain error when T3 Code is not connected or has no such thread.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "action": {
+                  "enum": [
+                    "search",
+                    "status",
+                    "organize",
+                    "rename",
+                    "fork"
+                  ],
+                  "type": "string"
+                },
+                "limit": {
+                  "description": "For search.",
+                  "maximum": 50,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "organize": {
+                  "description": "For action organize.",
+                  "enum": [
+                    "pin",
+                    "unpin",
+                    "snooze",
+                    "unsnooze",
+                    "settle",
+                    "unsettle",
+                    "archive",
+                    "unarchive",
+                    "mark_unread"
+                  ],
+                  "type": "string"
+                },
+                "query": {
+                  "description": "For search.",
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                "snoozedUntil": {
+                  "description": "An ISO 8601 time, for organize snooze.",
+                  "type": "string"
+                },
+                "threadId": {
+                  "description": "The T3 thread to act on, from search. Defaults to this chat's own T3 thread.",
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                "title": {
+                  "description": "For rename, or the fork's title.",
+                  "maxLength": 200,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "action"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_code_thread",
+            "type": "function"
+          },
+          {
+            "description": "Experimental. Show the screen of another computer, reached over SSH, to the owner as a view-only stream under the computer icon on their phone, with a Stop button. host is an alias from the owner's own SSH config (never an address or user@host); its host key must already be pinned. The first probe or add for a host asks the owner to Allow it on their phone and waits (up to timeoutSeconds): nothing connects before they do. Steps: probe lists which transports the host offers (x11: x11vnc on an X display or a private Xvfb; vnc: a VNC server without a password on the host's loopback; screenshot: periodic captures), then add with the transport you pick. You never receive the pixels, only the stream's state; the owner sees the screen. To work in a private display, add with startDisplay, then use the returned display from your own shell tools. Streams stop with stop, the owner's Stop, an error or when Cupola quits; there is no automatic reconnect. At most 2 streams per Project. Read-only threads cannot use this tool.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "action": {
+                  "enum": [
+                    "probe",
+                    "add",
+                    "list",
+                    "stop"
+                  ],
+                  "type": "string"
+                },
+                "clientRequestId": {
+                  "description": "A new UUID for this add. Reuse it when you retry the same add; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "display": {
+                  "description": "For add with x11 or screenshot: an existing X display such as :0, as probe reported.",
+                  "maxLength": 8,
+                  "type": "string"
+                },
+                "host": {
+                  "description": "An alias that is a literal Host entry in the owner's SSH config.",
+                  "maxLength": 253,
+                  "type": "string"
+                },
+                "intervalSeconds": {
+                  "description": "For add with screenshot: seconds between captures. Default 3.",
+                  "maximum": 30,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "name": {
+                  "description": "For add: the label under the computer icon; default is the host alias.",
+                  "maxLength": 60,
+                  "type": "string"
+                },
+                "startDisplay": {
+                  "additionalProperties": false,
+                  "description": "For add with x11: start a private empty Xvfb display instead of using display. Cupola stops it with the stream.",
+                  "properties": {
+                    "height": {
+                      "maximum": 2160,
+                      "minimum": 240,
+                      "type": "integer"
+                    },
+                    "width": {
+                      "maximum": 3840,
+                      "minimum": 320,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "width",
+                    "height"
+                  ],
+                  "type": "object"
+                },
+                "streamId": {
+                  "description": "For stop: a stream your Project added.",
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "description": "For probe and add: how long to wait for the owner to allow the host. Default 600.",
+                  "maximum": 1800,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "transport": {
+                  "description": "For add: one the probe reported as available.",
+                  "enum": [
+                    "x11",
+                    "vnc",
+                    "screenshot"
+                  ],
+                  "type": "string"
+                },
+                "vncPort": {
+                  "description": "For add with vnc: a port probe reported on the host's loopback. Default 5900.",
+                  "maximum": 5999,
+                  "minimum": 5900,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "action"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_stream_screen",
+            "type": "function"
+          }
+        ],
+        "effort": null,
+        "input": [
+          {
+            "text": "mac continues in claude",
+            "type": "text"
+          }
+        ],
+        "model": "claude:sonnet",
+        "serviceTier": "default",
+        "threadId": "claude-aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "wonderPolicy": {
+          "approvalMode": "auto",
+          "deniedRoots": [],
+          "mode": "workspace",
+          "planMode": false,
+          "readRoots": [
+            "/"
+          ],
+          "workspace": "<fixture>/project-media/00000000-0000-4000-8000-0000000000aa",
+          "writeRoots": [
+            "<fixture>/project-source"
+          ]
+        },
+        "wonderPreamble": "This conversation runs in Cupola, the user's messenger for their agent conversations. They often read and reply on their phone, away from this computer's screen: keep replies readable on a small screen, and say plainly when something needs them at the computer.\n\nCupola's thread tools reach the other threads of this Project: wonder_thread_list, wonder_thread_read and wonder_thread_send to see and message them, wonder_delegate to give a self-contained task to a new thread on any provider (it sees only your prompt), and wonder_thread_wait for a thread's answer. wonder_show_visual shows the reader a table, chart, plan or mockup drawn natively on their phone.",
+        "wonderProject": {
+          "additionalDirectories": [],
+          "cwd": "<fixture>/project-source",
+          "trustedConfigurations": []
+        }
+      }
+    }
+  ],
+  "codex": [
+    {
+      "method": "thread/start",
+      "params": {
+        "approvalPolicy": "on-request",
+        "cwd": "<fixture>/project-source",
+        "dynamicTools": [
+          {
+            "description": "List the threads of this Project (not other Projects) with their id, title, provider, model, status (working, waiting or idle), waitingOn (approval, question, queue, computer or null), queued message count and last activity. Read-only.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "cursor": {
+                  "description": "nextCursor from the previous page.",
+                  "type": "string"
+                },
+                "limit": {
+                  "maximum": 50,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [],
+              "type": "object"
+            },
+            "name": "wonder_thread_list",
+            "type": "function"
+          },
+          {
+            "description": "Read messages from another thread of this Project: user and agent text plus one-line summaries of commands and tool use, never raw output. Pages forward: pass the previous nextPosition as afterPosition. A long item is cut at maxCharsPerItem; continue it with textOffset (applies to the first returned item). Read-only.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "afterPosition": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "limit": {
+                  "maximum": 50,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "maxCharsPerItem": {
+                  "maximum": 20000,
+                  "minimum": 200,
+                  "type": "integer"
+                },
+                "textOffset": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "threadId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "threadId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_thread_read",
+            "type": "function"
+          },
+          {
+            "description": "Send a message to another thread of this Project. mode queue (default) runs it after the thread's current work; steer adds it to the thread's running response and works only on providers that support it. The thread sees who wrote it. The target's access cannot be wider than yours. Reuse clientRequestId on retries. Returns outcome: delivered (the thread started on it), pending (queued behind its current work or waiting for the computer; follow it with wonder_thread_wait and the messageId), failed (with error, the reason it was not delivered) or uncertain.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "clientRequestId": {
+                  "description": "A new UUID for this action (8-4-4-4-12 hexadecimal). Reuse it when you retry the same action; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "message": {
+                  "maxLength": 32768,
+                  "type": "string"
+                },
+                "mode": {
+                  "enum": [
+                    "queue",
+                    "steer"
+                  ],
+                  "type": "string"
+                },
+                "threadId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "threadId",
+                "message",
+                "clientRequestId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_thread_send",
+            "type": "function"
+          },
+          {
+            "description": "Wait for a thread's current work to finish. Returns finished, idle (nothing was running) or still_running after the timeout (default 600 s, at most 1800 s). A timeout never stops the thread; wait again or read it later. With messageId, messageState and error say how that message was delivered. For a thread you delegated, taskResult is its task's recorded outcome and final reply, kept by Cupola across restarts. waitingOn says what a running thread is waiting for: approval, question (the owner must answer), queue, computer or null.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "messageId": {
+                  "description": "Wait for this message only, as returned by wonder_thread_send or wonder_delegate.",
+                  "type": "string"
+                },
+                "threadId": {
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "maximum": 1800,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "threadId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_thread_wait",
+            "type": "function"
+          },
+          {
+            "description": "Create a new thread in this Project's folder on the chosen provider and model, and give it a task. It receives only the prompt (after one line naming its role, unless the role is general), not your conversation, so include everything it needs. Its access is at most yours. mode async returns at once; Cupola tells you when it finishes. mode wait blocks like wonder_thread_wait. Reuse clientRequestId on retries. Use wonder_models to see valid models, efforts and speeds.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "accessMode": {
+                  "description": "Defaults to yours; cannot be wider. OpenCode and Cursor use their own permission settings on the computer, recorded as workspace; omit accessMode for them.",
+                  "enum": [
+                    "read_only",
+                    "workspace",
+                    "full_access"
+                  ],
+                  "type": "string"
+                },
+                "claudeApproval": {
+                  "enum": [
+                    "ask",
+                    "accept_edits",
+                    "auto"
+                  ],
+                  "type": "string"
+                },
+                "clientRequestId": {
+                  "description": "A new UUID for this action (8-4-4-4-12 hexadecimal). Reuse it when you retry the same action; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "effort": {
+                  "description": "An effort the model lists in wonder_models; omit for its default.",
+                  "type": "string"
+                },
+                "folder": {
+                  "description": "Absolute path of one of this Project's folders or a Git worktree of one, for the thread to work in; omit for your own folder.",
+                  "type": "string"
+                },
+                "maxChildren": {
+                  "description": "Most threads you may have delegated, counting this one; can only lower the owner's limit (default 16).",
+                  "maximum": 64,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "mode": {
+                  "enum": [
+                    "async",
+                    "wait"
+                  ],
+                  "type": "string"
+                },
+                "model": {
+                  "description": "A model id from wonder_models; omit for the provider's default.",
+                  "type": "string"
+                },
+                "prompt": {
+                  "maxLength": 32768,
+                  "type": "string"
+                },
+                "provider": {
+                  "enum": [
+                    "codex",
+                    "claude",
+                    "opencode",
+                    "cursor"
+                  ],
+                  "type": "string"
+                },
+                "role": {
+                  "enum": [
+                    "implementation",
+                    "research",
+                    "review",
+                    "design",
+                    "test",
+                    "general"
+                  ],
+                  "type": "string"
+                },
+                "serviceTier": {
+                  "description": "A speed the model lists in wonder_models; omit for its default. A faster speed than yours is not allowed.",
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "maximum": 1800,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "title": {
+                  "maxLength": 80,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "clientRequestId",
+                "prompt",
+                "provider"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_delegate",
+            "type": "function"
+          },
+          {
+            "description": "List the providers and models you can delegate to with wonder_delegate: whether each provider is available (with the reason when not), each model's efforts, speeds (serviceTiers) and defaults, and the settings a delegated thread inherits from you. Read-only.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "limit": {
+                  "maximum": 50,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "provider": {
+                  "enum": [
+                    "codex",
+                    "claude",
+                    "opencode",
+                    "cursor"
+                  ],
+                  "type": "string"
+                },
+                "search": {
+                  "description": "Only models whose id or name contains this text.",
+                  "maxLength": 100,
+                  "type": "string"
+                }
+              },
+              "required": [],
+              "type": "object"
+            },
+            "name": "wonder_models",
+            "type": "function"
+          },
+          {
+            "description": "Stop the current response of a thread you delegated (directly or through your delegated threads), never your own or anyone else's. With cancelQueued, its queued messages are cancelled too. Its task result reads stopped. Threads it delegated keep running; stop them separately. Reuse clientRequestId on retries.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "cancelQueued": {
+                  "type": "boolean"
+                },
+                "clientRequestId": {
+                  "description": "A new UUID for this action (8-4-4-4-12 hexadecimal). Reuse it when you retry the same action; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "threadId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "threadId",
+                "clientRequestId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_thread_stop",
+            "type": "function"
+          },
+          {
+            "description": "Show the reader a visual in this conversation: drawn natively on their phone in their own theme, its opening parts inline and the whole of it behind Expand. Use it when a picture beats prose on a small screen: comparisons, plans, mockups, tables, dashboards, timelines and visual explanations. Pass title and exactly one of components (a wonder-ui v1 document; prefer it for simple data such as tables, stats, charts, steps, checklists and callouts) or html (a self-contained page; prefer it for layout and mockups). In HTML, colour with CSS variables so the reader's theme applies: --background, --foreground, --muted, --muted-foreground, --card, --border, --primary, --accent, --success, --warning, --destructive, --info, --chart-1 to --chart-6 and --radius; literal colours are only approximated by the nearest theme tone. Size with px, %, em or rem, never vh. Embed pictures as data: URLs (PNG, JPEG, GIF or WebP); nothing is fetched. Scripts run once offscreen without network, and only the page they leave is shown. The result lists what will show, what was left out and why, and warnings: fix them and call again with replace set to the returned visualId, and the earlier visual shows as updated. To check how it will look first, pass preview true: nothing is posted, and the result shows it at phone width in standard and large text where the computer can draw it. The visual does not replace your reply; still answer in text.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "components": {
+                  "description": "A wonder-ui v1 document: {\"version\":1,\"fallback\":\"the facts in plain text\",\"components\":[{\"id\":\"plan\",\"type\":\"table\",\"title\":\"Plan\",\"columns\":[...],\"rows\":[[...]]}]}. Types: card, table, list, keyValue, chart (bars, or labels with series), progress, diagram, callout, stats, steps, checklist, badges, mockup. At most 24 components, 80 data items and 32 KB.",
+                  "type": "object"
+                },
+                "html": {
+                  "description": "A self-contained HTML page or fragment, at most 6 MB including embedded pictures.",
+                  "maxLength": 6291456,
+                  "type": "string"
+                },
+                "preview": {
+                  "description": "true to see the visual without posting it: pictures at phone width (390 points) in standard and large text, and exact part counts, where this computer can draw them; elsewhere the checks alone.",
+                  "type": "boolean"
+                },
+                "replace": {
+                  "description": "The visualId of an earlier visual in this conversation that this one updates.",
+                  "type": "string"
+                },
+                "title": {
+                  "description": "A short name, shown as the visual's heading.",
+                  "maxLength": 120,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "title"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_show_visual",
+            "type": "function"
+          },
+          {
+            "description": "Ask the owner for a secret by name and explain why you need it. Their phone collects the value privately after device authentication and saves it in this Project's Keychain vault on the host computer. Returns an opaque secretRef, never the value. Reuse the ref with wonder_run_with_secret in later turns of this chat. An existing grant to this chat returns immediately. Never ask for values in chat or read the Keychain directly. Waits up to timeoutSeconds (default 600, maximum 1800). Reuse clientRequestId on retries.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "clientRequestId": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "name": {
+                  "description": "Stable secret name, such as DEPLOY_TOKEN. Letters, digits, dots, dashes and underscores only.",
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                "purpose": {
+                  "maxLength": 500,
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "maximum": 1800,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "name",
+                "purpose"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_request_secret",
+            "type": "function"
+          },
+          {
+            "description": "Run a bounded shell command in this chat's folder using a saved secretRef. Requires the chat's existing Full access grant; unavailable in read-only/workspace modes. delivery file sets the named environment variable to a temporary 0600 file path; delivery env sets it to the value. The host removes the file and ends the process group on completion, error, timeout or cancellation, and redacts output before returning it. Do not echo, copy, encode or persist secrets. Use file delivery where possible. The ref is valid only for this Project and an owner-approved chat.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "command": {
+                  "maxLength": 16384,
+                  "type": "string"
+                },
+                "delivery": {
+                  "enum": [
+                    "file",
+                    "env"
+                  ],
+                  "type": "string"
+                },
+                "secretRef": {
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "maximum": 120,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "variable": {
+                  "maxLength": 64,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "secretRef",
+                "command",
+                "delivery",
+                "variable"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_run_with_secret",
+            "type": "function"
+          },
+          {
+            "description": "Ask the owner to take over the computer for something only they should do, such as signing in, a passkey or a payment. Cupola notifies their phone; they take control there, then give it back. Blocks until returned (the owner gave control back: look again before continuing, as the screen may have changed), declined (do without it or ask in your reply) or expired (default 600 s, at most 1800 s). While the owner has control, Cupola refuses the computer-use actions it runs for you; Codex's own computer use cannot be paused, so do not use the computer until this returns. Reuse clientRequestId on retries.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "app": {
+                  "description": "The app to do it in, e.g. Google Chrome.",
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                "clientRequestId": {
+                  "description": "A new UUID for this action (8-4-4-4-12 hexadecimal). Reuse it when you retry the same action; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "reason": {
+                  "description": "What the owner should do, in plain words, e.g. Sign in to GitHub in Chrome.",
+                  "maxLength": 500,
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "maximum": 1800,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "reason",
+                "clientRequestId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_request_takeover",
+            "type": "function"
+          },
+          {
+            "description": "Schedule a later turn: Cupola sends prompt as a message to this chat (or threadId, another chat of this Project with no wider access than yours) once at a time, or on a repeating schedule. Use it to check back on something (\"check CI in 20 minutes\") or for a routine (\"every weekday at 9, summarise new PRs\"). The prompt is all the later turn gets as its request, so make it self-contained. It shows in the owner's Automations, where they can pause or delete it. Runs need this computer on. Returns message, a sentence to pass on to the reader, and the next run time.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "clientRequestId": {
+                  "description": "A new UUID for this schedule. Reuse it when you retry; never reuse it for a different schedule.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "name": {
+                  "description": "A short name the owner sees, e.g. Check CI.",
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                "notify": {
+                  "description": "Which runs notify the owner; default all_runs.",
+                  "enum": [
+                    "all_runs",
+                    "failed_runs_only"
+                  ],
+                  "type": "string"
+                },
+                "prompt": {
+                  "maxLength": 8000,
+                  "type": "string"
+                },
+                "threadId": {
+                  "description": "Omit for this chat.",
+                  "type": "string"
+                },
+                "timezone": {
+                  "description": "An IANA time zone such as Europe/London; use the reader's own when you know it.",
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                "when": {
+                  "additionalProperties": false,
+                  "description": "Exactly one of at (one run at that time: RFC 3339, or a local time such as 2026-10-26T09:00 read in timezone), inMinutes (one run that many minutes from now) or every (a repeating schedule).",
+                  "maxProperties": 1,
+                  "minProperties": 1,
+                  "properties": {
+                    "at": {
+                      "type": "string"
+                    },
+                    "every": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "frequency": {
+                          "enum": [
+                            "minutely",
+                            "hourly",
+                            "daily",
+                            "weekly",
+                            "monthly"
+                          ],
+                          "type": "string"
+                        },
+                        "hour": {
+                          "description": "Daily, weekly or monthly; default 9.",
+                          "maximum": 23,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "interval": {
+                          "description": "Minutely: every N minutes. Hourly: every N hours, N dividing 24. Omit otherwise.",
+                          "maximum": 1440,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "minute": {
+                          "description": "Hourly, daily, weekly or monthly; default 0.",
+                          "maximum": 59,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "monthDay": {
+                          "description": "Monthly: the day of the month; a month without it is skipped.",
+                          "maximum": 31,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "weekdays": {
+                          "description": "Daily or weekly: the days it runs. Required for weekly.",
+                          "items": {
+                            "enum": [
+                              "MO",
+                              "TU",
+                              "WE",
+                              "TH",
+                              "FR",
+                              "SA",
+                              "SU"
+                            ],
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "frequency"
+                      ],
+                      "type": "object"
+                    },
+                    "inMinutes": {
+                      "maximum": 525600,
+                      "minimum": 1,
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "required": [
+                "name",
+                "prompt",
+                "when",
+                "timezone",
+                "clientRequestId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_schedule",
+            "type": "function"
+          },
+          {
+            "description": "List the automations of this Project's chats: name, schedule, status (active, paused or done), next run, destination chat and whether an agent made it. Read-only.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {},
+              "required": [],
+              "type": "object"
+            },
+            "name": "wonder_schedules",
+            "type": "function"
+          },
+          {
+            "description": "Change, pause, resume or delete an automation an agent made in this Project (from wonder_schedules). Those the owner made can only be changed by them in Automations. status deleted removes it and takes no other field.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "automationId": {
+                  "type": "string"
+                },
+                "name": {
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                "notify": {
+                  "enum": [
+                    "all_runs",
+                    "failed_runs_only"
+                  ],
+                  "type": "string"
+                },
+                "prompt": {
+                  "maxLength": 8000,
+                  "type": "string"
+                },
+                "status": {
+                  "enum": [
+                    "active",
+                    "paused",
+                    "deleted"
+                  ],
+                  "type": "string"
+                },
+                "timezone": {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                "when": {
+                  "additionalProperties": false,
+                  "description": "Exactly one of at (one run at that time: RFC 3339, or a local time such as 2026-10-26T09:00 read in timezone), inMinutes (one run that many minutes from now) or every (a repeating schedule).",
+                  "maxProperties": 1,
+                  "minProperties": 1,
+                  "properties": {
+                    "at": {
+                      "type": "string"
+                    },
+                    "every": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "frequency": {
+                          "enum": [
+                            "minutely",
+                            "hourly",
+                            "daily",
+                            "weekly",
+                            "monthly"
+                          ],
+                          "type": "string"
+                        },
+                        "hour": {
+                          "description": "Daily, weekly or monthly; default 9.",
+                          "maximum": 23,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "interval": {
+                          "description": "Minutely: every N minutes. Hourly: every N hours, N dividing 24. Omit otherwise.",
+                          "maximum": 1440,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "minute": {
+                          "description": "Hourly, daily, weekly or monthly; default 0.",
+                          "maximum": 59,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "monthDay": {
+                          "description": "Monthly: the day of the month; a month without it is skipped.",
+                          "maximum": 31,
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "weekdays": {
+                          "description": "Daily or weekly: the days it runs. Required for weekly.",
+                          "items": {
+                            "enum": [
+                              "MO",
+                              "TU",
+                              "WE",
+                              "TH",
+                              "FR",
+                              "SA",
+                              "SU"
+                            ],
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "frequency"
+                      ],
+                      "type": "object"
+                    },
+                    "inMinutes": {
+                      "maximum": 525600,
+                      "minimum": 1,
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "required": [
+                "automationId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_schedule_update",
+            "type": "function"
+          },
+          {
+            "description": "Send the owner a notification on their phone now, without ending your turn: for example a digest of long work, or that something is ready to look at. Use it sparingly, for things worth interrupting them for; your final reply already notifies them. A tap opens this chat or the file you name. Each chat may send 3 every 10 minutes; a notification with the same dedupeKey as one still waiting to be sent updates it instead of sending another; once that one has been sent, the same key sends a new notification. Returns state queued (on its way, not confirmed delivered), coalesced or rate_limited.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "body": {
+                  "description": "One or two plain sentences.",
+                  "maxLength": 180,
+                  "type": "string"
+                },
+                "clientRequestId": {
+                  "description": "A new UUID for this notification. Reuse it when you retry; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "dedupeKey": {
+                  "description": "The same key for updates about the same thing, e.g. ci-status.",
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                "open": {
+                  "additionalProperties": false,
+                  "description": "What a tap opens: this chat (default) or a file of this Project by its fileId.",
+                  "properties": {
+                    "fileId": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "enum": [
+                        "thread",
+                        "file"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ],
+                  "type": "object"
+                },
+                "title": {
+                  "description": "A few words, e.g. Tests pass.",
+                  "maxLength": 60,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "title",
+                "body",
+                "clientRequestId"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_notify",
+            "type": "function"
+          },
+          {
+            "description": "Read this computer's Cupola preferences, or change some when the owner asks you to (for example \"make new chats start in T3 Code\", \"use Sonnet by default for Claude\", \"include worktrees\", \"auto-archive after a week\"). Without update it returns the new-chat defaults (startsInT3Code and each provider's default model, effort and speed), the Project settings (includeWorktrees, autoArchive, resumeAfterLimit, continueAfterRestart) and each provider's custom instruction. With update it changes only the fields you give and returns before and after; the owner sees the new values in Settings the next time it opens. Changing needs a full access thread; otherwise tell the owner they can change it in Settings. Only change what the owner asked for. Computer use, tools, access and approvals are not available here.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "update": {
+                  "additionalProperties": false,
+                  "minProperties": 1,
+                  "properties": {
+                    "autoArchive": {
+                      "additionalProperties": false,
+                      "description": "Archive threads idle this many days (0 is off) and, if onMerge, those whose pull request merged.",
+                      "properties": {
+                        "idleDays": {
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "onMerge": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "idleDays",
+                        "onMerge"
+                      ],
+                      "type": "object"
+                    },
+                    "continueAfterRestart": {
+                      "type": "boolean"
+                    },
+                    "customInstruction": {
+                      "additionalProperties": false,
+                      "description": "A provider's custom instruction (up to 4,000 characters); the text is kept while it is off.",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "family": {
+                          "enum": [
+                            "codex",
+                            "claude",
+                            "opencode",
+                            "cursor"
+                          ],
+                          "type": "string"
+                        },
+                        "text": {
+                          "maxLength": 4000,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "family",
+                        "enabled",
+                        "text"
+                      ],
+                      "type": "object"
+                    },
+                    "defaultModel": {
+                      "additionalProperties": false,
+                      "description": "A provider's default for new chats. model must be one wonder_models lists for it; null returns to the provider's first model. Effort and serviceTier left out keep their saved values (dropped only if the new model does not offer them).",
+                      "properties": {
+                        "effort": {
+                          "type": "string"
+                        },
+                        "family": {
+                          "enum": [
+                            "codex",
+                            "claude",
+                            "opencode",
+                            "cursor"
+                          ],
+                          "type": "string"
+                        },
+                        "model": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "serviceTier": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "family",
+                        "model"
+                      ],
+                      "type": "object"
+                    },
+                    "includeWorktrees": {
+                      "type": "boolean"
+                    },
+                    "resumeAfterLimit": {
+                      "type": "boolean"
+                    },
+                    "startsInT3Code": {
+                      "description": "New chats start in T3 Code.",
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "name": "wonder_preferences",
+            "type": "function"
+          },
+          {
+            "description": "Work with the owner's T3 Code threads, once the owner connected T3 Code in Cupola. action search: find threads by title, branch, pull request or message text (needs query; returns threadId values). The other actions take a threadId from search, or default to the T3 thread this chat continues. action status: its branch, worktree folder and pull requests, and whether it is settled, snoozed or archived. action organize: pin, unpin, snooze (needs snoozedUntil), unsnooze, settle, unsettle, archive, unarchive or mark_unread. action rename: give it a new title. action fork: copy it into a new T3 thread with the same setup; no turn runs there yet. Only threads of T3 projects that use this Project's folders are reachable. Changing a thread (organize, rename, fork) is refused in a read-only chat. Returns a plain error when T3 Code is not connected or has no such thread.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "action": {
+                  "enum": [
+                    "search",
+                    "status",
+                    "organize",
+                    "rename",
+                    "fork"
+                  ],
+                  "type": "string"
+                },
+                "limit": {
+                  "description": "For search.",
+                  "maximum": 50,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "organize": {
+                  "description": "For action organize.",
+                  "enum": [
+                    "pin",
+                    "unpin",
+                    "snooze",
+                    "unsnooze",
+                    "settle",
+                    "unsettle",
+                    "archive",
+                    "unarchive",
+                    "mark_unread"
+                  ],
+                  "type": "string"
+                },
+                "query": {
+                  "description": "For search.",
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                "snoozedUntil": {
+                  "description": "An ISO 8601 time, for organize snooze.",
+                  "type": "string"
+                },
+                "threadId": {
+                  "description": "The T3 thread to act on, from search. Defaults to this chat's own T3 thread.",
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                "title": {
+                  "description": "For rename, or the fork's title.",
+                  "maxLength": 200,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "action"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_code_thread",
+            "type": "function"
+          },
+          {
+            "description": "Experimental. Show the screen of another computer, reached over SSH, to the owner as a view-only stream under the computer icon on their phone, with a Stop button. host is an alias from the owner's own SSH config (never an address or user@host); its host key must already be pinned. The first probe or add for a host asks the owner to Allow it on their phone and waits (up to timeoutSeconds): nothing connects before they do. Steps: probe lists which transports the host offers (x11: x11vnc on an X display or a private Xvfb; vnc: a VNC server without a password on the host's loopback; screenshot: periodic captures), then add with the transport you pick. You never receive the pixels, only the stream's state; the owner sees the screen. To work in a private display, add with startDisplay, then use the returned display from your own shell tools. Streams stop with stop, the owner's Stop, an error or when Cupola quits; there is no automatic reconnect. At most 2 streams per Project. Read-only threads cannot use this tool.",
+            "inputSchema": {
+              "additionalProperties": false,
+              "properties": {
+                "action": {
+                  "enum": [
+                    "probe",
+                    "add",
+                    "list",
+                    "stop"
+                  ],
+                  "type": "string"
+                },
+                "clientRequestId": {
+                  "description": "A new UUID for this add. Reuse it when you retry the same add; never reuse it for a different one.",
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "display": {
+                  "description": "For add with x11 or screenshot: an existing X display such as :0, as probe reported.",
+                  "maxLength": 8,
+                  "type": "string"
+                },
+                "host": {
+                  "description": "An alias that is a literal Host entry in the owner's SSH config.",
+                  "maxLength": 253,
+                  "type": "string"
+                },
+                "intervalSeconds": {
+                  "description": "For add with screenshot: seconds between captures. Default 3.",
+                  "maximum": 30,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "name": {
+                  "description": "For add: the label under the computer icon; default is the host alias.",
+                  "maxLength": 60,
+                  "type": "string"
+                },
+                "startDisplay": {
+                  "additionalProperties": false,
+                  "description": "For add with x11: start a private empty Xvfb display instead of using display. Cupola stops it with the stream.",
+                  "properties": {
+                    "height": {
+                      "maximum": 2160,
+                      "minimum": 240,
+                      "type": "integer"
+                    },
+                    "width": {
+                      "maximum": 3840,
+                      "minimum": 320,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "width",
+                    "height"
+                  ],
+                  "type": "object"
+                },
+                "streamId": {
+                  "description": "For stop: a stream your Project added.",
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "description": "For probe and add: how long to wait for the owner to allow the host. Default 600.",
+                  "maximum": 1800,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "transport": {
+                  "description": "For add: one the probe reported as available.",
+                  "enum": [
+                    "x11",
+                    "vnc",
+                    "screenshot"
+                  ],
+                  "type": "string"
+                },
+                "vncPort": {
+                  "description": "For add with vnc: a port probe reported on the host's loopback. Default 5900.",
+                  "maximum": 5999,
+                  "minimum": 5900,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "action"
+              ],
+              "type": "object"
+            },
+            "name": "wonder_stream_screen",
+            "type": "function"
+          }
+        ],
+        "model": "fake",
+        "projectId": null,
+        "runtimeWorkspaceRoots": [
+          "<fixture>/project-source"
+        ],
+        "sandbox": "workspace-write",
+        "serviceTier": "default"
+      }
+    },
+    {
+      "method": "turn/start",
+      "params": {
+        "additionalContext": {
+          "wonder_preamble": {
+            "kind": "application",
+            "value": "This conversation runs in Cupola, the user's messenger for their agent conversations. They often read and reply on their phone, away from this computer's screen: keep replies readable on a small screen, and say plainly when something needs them at the computer.\n\nCupola's thread tools reach the other threads of this Project: wonder_thread_list, wonder_thread_read and wonder_thread_send to see and message them, wonder_delegate to give a self-contained task to a new thread on any provider (it sees only your prompt), and wonder_thread_wait for a thread's answer. wonder_show_visual shows the reader a table, chart, plan or mockup drawn natively on their phone."
+          }
+        },
+        "approvalPolicy": "on-request",
+        "clientUserMessageId": "00000000-0000-4000-8000-000000000001",
+        "collaborationMode": {
+          "mode": "default",
+          "settings": {
+            "developer_instructions": null,
+            "model": "fake",
+            "reasoning_effort": null
+          }
+        },
+        "cwd": "<fixture>/project-source",
+        "effort": null,
+        "input": [
+          {
+            "text": "from the phone",
+            "type": "text"
+          }
+        ],
+        "model": "fake",
+        "runtimeWorkspaceRoots": [
+          "<fixture>/project-source"
+        ],
+        "sandboxPolicy": {
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": [
+            "<fixture>/project-source"
+          ]
+        },
+        "serviceTier": "default",
+        "threadId": "fresh-codex"
+      }
+    },
+    {
+      "method": "thread/resume",
+      "params": {
+        "approvalPolicy": "on-request",
+        "cwd": "<fixture>/project-source",
+        "excludeTurns": true,
+        "model": "fake",
+        "runtimeWorkspaceRoots": [
+          "<fixture>/project-source"
+        ],
+        "sandbox": "workspace-write",
+        "serviceTier": "default",
+        "threadId": "fresh-codex"
+      }
+    },
+    {
+      "method": "turn/start",
+      "params": {
+        "additionalContext": {
+          "wonder_preamble": {
+            "kind": "application",
+            "value": "This conversation runs in Cupola, the user's messenger for their agent conversations. They often read and reply on their phone, away from this computer's screen: keep replies readable on a small screen, and say plainly when something needs them at the computer.\n\nCupola's thread tools reach the other threads of this Project: wonder_thread_list, wonder_thread_read and wonder_thread_send to see and message them, wonder_delegate to give a self-contained task to a new thread on any provider (it sees only your prompt), and wonder_thread_wait for a thread's answer. wonder_show_visual shows the reader a table, chart, plan or mockup drawn natively on their phone."
+          }
+        },
+        "approvalPolicy": "on-request",
+        "clientUserMessageId": "00000000-0000-4000-8000-000000000002",
+        "collaborationMode": {
+          "mode": "default",
+          "settings": {
+            "developer_instructions": null,
+            "model": "fake",
+            "reasoning_effort": null
+          }
+        },
+        "cwd": "<fixture>/project-source",
+        "effort": null,
+        "input": [
+          {
+            "text": "from the mac",
+            "type": "text"
+          }
+        ],
+        "model": "fake",
+        "runtimeWorkspaceRoots": [
+          "<fixture>/project-source"
+        ],
+        "sandboxPolicy": {
+          "networkAccess": false,
+          "type": "workspaceWrite",
+          "writableRoots": [
+            "<fixture>/project-source"
+          ]
+        },
+        "serviceTier": "default",
+        "threadId": "fresh-codex"
+      }
+    }
+  ]
+}

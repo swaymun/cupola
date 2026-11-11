@@ -1,0 +1,18 @@
+# devices: ipad
+# nightly-ipad: the mini map floats over the conversation's trailing edge in the detail column
+# Wide conversations only; a narrow screen has none (minimap-narrow.wctl).
+# The mini-map uses the same speech projection, including folded commentary.
+# Hold its idle state so command/AX latency cannot consume the fade window.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-held --fixture open-project-thread
+wait --contains "Reply 500." --timeout 30
+wait --id conversation-minimap --gone
+swipe down --in conversation-scroll
+wait --id conversation-minimap
+shot minimap-visible
+hold --id conversation-minimap
+wait --id scroll-to-bottom
+tap --id scroll-to-bottom
+wait --contains "Reply 500."
+signal minimap-idle
+wait --id conversation-minimap --gone
+shot minimap-idle

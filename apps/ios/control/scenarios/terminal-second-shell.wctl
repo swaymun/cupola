@@ -1,0 +1,37 @@
+# devices: iphone ipad
+# A second shell in the same chat: Terminal options lists the chat's shells
+# (Terminal 1, Terminal 2, running or ended) with New terminal. New terminal
+# opens another shell while the first keeps running; choosing Terminal 1 shows
+# its own output again; End terminal ends only the shown shell and Terminal
+# then shows the remaining one instead of closing. iPhone uses the sheet; iPad
+# the companion pane, with the same menu. Written without a simulator run
+# (cloud worker, 2026-10-26); the first run confirms the menu labels and that
+# --contains reads the title's label.
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture terminal-preview
+wait --id conversation-terminal-pill --timeout 20
+tap --id conversation-terminal-pill
+wait --id terminal-output --contains "build.sh" --timeout 10
+type "first"
+wait --id terminal-output --contains "wonder-app % first" --timeout 5
+tap --id terminal-menu
+tap --id terminal-new
+wait --id terminal-title --contains "Terminal 2" --timeout 10
+type "second"
+wait --id terminal-output --contains "wonder-app % second" --timeout 5
+shot terminal-second-shell
+tap --id terminal-menu
+wait --label "Terminal 1 · Running" --timeout 5
+shot terminal-shells-menu
+tap --label "Terminal 1 · Running"
+wait --id terminal-output --contains "wonder-app % first" --timeout 10
+wait --id terminal-output --contains "build.sh" --timeout 5
+wait --id terminal-title --contains "Terminal 1" --timeout 5
+# Make room for the menu's final action above the software keyboard.
+tap --id terminal-key-hide
+tap --id terminal-menu
+tap --id terminal-end
+wait --contains "End this terminal?" --timeout 5
+tap --label "End terminal"
+wait --id terminal-output --contains "wonder-app % second" --timeout 10
+wait --id terminal-sheet --timeout 2
+shot terminal-after-ending-one

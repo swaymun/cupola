@@ -1,0 +1,33 @@
+# devices: duo
+# Application action isolation for #387: use the exact failing native fixture,
+# then invoke the same Terminal-pill action through the Diagnostics driver.
+# This proves close/reopen state, not native hit testing or Swap delivery.
+hinge 180
+orient portrait
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture project-git-preview --fixture terminal-preview --fixture companion-terminal
+assert --path pane.tool --equals '"terminal"' --timeout 30
+tap --id conversation-terminal-pill
+assert --path pane --equals null --timeout 10
+driver off
+wait --id companion-pane --gone --timeout 10
+shot hinge-terminal-closed --display primary-1
+driver on
+tap --id conversation-terminal-pill
+assert --path pane.tool --equals '"terminal"' --timeout 10
+driver off
+wait --id terminal-output --contains "build.sh" --timeout 10
+shot hinge-terminal-reopened --display primary-1
+# Repeat through the actual shell (driver action: the unfolded Duo has no native touchscreen path here). This offline host has
+# no shell service, so assert presentation rather than inventing output. Its
+# closed Terminal action disappears because that host does not offer Terminal.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture companion-terminal --arg=-wonder.sidebar.hidden --arg=YES
+assert --path pane.tool --equals '"terminal"' --timeout 30
+tap --id conversation-terminal-pill
+assert --path pane --equals null --timeout 10
+driver off
+wait --id companion-pane --gone --timeout 10
+wait --id message-draft --timeout 10
+shot hinge-native-shell-terminal-closed --display primary-1
+wait --id conversation-terminal-pill --gone --timeout 10

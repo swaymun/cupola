@@ -1,0 +1,119 @@
+# Two explicit fixture computers: Synthetic fixture has connected T3; Studio has none.
+# No send, real host, T3 call or model work. Catalog differs from native Claude.
+# devices: iphone ipad duo
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --fixture t3-code-picker --fixture t3-code-default-on --fixture several-computers
+wait --id composer-start-in-t3 --timeout 30
+# The Project runs Claude; T3 Code lists the same model, so New chat keeps it (chip: "Sonnet fixture").
+wait --id project-agent-picker --contains "Sonnet fixture" --timeout 15
+# Opening explains nothing, and the chip names where Send runs.
+assert --id new-chat-selection-note --gone
+shot t3-picker-connected
+# A foreground return keeps the destination, the model and the silence.
+button home
+activate
+wait --id composer-start-in-t3 --timeout 15
+wait --id project-agent-picker --contains "Sonnet fixture" --timeout 15
+assert --id new-chat-selection-note --gone
+shot t3-picker-after-foreground
+# Carry the resolved default-on destination even before the owner toggles it.
+tap --id connection-picker
+tap --id connection-option:diagnostic-host-studio
+wait --id composer-start-in-t3 --gone --timeout 15
+wait --id new-chat-selection-note --contains "T3 Code isn’t connected on Studio. Starting in Cupola." --timeout 15
+shot t3-picker-default-computer-fallback
+tap --id connection-picker
+tap --id connection-option:diagnostic-host
+# The valid native replacement travels back; enable T3 explicitly again.
+wait --id connection-picker --contains "Synthetic fixture" --timeout 15
+wait --id composer-start-in-t3 --gone --timeout 15
+tap --id new-chat-attach
+tap --id new-chat-add-t3
+wait --id composer-start-in-t3 --timeout 15
+tap --id project-agent-picker
+wait --id new-chat-agent:codex --timeout 10
+assert --id new-chat-agent:opencode --gone
+tap --id new-chat-agent:claude
+wait --id new-chat-model:t3:claudeAgent:claude-opus-5-5 --timeout 10
+assert --id new-chat-model:claude:haiku --gone
+shot t3-picker-catalog
+tap --id new-chat-model:t3:claudeAgent:claude-opus-5-5
+wait --id new-chat-speed:fast --timeout 10
+tap --id new-chat-speed:fast
+shot t3-picker-fast
+swipe down --from sheet-top
+wait --id sheet-top --gone --timeout 10
+wait --id new-chat-draft --timeout 10
+wait --id project-agent-picker --contains "Fast" --timeout 10
+tap --id new-chat-access
+wait --id new-chat-t3-permission:approval-required --timeout 10
+assert --id new-chat-t3-permission:auto --gone
+shot t3-picker-permissions
+tap --id new-chat-t3-permission:auto-accept-edits
+wait --id new-chat-access --contains "Auto-accept edits" --timeout 10
+# Codex in this T3 instance lacks Auto-accept edits: revalidate to Supervised visibly.
+tap --id project-agent-picker
+tap --id new-chat-agent:codex
+swipe down --from sheet-top
+wait --id sheet-top --gone --timeout 10
+wait --id new-chat-access --contains "Supervised" --timeout 10
+wait --id new-chat-selection-note --contains "permissions" --timeout 10
+shot t3-picker-permission-adjusted
+# T3's supported search returns models omitted from its initial short list.
+tap --id project-agent-picker
+tap --id new-chat-model-search
+type "Pro"
+wait --id new-chat-model:t3:codex:gpt-6.1-pro --timeout 15
+assert --id new-chat-model:claude:haiku --gone
+shot t3-picker-search
+tap --id new-chat-model:t3:codex:gpt-6.1-pro
+wait --id sheet-top --gone --timeout 10
+wait --id project-agent-picker --contains "Pro in T3 Code" --timeout 10
+tap --id project-agent-picker
+tap --id new-chat-agent:claude
+tap --id new-chat-model:t3:claudeAgent:claude-opus-5-5
+tap --id new-chat-speed:fast
+swipe down --from sheet-top
+wait --id sheet-top --gone --timeout 10
+# Turning T3 off picks the nearest native Claude model and drops unsupported fast.
+wait --id new-chat-effort --contains "High" --timeout 10
+tap --id composer-start-in-t3
+wait --id composer-start-in-t3 --gone --timeout 10
+wait --id project-agent-picker --contains "Sonnet fixture" --timeout 10
+wait --id new-chat-effort --contains "High" --timeout 10
+wait --id new-chat-selection-note --contains "so this chat uses Sonnet fixture" --timeout 10
+shot t3-picker-native-adjusted
+tap --id project-agent-picker
+wait --id new-chat-model:claude:haiku --timeout 10
+assert --id new-chat-model:t3:claudeAgent:claude-opus-5-5 --gone
+shot t3-picker-native-catalog
+swipe down --from sheet-top
+wait --id sheet-top --gone --timeout 10
+wait --id new-chat-draft --timeout 10
+# Return to T3, then change computer with T3 selected.
+tap --id new-chat-attach
+tap --id new-chat-add-t3
+wait --id composer-start-in-t3 --timeout 10
+tap --id connection-picker
+wait --id connection-option:diagnostic-host-studio --timeout 10
+shot t3-picker-computer-choices
+tap --id connection-option:diagnostic-host-studio
+wait --id connection-picker --contains "Studio" --timeout 20
+wait --id composer-start-in-t3 --gone --timeout 15
+wait --id new-chat-selection-note --contains "T3 Code isn’t connected on Studio. Starting in Cupola." --timeout 10
+shot t3-picker-computer-without-t3
+tap --id project-agent-picker
+wait --id new-chat-model:claude:haiku --timeout 10
+assert --id new-chat-model:t3:claudeAgent:claude-opus-5-5 --gone
+shot t3-picker-studio-native
+
+# A failed catalog read offers Retry and never substitutes host-native models.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --fixture t3-code-default-on --fixture t3-code-picker --fixture t3-code-picker-unavailable
+wait --id new-chat-t3-note --contains "Couldn’t read T3 Code’s models" --timeout 30
+tap --id project-agent-picker
+wait --id new-chat-t3-catalog-retry --timeout 10
+assert --id new-chat-model:claude:haiku --gone
+shot t3-picker-catalog-unavailable
+signal t3-picker-catalog-ready
+tap --id new-chat-t3-catalog-retry
+wait --id new-chat-model:t3:claudeAgent:claude-sonnet-5-5 --timeout 15
+shot t3-picker-catalog-recovered

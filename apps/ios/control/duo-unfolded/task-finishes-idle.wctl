@@ -1,0 +1,23 @@
+# Duo launch-only completion and roster anchor; capture primary-1. No HID taps.
+# The AX Application root stays portrait (669x951) around the 951x669 window.
+# wonderctl's viewport filter excludes the side-bar pill/Stop. Assert the roster
+# rows here; measure-task-roster.py checks raw pill frames/symbol and captures.
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture open-project-thread --fixture task-roster-open --fixture task-roster-in-bar --fixture task-finishes-idle
+wait --id project-subagent-roster-list --timeout 30
+wait --label "Audit the release checklist, general-purpose, Running" --timeout 10
+shot task-finishes-idle-running
+signal task-finish
+wait --label "Audit the release checklist, general-purpose, Completed" --timeout 10
+wait --id project-subagent-section:running --gone --timeout 5
+wait --id project-subagent-section:completed --timeout 5
+shot task-finishes-idle-completed
+
+# A native-status completion also refreshes a clean idle parent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture open-project-thread --fixture task-roster-open --fixture task-roster-in-bar --fixture task-finishes-idle --fixture task-finish-status
+wait --label "Audit the release checklist, general-purpose, Running" --timeout 10
+signal task-finish
+wait --label "Audit the release checklist, general-purpose, Completed" --timeout 10
+wait --id project-subagent-section:running --gone --timeout 5
+shot task-finishes-idle-status-completed

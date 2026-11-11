@@ -1,0 +1,8 @@
+{"message": {"content": [{"text": "Scrubbed user 1.", "type": "text"}], "role": "user"}, "timestamp": "2026-01-01T00:00:00.000Z", "type": "user", "uuid": "uuid-1"}
+{"message": {"content": [{"id": "toolu-1", "input": {"file_path": "/fixture/work/file-2"}, "name": "Read", "type": "tool_use"}], "id": "msg-1", "role": "assistant"}, "timestamp": "2026-01-01T00:00:01.713Z", "type": "assistant", "uuid": "uuid-2"}
+{"message": {"content": [{"content": "Scrubbed tool output 3.", "tool_use_id": "toolu-1", "type": "tool_result"}], "role": "user"}, "timestamp": "2026-01-01T00:00:01.735Z", "toolUseResult": {"file": {"content": "scrubbed content 1", "file_path": "/fixture/work/file-2", "num_lines": 3}, "type": "text"}, "type": "user", "uuid": "uuid-3"}
+{"message": {"content": [{"text": "Scrubbed assistant 4.", "type": "text"}], "id": "msg-2", "role": "assistant"}, "timestamp": "2026-01-01T00:00:03.022Z", "type": "assistant", "uuid": "uuid-4"}
+{"message": {"content": [{"text": "Scrubbed user 5.", "type": "text"}], "role": "user"}, "timestamp": "2026-01-01T00:00:16.697Z", "type": "user", "uuid": "uuid-5"}
+{"message": {"content": [{"text": "Scrubbed assistant 6.", "type": "text"}], "id": "msg-3", "role": "assistant"}, "timestamp": "2026-01-01T00:00:18.277Z", "type": "assistant", "uuid": "uuid-6"}
+{"message": {"content": [{"text": "Scrubbed user 7.", "type": "text"}], "role": "user"}, "timestamp": "2026-01-01T00:03:45.021Z", "type": "user", "uuid": "uuid-7"}
+{"message": {"content": [{"text": "Scrubbed assistant 8.", "type": "text"}], "id": "msg-4", "role": "assistant"}, "timestamp": "2026-01-01T00:03:46.241Z", "type": "assistant", "uuid": "uuid-8"}

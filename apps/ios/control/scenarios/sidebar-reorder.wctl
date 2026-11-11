@@ -1,0 +1,51 @@
+# nightly-ipad: real native long-press drags, relaunch and reconnect on both devices
+# XCTest owns the continuous finger gesture and asserts all three section orders,
+# cross-section rejection, scrolling, relaunch, All Chats and a new chat first.
+# It launches only this scenario's owned in-process catalog and separate order key.
+test --only-testing WonderUITests/SidebarReorderUITests/testLongPressOrderSurvivesRelaunch
+# On this simulator runtime XCTest leaves AXe with an empty application tree.
+# Restart only this owned pooled device before the independent native read.
+# The app's saved order must survive that full restart too.
+device --shutdown
+device
+# Independently read the persisted arrangement after another native relaunch.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-sidebar-reorder --arg=-diagnostics-sidebar-reorder-new
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id project-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --timeout 20
+order --ids pinned-thread:codex:reorder-pin,pinned-thread:codex:read-fixture
+order --ids project-row:reorder-project,project-row:read-project
+order --ids project-thread:claude:7d1c9e42-5b3a-4f60-8e21-0a9b8c7d6e54,project-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80
+shot sidebar-reorder-relaunched
+# Stationary holds open the incumbent menus; moving after the lift reorders.
+# AXe observes the resulting menu directly without XCTest waiting for the live preview's spinner to idle.
+hold --id project-row:read-project
+wait --id copy-project-folder
+shot sidebar-reorder-project-menu
+tap --id sidebar-new-chat
+wait --id copy-project-folder --gone
+hold --id pinned-thread:codex:read-fixture
+wait --id copy-thread-id
+wait --id select-project-thread
+shot sidebar-reorder-chat-menu
+tap --id sidebar-new-chat
+wait --id copy-thread-id --gone
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-all-chats --arg=-diagnostics-sidebar-reorder --arg=-diagnostics-sidebar-reorder-new
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id chat-thread:codex:reorder-new --timeout 20
+order --ids chat-thread:claude:7d1c9e42-5b3a-4f60-8e21-0a9b8c7d6e54,chat-thread:codex:reorder-new,chat-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80
+shot sidebar-reorder-chats-after
+# A complete remote catalog omits the new chat, then later creates it again.
+# Its former second-place slot must be pruned, so the new row returns first.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-all-chats --arg=-diagnostics-sidebar-reorder
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id chat-thread:claude:7d1c9e42-5b3a-4f60-8e21-0a9b8c7d6e54 --timeout 20
+wait --id chat-thread:codex:reorder-new --gone
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-all-chats --arg=-diagnostics-sidebar-reorder --arg=-diagnostics-sidebar-reorder-new
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id chat-thread:codex:reorder-new --timeout 20
+order --ids chat-thread:codex:reorder-new,chat-thread:claude:7d1c9e42-5b3a-4f60-8e21-0a9b8c7d6e54,chat-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80
+shot sidebar-reorder-remote-removal-pruned

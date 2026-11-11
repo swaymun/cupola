@@ -1,0 +1,84 @@
+{
+  "cursor": [
+    {
+      "position": 0,
+      "type": "user_message",
+      "status": "completed",
+      "itemId": "turn-item:message:message%3Adelegated-task%3Afixture",
+      "text": "Run ls plans | head -3, then cat /definitely-missing-file.txt; reply DONE."
+    },
+    {
+      "position": 1,
+      "type": "reasoning",
+      "status": "completed",
+      "itemId": "turn-item:provider:cursor:native-item:reasoning%3Arun-fixture%3A1",
+      "text": "The user wants the command output and error."
+    },
+    {
+      "position": 2,
+      "type": "assistant_message",
+      "status": "completed",
+      "itemId": "turn-item:provider:cursor:native-item:assistant%3Arun-fixture%3A1",
+      "text": "I'll run those two commands and then reply with DONE."
+    },
+    {
+      "position": 3,
+      "type": "command_execution",
+      "status": "completed",
+      "itemId": "turn-item:provider:cursor:native-item:call-fixture-0%0Afc_fixture_0",
+      "text": "$ ls plans | head -3\na.md\nb.md\nc.md\n"
+    },
+    {
+      "position": 4,
+      "type": "command_execution",
+      "status": "completed",
+      "itemId": "turn-item:provider:cursor:native-item:call-fixture-1%0Afc_fixture_1",
+      "text": "$ cat /definitely-missing-file.txt\ncat: /definitely-missing-file.txt: No such file or directory\n"
+    },
+    {
+      "position": 5,
+      "type": "reasoning",
+      "status": "completed",
+      "itemId": "turn-item:provider:cursor:native-item:reasoning%3Arun-fixture%3A2",
+      "text": "The user asked me to show the output and error, then reply with one line DONE."
+    },
+    {
+      "position": 6,
+      "type": "assistant_message",
+      "status": "completed",
+      "itemId": "turn-item:provider:cursor:native-item:assistant%3Arun-fixture%3A2",
+      "text": "Both commands ran. The second reported No such file or directory."
+    },
+    {
+      "position": 7,
+      "type": "assistant_message",
+      "status": "completed",
+      "itemId": "turn-item:provider:cursor:native-item:assistant%3Arun-fixture%3A3",
+      "text": "DONE"
+    },
+    {
+      "position": 8,
+      "type": "checkpoint",
+      "status": "completed",
+      "itemId": "turn-item:provider:cursor:native-item:checkpoint%3Afixture",
+      "text": "[]"
+    }
+  ],
+  "opencode": [
+    {
+      "position": 0,
+      "type": "user_message",
+      "status": "completed",
+      "itemId": "turn-item:message:message%3Adelegated-task%3Afixture",
+      "text": "Run ls plans | head -3, then cat /definitely-missing-file.txt; reply DONE."
+    },
+    {
+      "position": 1,
+      "type": "error",
+      "status": "failed",
+      "itemId": "turn-item:provider:opencode:native-item:terminal-failure%3Aprovider-turn%3Ases_fixture%253Aattempt%253Arun-attempt%253A1",
+      "title": "Provider error",
+      "text": "Upstream request failed: [invalid_value] Invalid value for 'tools': maximum number of items is 128."
+    }
+  ]
+}

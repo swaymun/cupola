@@ -1,0 +1,28 @@
+# nightly-ipad: the Diagnostics switch must leave the iPad's horizontal toolbar and voice composer unchanged.
+# devices: iphone ipad
+# A Duo-only experiment must not add controls on ordinary phones/tablets.
+# Offline fixture only: no microphone, model session or message send.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture send-states --fixture voice-preview --fixture open-project-thread --arg=-diagnostics.voiceRailPrototype --arg=YES
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+assert --path voiceRail.enabled --equals false
+driver off
+wait --id voice-rail-entry --gone --timeout 3
+wait --id voice-start
+shot voice-rail-handheld-unchanged
+driver on
+tap --id voice-start
+assert --path voice.active --equals true
+assert --path voice.chatID --equals '"fixture-parent-conversation"'
+driver off
+wait --id voice-panel
+shot voice-rail-handheld-voice
+driver on
+tap --id voice-end
+assert --path voice.active --equals false
+assert --path voice.historyUnchanged --equals true
+assert --path fixtureSends.bodies --equals '[]'
+assert --path fixtureSends.uploads --equals 0
+driver off
+wait --id message-draft
+shot voice-rail-handheld-ended

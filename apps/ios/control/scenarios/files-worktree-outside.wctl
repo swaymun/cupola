@@ -1,0 +1,17 @@
+# Files on a thread whose worktree the Project leaves out opens the Project's
+# folders read-only, says why, and offers Add folder instead of Try again;
+# adding it opens the thread's own files.
+# Local fixture only: the folder change is simulated, no computer is changed.
+launch --fixture read-preview --fixture send-preview --fixture files-preview --fixture project-files-conversation-preview --fixture project-files-worktree-outside
+wait --id conversation-files-pill
+tap --id conversation-files-pill
+wait --id workspace-read-only-notice --timeout 10
+wait --contains "read-only" --timeout 5
+wait --id workspace-file-list --timeout 10
+wait --id workspace-add-folder --timeout 5
+wait --id workspace-retry --never 1
+shot files-worktree-outside
+tap --id workspace-add-folder
+wait --id workspace-read-only-notice --never 2
+wait --id workspace-file-list --timeout 10
+shot files-worktree-added

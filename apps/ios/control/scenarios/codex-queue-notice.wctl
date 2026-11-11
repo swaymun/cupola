@@ -1,0 +1,24 @@
+# Offline native Codex queue: a persistent explanation while another reply
+# runs, a detail-only update, honest recovery, then a turn receipt. Binding
+# leaves detail.notice stale so the snapshot must retire the composer notice.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture codex-queue-notice --arg=-AppleLanguages --arg='(en)' --arg=-AppleLocale --arg=en_US --arg=-AppleInterfaceStyle --arg=Light --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id last-request-issue --contains "Your message is queued in Codex on your computer. It will run when that thread is free." --timeout 15
+wait --contains "Drafting the release notes on your Mac." --timeout 10
+# The normal temporary notice expires after ten seconds; this one must stay.
+wait --contains "Your last message may not have been delivered." --never 11
+wait --id last-request-issue --contains "It will run when that thread is free." --timeout 5
+shot codex-queue-notice-queued
+signal queue-unconfirmed
+wait --id last-request-issue --label "Cupola is checking whether Codex queued your message. It won't send it again while delivery is unconfirmed. Check this thread in Codex on your computer." --timeout 10
+shot codex-queue-notice-unconfirmed
+signal queue-unresolved
+wait --id last-request-issue --label "Cupola could not confirm Codex received this. Open the thread in Codex on your computer to check." --timeout 15
+shot codex-queue-notice-unresolved
+signal queue-bind
+wait --contains "Reviewing the release notes now." --timeout 15
+wait --id last-request-issue --gone --timeout 10
+shot codex-queue-notice-bound

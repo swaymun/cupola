@@ -1,0 +1,103 @@
+# nightly-ipad: iPad layout: New chat's setup centred, Settings and pairing sheets
+# Real product views with isolated, offline fixtures. No pairing, permission
+# dialogs, notification enrollment, provider work or owner conversation changes.
+# Run on iphone and ipad; retain before/after shots and --record clips.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture account-fixture --arg=-diagnostics-theme --arg=wonder --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-AppleInterfaceStyle --arg=Light
+wait --id new-chat-draft --timeout 30
+shot ui-polish-new-chat
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 20
+shot ui-polish-conversation
+tap --id message-draft
+wait --id send-message --timeout 5
+shot ui-polish-composer
+sidebar open
+wait --id sidebar-settings --timeout 10
+shot ui-polish-chats
+tap --id sidebar-settings
+wait --id settings-add-computer --timeout 10
+shot ui-polish-settings
+tap --id settings-computer:diagnostic-host
+wait --id connection-settings --timeout 10
+shot ui-polish-computer-settings
+back
+wait --id account-consent --timeout 10
+wait --id account-sign-in-apple
+shot ui-polish-notifications
+tap --id account-sign-in-apple
+wait --id settings-notifications --contains "Off" --timeout 10
+wait --id account-provider --timeout 10
+shot ui-polish-notifications-signed-in
+wait --id settings-add-computer --timeout 10
+tap --id settings-add-computer
+wait --id pairing-entry-mode --timeout 10
+shot ui-polish-pairing
+tap --id pairing-entry-mode
+wait --id pairing-mac-address --timeout 5
+wait --id pairing-connect-code
+shot ui-polish-pairing-code
+# Keep both drafts while switching with the software keyboard open. These are
+# synthetic invalid inputs; never press Connect or contact a real computer.
+tap --id pairing-mac-address
+type "https://example.invalid"
+tap --id pairing-code
+type "ABCD_123-4"
+tap --id pairing-entry-mode
+wait --id pairing-link --timeout 10
+wait --label "Hide keyboard" --gone --timeout 10
+tap --id pairing-link
+type "https://example.invalid/wonder/pair?offer=fixture&challenge=fixture"
+wait --id pairing-link --contains "https://example.invalid/wonder/pair?offer=fixture&challenge=fixture" --timeout 10
+tap --id pairing-entry-mode
+wait --id pairing-code --contains ABCD_123-4 --timeout 10
+wait --id pairing-mac-address --contains "https://example.invalid" --timeout 10
+tap --id pairing-entry-mode
+wait --id pairing-link --contains "https://example.invalid/wonder/pair?offer=fixture&challenge=fixture" --timeout 10
+tap --label Cancel --type Button
+wait --id pairing-entry-mode --gone --timeout 5
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-theme --arg=wonder --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-AppleInterfaceStyle --arg=Light
+wait --id open-sidebar --timeout 30
+sidebar open
+tap --id sidebar-automations
+wait --id project-automation-new --timeout 15
+wait --id automations-empty --timeout 15
+shot ui-polish-automations
+back
+sidebar open
+wait --id sidebar-automations --timeout 10
+launch --fixture automations-fixture --arg=-diagnostics-theme --arg=wonder --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-AppleInterfaceStyle --arg=Light
+wait --id automation-row:fixture-morning-schedule --timeout 15
+shot ui-polish-automations-saved
+tap --id project-automation-new
+wait --id project-automation-thread --timeout 10
+shot ui-polish-automation-editor
+
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --arg=-diagnostics-theme --arg=wonder --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-AppleInterfaceStyle --arg=Light
+wait --id computer-session-container --timeout 30
+wait --id computer-session-take-control --timeout 10
+shot ui-polish-computer
+
+launch --fixture read-preview --fixture send-preview --fixture phone-approval-preview --arg command --arg=-diagnostics-theme --arg=wonder --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-AppleInterfaceStyle --arg=Light
+wait --id question-dock-open --timeout 30
+wait --id approval-decline-fixture-command --timeout 10
+wait --id message-draft
+shot ui-polish-approvals
+
+launch --fixture read-preview --fixture send-preview --fixture question-preview --arg=-diagnostics-theme --arg=wonder --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-AppleInterfaceStyle --arg=Light
+wait --id question-dock-open --timeout 30
+wait --contains "Which day works best?" --timeout 10
+shot ui-polish-question
+
+# Explicit system-denied state; no real system Settings or permission dialog.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture account-fixture --arg=-diagnostics-live-activities-settings --arg=-diagnostics-account-signed-in --arg=-diagnostics-live-activities-system-off --arg=-diagnostics-theme --arg=wonder --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-AppleInterfaceStyle --arg=Light
+wait --id open-sidebar --timeout 30
+sidebar open
+tap --id sidebar-settings
+wait --id settings-notifications --timeout 10
+wait --id settings-live-activities --contains "Off" --timeout 5
+shot ui-polish-settings-system-off
+wait --id notifications-settings --timeout 10
+shot ui-polish-live-activities-system-off

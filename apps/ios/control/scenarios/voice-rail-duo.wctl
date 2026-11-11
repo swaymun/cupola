@@ -1,0 +1,30 @@
+# devices: duo
+# visual-review: rail returns to the single full voice surface, no second controller.
+# Offline voice fixture only; no microphone or model work.
+hinge 180
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture voice-preview --fixture open-project-thread --arg=-diagnostics.voiceRailPrototype --arg=YES
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+assert --path voiceRail.enabled --equals true
+tap --id voice-rail-entry
+assert --path voice.active --equals true
+assert --path voiceRail.panelOpen --equals false
+driver off
+wait --id voice-panel
+wait --id voice-agent-caption --gone --timeout 3
+wait --id voice-confirmation
+order --axis x --ids voice-mute,voice-end
+shot voice-rail-single-surface --display primary-1
+driver on
+tap --id voice-rail-entry
+assert --path voice.active --equals true
+assert --path voiceRail.panelOpen --equals false
+tap --id voice-confirmation-cancel
+tap --id voice-end
+assert --path voice.active --equals false
+assert --path voice.historyUnchanged --equals true
+assert --path fixtureSends.bodies --equals '[]'
+driver off
+wait --id message-draft
+shot voice-rail-ended --display primary-1

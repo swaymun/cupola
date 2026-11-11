@@ -1,0 +1,62 @@
+{
+  "settings": {
+    "fixtures": [
+      "settings-open",
+      "account-fixture",
+      "account-signed-in"
+    ],
+    "ready": "settings-add-computer"
+  },
+  "usage": {
+    "fixtures": [
+      "usage-open",
+      "usage-fixture",
+      "usage-live-reset"
+    ],
+    "ready": "codex-usage-window:five-hours"
+  },
+  "connection-details": {
+    "fixtures": [
+      "ux6-settings-fixture",
+      "ux6-routes"
+    ],
+    "ready": "connection-routes"
+  },
+  "themes": {
+    "fixtures": [
+      "ux6-settings-fixture",
+      "ux6-themes"
+    ],
+    "ready": "theme-option:wonder"
+  },
+  "account-no-computer": {
+    "fixtures": [
+      "ux6-settings-fixture",
+      "account-fixture",
+      "account-signed-in"
+    ],
+    "ready": "settings-add-computer"
+  },
+  "connection-details-revealed": {
+    "fixtures": [
+      "ux6-settings-fixture",
+      "ux6-routes",
+      "ux6-routes-revealed"
+    ],
+    "ready": "connection-routes"
+  },
+  "needs-you-requests": {
+    "fixtures": [
+      "subagent-fixture",
+      "chat-layout",
+      "chat-layout-unsaved",
+      "project-actions",
+      "opencode-fixture",
+      "opencode-approval",
+      "question-resolution",
+      "several-computers",
+      "needs-attention-open"
+    ],
+    "ready": "needs-you:diagnostic-host:fixture-question"
+  }
+}

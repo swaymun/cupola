@@ -1,0 +1,20 @@
+# nightly-ipad: Retained legacy sign-in history stays readable in the chat column.
+# Matches the host's other_history refusal; no provider home or real chat is used.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture legacy-sign-in-history --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id chat-read-only-reason --contains "separate Codex sign-in" --timeout 15
+wait --contains "Reply 13. Continuing the project" --timeout 20
+wait --id message-draft --gone
+wait --id send-message --gone
+wait --id project-composer-model --gone
+shot legacy-sign-in-history
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id chat-read-only-reason --contains "files remain on your computer" --timeout 15
+wait --id message-draft --gone
+wait --id send-message --gone
+shot legacy-sign-in-history-reopened

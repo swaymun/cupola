@@ -1,0 +1,13 @@
+# devices: iphone iphone-27 ipad duo
+# The compact extra-key grid keeps shell symbols in one menu. Choosing a
+# symbol must deliver input to the retained terminal, not just dismiss a menu.
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture terminal-preview
+wait --id conversation-terminal-pill --timeout 20
+tap --id conversation-terminal-pill
+wait --id terminal-output --contains "build.sh" --timeout 10
+tap --id terminal-key-symbols
+wait --label "Pipe  |" --timeout 5
+shot terminal-symbols-menu
+tap --label "Pipe  |"
+wait --id terminal-output --contains "wonder-app % |" --timeout 5
+shot terminal-symbol-inserted

@@ -1,0 +1,33 @@
+# devices: iphone iphone-27 duo
+# On a phone the conversation slides aside like a card over the sidebar beneath:
+# a strip of it stays on screen and closes the sidebar when tapped, and a swipe
+# across it closes it too. (Opening with a swipe from the
+# leading edge needs a drag that starts just inside the screen; AXe's edge preset
+# starts on the edge itself, so that is checked by hand.) In the sidebar a
+# project's folder opens and closes its threads.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-scrim --timeout 10
+wait --id sidebar-automations --timeout 20
+order --ids sidebar-automations,project-row:read-project
+shot sidebar-push-open
+tap --id sidebar-scrim
+wait --id sidebar-scrim --gone --timeout 10
+wait --id sidebar-search --gone --timeout 10
+wait --id open-sidebar --timeout 10
+sidebar open
+wait --id sidebar-scrim --timeout 10
+wait --id sidebar-search --timeout 10
+swipe left
+wait --id sidebar-scrim --gone --timeout 10
+wait --id open-sidebar --timeout 10
+shot sidebar-push-closed
+sidebar open
+wait --id project-disclosure:read-project --timeout 10
+tap --id project-disclosure:read-project
+wait --label "Expand Read status" --timeout 10
+shot sidebar-push-folder-closed
+tap --id project-disclosure:read-project
+wait --label "Collapse Read status" --timeout 10
+shot sidebar-push-folder-open

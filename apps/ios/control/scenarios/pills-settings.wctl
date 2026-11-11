@@ -1,0 +1,63 @@
+# Settings → Pills: every composer pill has a switch and a place in the order,
+# kept on this device (each fixture launch starts from the default order). There
+# is no Pull requests row: the chat's title menu opens it. Move up (the one-tap form of dragging a handle) puts Files
+# before Computer, and the composer row follows. Leaving and reopening Pills
+# keeps both choices; Restore default order puts every pill back. Host response
+# fixture only; nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-pull-requests
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-pills
+tap --id settings-pills
+wait --id pills-row:pullRequests --gone --timeout 10
+order --ids pills-row:computer,pills-row:files,pills-row:terminal,pills-row:preview,pills-row:attention,pills-row:goal,pills-row:agentTasks
+wait --id pills-row:attention --contains "Always shown"
+wait --id pills-reset --gone --timeout 3
+shot pills-settings-default
+# Form exposes the row and its switch; press the trailing switch, left of the reorder handle.
+hold --id pills-row:files --seconds 1
+tap --label "Move up" --timeout 5
+order --ids pills-row:files,pills-row:computer,pills-row:terminal
+wait --id pills-reset --timeout 5
+shot pills-settings-reordered
+# Leaving the page and coming back reads the stored choice, not the page's state.
+back
+wait --id settings-pills --timeout 10
+tap --id settings-pills
+order --ids pills-row:files,pills-row:computer,pills-row:terminal
+back
+wait --id settings-pills --timeout 10
+back
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-files-pill --timeout 15
+# `order` compares vertical positions only; the shot shows Files left of Computer.
+wait --id computer-status-pill
+shot pills-composer-row
+tap --id conversation-title-menu
+wait --label "Copy as Markdown" --timeout 5
+# Pull requests is not a pill; the title menu opens it.
+wait --contains "Pull requests" --timeout 5
+shot pills-title-menu
+# Copy as Markdown closes the menu (it only fills the simulator's pasteboard).
+tap --label "Copy as Markdown"
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-pills
+tap --id settings-pills
+wait --id pills-reset --timeout 10
+tap --id pills-reset
+order --ids pills-row:computer,pills-row:files,pills-row:terminal,pills-row:preview,pills-row:attention,pills-row:goal,pills-row:agentTasks
+wait --id pills-reset --gone --timeout 5
+shot pills-settings-restored
+back
+wait --id settings-pills --timeout 10
+back
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+shot pills-composer-row-restored

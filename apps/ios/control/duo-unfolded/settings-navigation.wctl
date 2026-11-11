@@ -1,0 +1,46 @@
+# devices: duo
+# Native input, offline owned host. Unfolded Settings is one full-width page: a row pushes its page over the
+# list (no detail pane on the other display), and Back unwinds each level, then returns to the chat.
+# A submitted tap is not the success condition. The page covers the shell and spans the hinge, so the fold
+# division is not part of its state: each pose is asserted by the open Settings route and its own controls.
+hinge 180
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --arg=-diagnostics-settings-open
+driver off
+wait --id settings-root-list --timeout 30
+wait --id settings-back-to-chats --timeout 10
+tree --json
+check-layout settings-column
+tap --id settings-default-models
+wait --id provider-default-model:codex --timeout 10
+wait --id settings-search-field --gone --timeout 10
+shot hinge-native-settings-selection --display primary-1
+orient landscape-right
+driver on
+assert --path settingsOpen --equals true --timeout 15
+driver off
+# Stacked, the shell has no vertical bar, so the pushed page keeps the system Back instead of the inline row.
+wait --id provider-default-model:codex --timeout 10
+wait --id BackButton --timeout 10
+shot hinge-native-settings-stacked --display primary-1
+orient portrait
+driver on
+assert --path settingsOpen --equals true --timeout 15
+driver off
+wait --id provider-default-model:codex --timeout 10
+tap --id provider-default-model:codex
+wait --id provider-default-model:codex --gone --timeout 10
+tree --json
+shot hinge-native-settings-nested --display primary-1
+# The whole title row is the Back target, so the title sits inside Back's frame rather than beside it.
+wait --id settings-subsection-title --timeout 10
+tap --id settings-subsection-back
+wait --id provider-default-model:codex --timeout 10
+tap --id settings-subsection-back
+wait --id settings-back-to-chats --timeout 10
+shot hinge-native-settings-nested-back --display primary-1
+tap --id settings-back-to-chats
+wait --id settings-root-list --gone --timeout 10
+wait --id message-draft --timeout 10
+shot hinge-native-settings-back-chat --display primary-1

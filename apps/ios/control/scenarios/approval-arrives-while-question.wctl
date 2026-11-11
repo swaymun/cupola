@@ -1,0 +1,14 @@
+# A permission that arrives while a question is on screen only raises the count: the
+# review stays on the question (selected by id, not position), "1 of 2" shows, and the
+# permission's choices are not on screen until the owner steps to it with Next.
+launch --fixture read-preview --fixture send-preview --fixture question-preview --fixture attention-arrives-preview --fixture phone-approval-preview --arg command --arg=-diagnostics-attention-arrival-held
+wait --id message-draft --timeout 20
+signal attention-arrive
+wait --contains "Which day works best?" --timeout 10
+wait --contains "2 requests" --gone
+shot approval-arrives-while-question-before
+signal attention-arrive-second
+wait --contains "2 requests" --timeout 10
+wait --contains "Which day works best?"
+wait --id approval-accept-fixture-command --gone
+shot approval-arrives-while-question

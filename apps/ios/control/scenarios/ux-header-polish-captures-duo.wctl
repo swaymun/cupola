@@ -1,0 +1,78 @@
+# devices: duo
+# UX-HEADER-POLISH captures on the Duo, folded then unfolded. Offline fixtures; nothing is sent.
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture theme --arg cupola-light
+wait --id message-draft --timeout 30
+wait --contains "Reply 13. Continuing the project" --timeout 20
+wait --id context-usage-ring --timeout 15
+shot header-polish-folded-light-thread
+swipe down
+swipe down
+shot header-polish-folded-light-scrolled
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture theme --arg cupola-dark
+wait --id message-draft --timeout 30
+wait --contains "Reply 13. Continuing the project" --timeout 20
+wait --id context-usage-ring --timeout 15
+shot header-polish-folded-dark-thread
+swipe down
+swipe down
+shot header-polish-folded-dark-scrolled
+
+# Unfolded: the short chat-layout thread fits, so its "scrolled" capture would equal the resting one; the
+# scrolled captures use the long mini-map thread instead. `orient portrait` gives the wide unfolded
+# layout, whose buttons sit in the side rail (surface fill, "rail"); `landscape-left` gives the tall
+# one with glass header buttons ("tall").
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture theme --arg cupola-light
+wait --id message-draft --timeout 30
+wait --contains "Reply 13. Continuing the project" --timeout 20
+wait --id context-usage-ring --timeout 15
+shot --display primary-1 header-polish-unfolded-rail-light-thread
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture minimap --fixture theme --arg cupola-light
+wait --id message-draft --timeout 30
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+swipe down --in conversation-scroll
+wait --id conversation-minimap --gone --timeout 15
+shot --display primary-1 header-polish-unfolded-rail-light-scrolled
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture theme --arg cupola-dark
+wait --id message-draft --timeout 30
+wait --contains "Reply 13. Continuing the project" --timeout 20
+wait --id context-usage-ring --timeout 15
+shot --display primary-1 header-polish-unfolded-rail-dark-thread
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture minimap --fixture theme --arg cupola-dark
+wait --id message-draft --timeout 30
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+swipe down --in conversation-scroll
+wait --id conversation-minimap --gone --timeout 15
+shot --display primary-1 header-polish-unfolded-rail-dark-scrolled
+orient landscape-left
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture theme --arg cupola-light
+wait --id message-draft --timeout 30
+wait --contains "Reply 13. Continuing the project" --timeout 20
+wait --id context-usage-ring --timeout 15
+shot --display primary-1 header-polish-unfolded-tall-light-thread
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture minimap --fixture theme --arg cupola-light
+wait --id message-draft --timeout 30
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+swipe down --in conversation-scroll
+wait --id conversation-minimap --gone --timeout 15
+shot --display primary-1 header-polish-unfolded-tall-light-scrolled
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture theme --arg cupola-dark
+wait --id message-draft --timeout 30
+wait --contains "Reply 13. Continuing the project" --timeout 20
+wait --id context-usage-ring --timeout 15
+shot --display primary-1 header-polish-unfolded-tall-dark-thread
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture minimap --fixture theme --arg cupola-dark
+wait --id message-draft --timeout 30
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+swipe down --in conversation-scroll
+wait --id conversation-minimap --gone --timeout 15
+shot --display primary-1 header-polish-unfolded-tall-dark-scrolled
+hinge 0
+orient portrait

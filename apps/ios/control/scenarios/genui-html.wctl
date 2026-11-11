@@ -1,0 +1,35 @@
+# AXe checks native presentation here; HTMLArtifactWebViewTests and
+# control/capture-genui.py assert rendered WebKit content through XCTest.
+# Original HTML/CSS/JS in the offline artifact sandbox. No model or live sends.
+launch --fixture read-preview --fixture send-preview --fixture html-render-preview --arg=-html-render-page --arg=genui-grid --arg=-diagnostics-theme --arg=cupola-light
+wait --id html-render-page --timeout 30
+reveal down --id html-render-expand --in conversation-scroll
+tap --id html-render-expand
+wait --id expanded-message --timeout 15
+shot genui-grid-light
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10
+launch --fixture read-preview --fixture send-preview --fixture html-render-preview --arg=-html-render-page --arg=genui-js-table --arg=-diagnostics-theme --arg=cupola-dark
+wait --id html-render-page --timeout 30
+reveal down --id html-render-expand --in conversation-scroll
+tap --id html-render-expand
+wait --id expanded-message --timeout 15
+shot genui-js-table-dark
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10
+launch --fixture read-preview --fixture send-preview --fixture html-render-preview --arg=-html-render-page --arg=genui-forms --arg=-diagnostics-theme --arg=cupola-light
+wait --id html-render-page --timeout 30
+reveal down --id html-render-expand --in conversation-scroll
+tap --id html-render-expand
+wait --id expanded-message --timeout 15
+shot genui-local-form
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10
+launch --fixture read-preview --fixture send-preview --fixture html-render-preview --arg=-html-render-page --arg=genui-dynamic-height --arg=-diagnostics-theme --arg=cupola-dark
+wait --id html-render-page --timeout 30
+reveal down --id html-render-expand --in conversation-scroll
+tap --id html-render-expand
+wait --id expanded-message --timeout 15
+shot genui-delayed-height-dark
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10

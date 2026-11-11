@@ -1,0 +1,94 @@
+[
+  {
+    "error": null,
+    "id": "uuid-1",
+    "items": [
+      {
+        "content": [
+          {
+            "text": "Scrubbed user 1.",
+            "type": "text"
+          }
+        ],
+        "id": "uuid-1",
+        "type": "userMessage"
+      },
+      {
+        "arguments": {
+          "file_path": "/fixture/work/file-2"
+        },
+        "contentItems": [
+          {
+            "text": "Scrubbed tool output 3.",
+            "type": "inputText"
+          }
+        ],
+        "id": "toolu-1",
+        "server": "Claude",
+        "status": "completed",
+        "success": true,
+        "tool": "Read",
+        "toolAction": {
+          "kind": "read",
+          "paths": [
+            "/fixture/work/file-2"
+          ]
+        },
+        "type": "mcpToolCall"
+      },
+      {
+        "id": "uuid-1:msg-2:0",
+        "status": "completed",
+        "text": "Scrubbed assistant 4.",
+        "type": "agentMessage"
+      }
+    ],
+    "status": "completed"
+  },
+  {
+    "error": null,
+    "id": "uuid-5",
+    "items": [
+      {
+        "content": [
+          {
+            "text": "Scrubbed user 5.",
+            "type": "text"
+          }
+        ],
+        "id": "uuid-5",
+        "type": "userMessage"
+      },
+      {
+        "id": "uuid-5:msg-3:0",
+        "status": "completed",
+        "text": "Scrubbed assistant 6.",
+        "type": "agentMessage"
+      }
+    ],
+    "status": "completed"
+  },
+  {
+    "error": null,
+    "id": "uuid-7",
+    "items": [
+      {
+        "content": [
+          {
+            "text": "Scrubbed user 7.",
+            "type": "text"
+          }
+        ],
+        "id": "uuid-7",
+        "type": "userMessage"
+      },
+      {
+        "id": "uuid-7:msg-4:0",
+        "status": "completed",
+        "text": "Scrubbed assistant 8.",
+        "type": "agentMessage"
+      }
+    ],
+    "status": "completed"
+  }
+]

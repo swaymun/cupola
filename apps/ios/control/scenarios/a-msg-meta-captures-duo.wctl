@@ -1,0 +1,100 @@
+# devices: duo
+# A-MSG-META captures on the Duo, folded then unfolded. Offline fixtures; nothing is sent.
+hinge 0
+orient portrait
+# folded / cupola-light: finished reply (time + Copy), streaming reply (none), long-press menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture open-project-thread --fixture theme --arg cupola-light
+wait --contains "Reply 12. The update is ready." --timeout 20
+shot a-msg-meta-folded-cupola-light-finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture stream-reply --fixture open-project-thread --fixture theme --arg cupola-light
+wait --contains "Streaming reply, part one." --timeout 15
+wait --contains "part ten." --never 1
+shot a-msg-meta-folded-cupola-light-streaming
+signal stream
+wait --contains "part ten." --timeout 15
+shot a-msg-meta-folded-cupola-light-streamed
+
+# folded / cupola-dark: finished reply (time + Copy), streaming reply (none), long-press menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture open-project-thread --fixture theme --arg cupola-dark
+wait --contains "Reply 12. The update is ready." --timeout 20
+shot a-msg-meta-folded-cupola-dark-finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture stream-reply --fixture open-project-thread --fixture theme --arg cupola-dark
+wait --contains "Streaming reply, part one." --timeout 15
+wait --contains "part ten." --never 1
+shot a-msg-meta-folded-cupola-dark-streaming
+signal stream
+wait --contains "part ten." --timeout 15
+shot a-msg-meta-folded-cupola-dark-streamed
+
+# folded / nord: finished reply (time + Copy), streaming reply (none), long-press menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture open-project-thread --fixture theme --arg nord
+wait --contains "Reply 12. The update is ready." --timeout 20
+shot a-msg-meta-folded-nord-finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture stream-reply --fixture open-project-thread --fixture theme --arg nord
+wait --contains "Streaming reply, part one." --timeout 15
+wait --contains "part ten." --never 1
+shot a-msg-meta-folded-nord-streaming
+signal stream
+wait --contains "part ten." --timeout 15
+shot a-msg-meta-folded-nord-streamed
+
+# folded / misty-forest: finished reply (time + Copy), streaming reply (none), long-press menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture open-project-thread --fixture theme --arg misty-forest
+wait --contains "Reply 12. The update is ready." --timeout 20
+shot a-msg-meta-folded-misty-forest-finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture stream-reply --fixture open-project-thread --fixture theme --arg misty-forest
+wait --contains "Streaming reply, part one." --timeout 15
+wait --contains "part ten." --never 1
+shot a-msg-meta-folded-misty-forest-streaming
+signal stream
+wait --contains "part ten." --timeout 15
+shot a-msg-meta-folded-misty-forest-streamed
+
+hinge 180
+# unfolded / cupola-light: finished reply (time + Copy), streaming reply (none), long-press menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture open-project-thread --fixture theme --arg cupola-light
+wait --contains "Reply 12. The update is ready." --timeout 20
+shot a-msg-meta-unfolded-cupola-light-finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture stream-reply --fixture open-project-thread --fixture theme --arg cupola-light
+wait --contains "Streaming reply, part one." --timeout 15
+wait --contains "part ten." --never 1
+shot a-msg-meta-unfolded-cupola-light-streaming
+signal stream
+wait --contains "part ten." --timeout 15
+shot a-msg-meta-unfolded-cupola-light-streamed
+
+# unfolded / cupola-dark: finished reply (time + Copy), streaming reply (none), long-press menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture open-project-thread --fixture theme --arg cupola-dark
+wait --contains "Reply 12. The update is ready." --timeout 20
+shot a-msg-meta-unfolded-cupola-dark-finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture stream-reply --fixture open-project-thread --fixture theme --arg cupola-dark
+wait --contains "Streaming reply, part one." --timeout 15
+wait --contains "part ten." --never 1
+shot a-msg-meta-unfolded-cupola-dark-streaming
+signal stream
+wait --contains "part ten." --timeout 15
+shot a-msg-meta-unfolded-cupola-dark-streamed
+
+# unfolded / nord: finished reply (time + Copy), streaming reply (none), long-press menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture open-project-thread --fixture theme --arg nord
+wait --contains "Reply 12. The update is ready." --timeout 20
+shot a-msg-meta-unfolded-nord-finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture stream-reply --fixture open-project-thread --fixture theme --arg nord
+wait --contains "Streaming reply, part one." --timeout 15
+wait --contains "part ten." --never 1
+shot a-msg-meta-unfolded-nord-streaming
+signal stream
+wait --contains "part ten." --timeout 15
+shot a-msg-meta-unfolded-nord-streamed
+
+# unfolded / misty-forest: finished reply (time + Copy), streaming reply (none), long-press menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture open-project-thread --fixture theme --arg misty-forest
+wait --contains "Reply 12. The update is ready." --timeout 20
+shot a-msg-meta-unfolded-misty-forest-finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture stream-reply --fixture open-project-thread --fixture theme --arg misty-forest
+wait --contains "Streaming reply, part one." --timeout 15
+wait --contains "part ten." --never 1
+shot a-msg-meta-unfolded-misty-forest-streaming
+signal stream
+wait --contains "part ten." --timeout 15
+shot a-msg-meta-unfolded-misty-forest-streamed

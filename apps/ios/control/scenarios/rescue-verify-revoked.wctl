@@ -1,0 +1,15 @@
+# devices: iphone-11-usb
+# Physical iPhone 11 only (scripts/device-runner): the simulator lanes skip it as not applicable.
+# RESCUE-VERIFY live refusal on the USB iPhone 11: its pairing with a scratch host
+# was revoked on the computer (`cupola devices revoke`) and the supervisor gave
+# up. The recovery endpoint refuses a revoked device, so the phone must never
+# offer Restart; the capture shows what it says instead.
+launch
+wait --id open-sidebar --timeout 60
+sidebar open
+wait --id chats-sidebar --timeout 20
+wait --id sidebar-rescue-restart --never 60
+shot rv-revoked-after-60s
+wait --id sidebar-rescue --gone --timeout 5
+wait --id sidebar-rescue-restart --gone --timeout 5
+shot rv-revoked-no-restart

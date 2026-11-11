@@ -1,0 +1,20 @@
+# devices: iphone
+# UX-DUO-5 (issue 20): opening the computer view draws the whole picture at
+# Fit from its first frame; no frame is drawn zoomed without a pinch.
+# computer.unrequestedZoomFrames counts viewport frames drawn above Fit that no
+# pinch or menu zoom asked for, so a view that opens zoomed and corrects itself
+# a frame later still fails. A menu zoom is then undone by a fresh open path:
+# the relaunch (a new model) must again draw Fit. Duo folded and unfolded are
+# covered by computer-fit-zoom-duo.
+driver on
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-dock --fixture no-hardware-keyboard
+assert --path computer.hasPicture --equals true --timeout 30
+assert --path computer.zoomScale --equals 1
+assert --path computer.unrequestedZoomFrames --equals 0
+shot computer-open-fit-iphone
+signal computer-dock-zoom
+assert --path computer.zoomScale --equals 2 --timeout 10
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-dock --fixture no-hardware-keyboard
+assert --path computer.hasPicture --equals true --timeout 30
+assert --path computer.zoomScale --equals 1
+assert --path computer.unrequestedZoomFrames --equals 0

@@ -1,0 +1,15 @@
+# A computer that forgot this device answers the session renewal with 404
+# (not 401); the phone still ends access and offers Pair again. Synthetic
+# refusal only: no pairing, Tailscale change or agent work.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture connection-forgotten
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --contains "again to open its chats." --timeout 15
+wait --label "Pair again" --timeout 5
+shot connection-forgotten-chats
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+tap --label "Synthetic fixture" --type Button
+wait --id connection-status --contains "no longer accepts this device" --timeout 15
+wait --id connection-pair-again --timeout 5
+shot connection-forgotten-settings

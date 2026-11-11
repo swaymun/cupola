@@ -1,0 +1,167 @@
+# devices: iphone ipad
+# The Usage page lists every paired computer's provider limits: % left, a bar,
+# pace (ahead of / under) and the reset countdown. Fixtures put resets two hours
+# (5 hours window) and three days (weekly) out so the countdown and pace are live.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-live-reset --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+shot a-usage-mobile-light-sidebar
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-window:five-hours --contains "under pace" --timeout 15
+shot a-usage-mobile-light-one
+back
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-window:primary --contains "73% left" --timeout 15
+# One Codex account on both computers lists once; the pill masks its email as o•••@example.org.
+wait --id codex-usage-section --contains "o•••@example.org" --timeout 15
+shot a-usage-mobile-light-several
+back
+
+# The second computer can't read its usage: the account still shows once from the first, with no failure row.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture usage-studio-fails --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-window:primary --timeout 15
+shot a-usage-mobile-light-one-fails
+back
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-exhausted --fixture usage-live-reset --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-window:five-hours --contains "0% left" --timeout 15
+shot a-usage-mobile-light-exhausted
+back
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-empty --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+shot a-usage-mobile-light-empty
+back
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-ahead --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-window:five-hours --contains "ahead of pace" --timeout 15
+shot a-usage-mobile-light-ahead
+back
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-live-reset --fixture theme --arg cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+shot a-usage-mobile-dark-sidebar
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-window:five-hours --contains "under pace" --timeout 15
+shot a-usage-mobile-dark-one
+back
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-window:primary --contains "73% left" --timeout 15
+shot a-usage-mobile-dark-several
+back
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-exhausted --fixture usage-live-reset --fixture theme --arg cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-window:five-hours --contains "0% left" --timeout 15
+shot a-usage-mobile-dark-exhausted
+back
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-empty --fixture theme --arg cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+shot a-usage-mobile-dark-empty
+back
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-ahead --fixture theme --arg cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-window:five-hours --contains "ahead of pace" --timeout 15
+shot a-usage-mobile-dark-ahead
+back
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-live-reset --fixture theme --arg nord
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+shot a-usage-mobile-nord-sidebar
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-window:five-hours --contains "under pace" --timeout 15
+shot a-usage-mobile-nord-one
+back
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg nord
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-window:primary --contains "73% left" --timeout 15
+shot a-usage-mobile-nord-several
+back
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-exhausted --fixture usage-live-reset --fixture theme --arg nord
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-window:five-hours --contains "0% left" --timeout 15
+shot a-usage-mobile-nord-exhausted
+back
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-empty --fixture theme --arg nord
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+shot a-usage-mobile-nord-empty
+back
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-ahead --fixture theme --arg nord
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-window:five-hours --contains "ahead of pace" --timeout 15
+shot a-usage-mobile-nord-ahead
+back
+

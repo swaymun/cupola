@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+"""Print syntax-colour contrast against the code background for every theme.
+
+Parses apps/native/Sources/WonderPairing/WonderThemeCatalog.swift. With --fix,
+moves each syntax colour below its floor (4.5:1; keywords 6:1) toward the theme's primary text in 1%
+steps (same hue family) until it clears the floor, and rewrites the catalog.
+WonderThemeTests.testTextAndSyntaxKeepWCAGContrastOnEverySurface owns the floor.
+"""
+import re, sys, pathlib
+
+CATALOG = pathlib.Path(__file__).resolve().parent.parent / "apps/native/Sources/WonderPairing/WonderThemeCatalog.swift"
+ROLES = ["keyword", "string", "number", "comment", "type", "function", "punctuation"]
+FLOOR = 4.5
+# Keywords are the most frequent coloured token and read dimmest in practice
+# (owner feedback on Nord at 5.0:1), so they get a higher floor.
+KEYWORD_FLOOR = 6.0
+
+def floor(role, f):
+    """4.5 everywhere; keywords 6 where the theme's own text is far enough above it."""
+    if role != "keyword":
+        return FLOOR
+    return max(FLOOR, min(KEYWORD_FLOOR, ratio(f["primaryText"], f["codeBackground"]) - 0.5))
+
+def lum(h):
+    def ch(v):
+        c = v / 255
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    return 0.2126 * ch(h >> 16 & 255) + 0.7152 * ch(h >> 8 & 255) + 0.0722 * ch(h & 255)
+
+def ratio(a, b):
+    hi, lo = max(lum(a), lum(b)), min(lum(a), lum(b))
+    return (hi + 0.05) / (lo + 0.05)
+
+def mix(a, b, t):
+    return sum(round(((a >> s) & 255) + (((b >> s) & 255) - ((a >> s) & 255)) * t) << s for s in (16, 8, 0))
+
+def palettes(text):
+    for spec in re.finditer(r'WonderThemeSpec\(id: "([^"]+)"', text):
+        sid = spec.group(1)
+        end = text.find("WonderThemeSpec(id:", spec.end())
+        body = text[spec.end(): end if end > 0 else len(text)]
+        for tag in re.finditer(r'(light|dark): ThemePalette\((.*?)\)', body, re.S):
+            fields = dict((k, int(v, 16)) for k, v in re.findall(r'(\w+): 0x([0-9A-Fa-f]{6})', tag.group(2)))
+            yield sid, tag.group(1), fields
+
+def main():
+    text = CATALOG.read_text()
+    fix = "--fix" in sys.argv
+    print("theme|mode|code bg|" + "|".join(ROLES))
+    for sid, mode, f in palettes(text):
+        cells = []
+        for role in ROLES:
+            r = ratio(f[role], f["codeBackground"])
+            cells.append(f"{r:.2f}" + ("*" if r < floor(role, f) else ""))
+            if fix and r < floor(role, f):
+                new = next(mix(f[role], f["primaryText"], s / 100) for s in range(101)
+                           if ratio(mix(f[role], f["primaryText"], s / 100), f["codeBackground"]) >= floor(role, f) + 0.05)
+                print(f"  fix {sid} {mode} {role}: {f[role]:06X} -> {new:06X}", file=sys.stderr)
+                start = text.index(f'id: "{sid}"')
+                m = re.compile(rf'(\b{role}: 0x){f[role]:06X}').search(text, start)
+                # only inside this theme's mode block: find the block that holds this palette
+                block = text.index(f"{mode}: ThemePalette(", start)
+                m = re.compile(rf'(\b{role}: 0x){f[role]:06X}').search(text, block)
+                text = text[:m.start()] + m.group(1) + f"{new:06X}" + text[m.end():]
+        print(f"{sid}|{mode}|{f['codeBackground']:06X}|" + "|".join(cells))
+    if fix:
+        CATALOG.write_text(text)
+
+main()

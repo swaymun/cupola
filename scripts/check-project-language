@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+"""Reject retired conversation models in native UI and public fixtures.
+
+Run without arguments for the owned surfaces, or pass files for a focused check.
+Project threads own conversations; provider agent tasks own child transcripts.
+Historical documentation is deliberately outside this source/fixture guard.
+
+The app calls a conversation a "chat" (owner decision OC1, 2026-10-25). In the
+files listed in CHAT_NOUN_FILES, user-facing copy (view labels, accessibility
+text, alerts, Shortcuts titles, error messages) must not say "thread" or
+"conversation". Code, API paths, accessibility IDs and other literals are not
+checked; "thread" stays the noun of the CLI, docs and agent tool descriptions.
+"""
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+SURFACES = (
+    "apps/ios/Wonder", "apps/ios/WonderShare", "apps/ios/WonderWidget",
+    "apps/ios/WonderNotificationService", "apps/ios/WonderDiagnosticsTests",
+    "apps/ios/WonderUITests", "apps/ios/control", "apps/native/Sources",
+    "apps/native/Tests",
+)
+RETIRED = re.compile(r"\bbots?\b|\bgroup[ -]?chats?\b|\bbot(?:Id|ID)\b|/bots\b|bot-options", re.IGNORECASE)
+EXTENSIONS = {".swift", ".wctl", ".json", ".jsonl"}
+
+# Files whose UI copy follows the one-noun rule; add a file once its copy says "chat".
+CHAT_NOUN_FILES = {
+    "AppShell.swift", "CodeChangesSheet.swift", "CompanionPane.swift", "ConnectionModel.swift",
+    "ConversationView.swift", "ProjectShortcuts.swift", "ProjectViews.swift", "SubagentDock.swift",
+    "VoiceMode.swift", "WorkspaceBrowser.swift", "WonderProjectWidget.swift", "CodeChanges.swift",
+}
+# A line is copy when it calls a view/label/accessibility/intent API with a literal, assigns
+# an error message, returns or switches to a sentence, or picks between literals.
+COPY_LINE = re.compile(
+    r'\b(?:Text|Button|Label|Toggle|TextField|ProgressView|Section|Menu|ContentUnavailableView|'
+    r'IntentDescription|Summary|DisplayRepresentation|hostMessage)\('
+    r'|\.(?:navigationTitle|accessibilityLabel|accessibilityHint|accessibilityValue|alert|'
+    r'confirmationDialog|configurationDisplayName|description)\('
+    r'|\b(?:title|subtitle|shortTitle|phrases|reason|message|detail|fallback|accessibility):\s*\[?"'
+    r'|(?:TypeDisplayRepresentation|LocalizedStringResource)\s*='
+    r'|\b(?:failure|error|linkIssue|chatsStatus|userCaption)\s*=\s*"|Errors\[[^\]]*\]\s*=\s*"'
+    r'|\breturn\s+"|^\s*[?:]\s*"|\bcase\s+[.\w, ]+:\s*"|\?\s*"[^"]*"\s*:')
+NON_COPY = re.compile(r'\.(?:accessibilityIdentifier|id)\("[^"]*"\)|\["[^"]*"\]')
+LITERAL = re.compile(r'"((?:[^"\\]|\\.)*)"')
+IDENTIFIER = re.compile(r'^[a-z0-9]+(?:[-_:.][a-z0-9]*)+$')
+CHAT_NOUN = re.compile(r"\b(?:threads?|conversations?)\b", re.IGNORECASE)
+# Provider-native names and non-copy keys that keep "thread".
+CHAT_NOUN_ALLOWED = (
+    '"Copy thread ID"',              # Codex's own identifier for the chat
+    'tab == .thread ? "thread"',     # task identity key, not shown
+)
+
+
+def strip_interpolations(text):
+    """Drops \\( ... ) segments, which hold code (and nested literals), not copy."""
+    out, i = [], 0
+    while i < len(text):
+        if text.startswith("\\(", i):
+            depth, i = 1, i + 2
+            while i < len(text) and depth:
+                depth += {"(": 1, ")": -1}.get(text[i], 0)
+                i += 1
+            continue
+        out.append(text[i])
+        i += 1
+    return "".join(out)
+
+
+def chat_noun_copy(text):
+    if text.lstrip().startswith("//") or not COPY_LINE.search(text) or any(a in text for a in CHAT_NOUN_ALLOWED):
+        return False
+    for literal in LITERAL.findall(NON_COPY.sub("", strip_interpolations(text))):
+        if not literal.startswith("/") and not IDENTIFIER.match(literal) and CHAT_NOUN.search(literal):
+            return True
+    return False
+
+
+def main():
+    paths = [Path(p) for p in sys.argv[1:]] if len(sys.argv) > 1 else sorted(
+        path for surface in SURFACES for path in (ROOT / surface).rglob("*")
+        if path.is_file() and path.suffix in EXTENSIONS
+    )
+    failures = 0
+    for path in paths:
+        for line, text in enumerate(path.read_text().splitlines(), 1):
+            if RETIRED.search(text):
+                label = path.relative_to(ROOT) if path.is_relative_to(ROOT) else path
+                print(f"{label}:{line}: retired conversation model; use a Project thread and provider identity. "
+                      "Remove obsolete routes/fixtures; preserve agent tasks through the Project owner.")
+                failures += 1
+            if path.suffix == ".swift" and path.name in CHAT_NOUN_FILES and chat_noun_copy(text):
+                label = path.relative_to(ROOT) if path.is_relative_to(ROOT) else path
+                print(f"{label}:{line}: user-facing copy calls a conversation a chat, not a thread or conversation. "
+                      "Keep provider-native IDs (add them to CHAT_NOUN_ALLOWED), API paths and accessibility IDs.")
+                failures += 1
+    if failures:
+        print(f"{failures} project language failure(s).", file=sys.stderr)
+        return 1
+    print(f"Project language check passed ({len(paths)} files).")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,144 @@
+# Settings > computer > Connected apps > "Control this computer": one
+# computer-wide switch (the host's Cua Driver setting) next to T3 Code, in plain
+# words: no driver status line or setup commands. All settings and installation
+# states belong to the synthetic host; no model work.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture computer-use --fixture computer-use-reset --fixture computer-use-load-held --fixture computer-use-load-fails-once --fixture computer-use-save-held --fixture computer-use-save-fails-once
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+hold --id sidebar-settings --seconds 0.15
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+reveal up --id connection-connected-apps --max-drags 6
+tap --id connection-connected-apps
+wait --id computer-use-loading --timeout 10
+shot computer-use-loading
+signal computer-use-load
+wait --id computer-use-error --contains "Couldn’t check" --timeout 10
+shot computer-use-load-failed
+tap --id computer-use-retry
+wait --id computer-use-cua-driver --contains "1" --timeout 10
+wait --id computer-use-current --contains "Lets agents see the screen" --timeout 10
+wait --id computer-use-native --contains "Codex uses ChatGPT’s computer use" --timeout 10
+shot computer-use-on
+hold --id computer-use-cua-driver --seconds 0.15
+wait --id computer-use-saving --timeout 10
+shot computer-use-saving
+signal computer-use-save
+wait --id computer-use-error --contains "Couldn’t save" --timeout 10
+wait --id computer-use-cua-driver --contains "1" --timeout 10
+shot computer-use-save-failed
+tap --id computer-use-retry
+wait --id computer-use-cua-driver --contains "0" --timeout 10
+wait --id computer-use-native --contains "Codex uses ChatGPT’s computer use" --timeout 10
+wait --id computer-use-error --gone --timeout 5
+shot computer-use-off
+# A new process reads the host's saved off value; native Codex stays available.
+terminate
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture computer-use
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+hold --id sidebar-settings --seconds 0.15
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+reveal up --id connection-connected-apps --max-drags 6
+tap --id connection-connected-apps
+wait --id computer-use-cua-driver --contains "0" --timeout 10
+wait --id computer-use-native --contains "Codex uses ChatGPT’s computer use" --timeout 10
+shot computer-use-off-persisted
+hold --id computer-use-cua-driver --seconds 0.15
+wait --id computer-use-cua-driver --contains "1" --timeout 10
+wait --id computer-use-current --contains "Lets agents see the screen" --timeout 10
+shot computer-use-on-again
+terminate
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture computer-use
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+hold --id sidebar-settings --seconds 0.15
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+reveal up --id connection-connected-apps --max-drags 6
+tap --id connection-connected-apps
+wait --id computer-use-cua-driver --contains "1" --timeout 10
+shot computer-use-on-persisted
+# Leave the page mid-save: the save still lands, and reopening shows its result
+# (the computer's page owns the switch's state, so nothing reloads over it).
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture computer-use --fixture computer-use-reset --fixture computer-use-save-held
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+hold --id sidebar-settings --seconds 0.15
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+reveal up --id connection-connected-apps --max-drags 6
+tap --id connection-connected-apps
+wait --id computer-use-cua-driver --contains "1" --timeout 10
+hold --id computer-use-cua-driver --seconds 0.15
+wait --id computer-use-saving --timeout 10
+back
+reveal up --id connection-connected-apps --max-drags 6
+signal computer-use-save
+tap --id connection-connected-apps
+wait --id computer-use-cua-driver --contains "0" --timeout 10
+wait --id computer-use-error --gone --timeout 5
+shot computer-use-save-after-reopening
+# Missing driver: one line saying what to install replaces the switch. Native
+# Codex is still reported when available, regardless of the driver's availability.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture computer-use --fixture computer-use-reset --fixture computer-use-no-driver
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+hold --id sidebar-settings --seconds 0.15
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+reveal up --id connection-connected-apps --max-drags 6
+tap --id connection-connected-apps
+wait --id computer-use-cua-driver --gone --timeout 5
+wait --id computer-use-current --contains "Install Cua Driver on" --timeout 10
+wait --id computer-use-native --contains "Codex uses ChatGPT’s computer use" --timeout 10
+shot computer-use-not-installed
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture computer-use --fixture computer-use-reset --fixture computer-use-no-driver --fixture computer-use-no-desktop
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+hold --id sidebar-settings --seconds 0.15
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+reveal up --id connection-connected-apps --max-drags 6
+tap --id connection-connected-apps
+wait --id computer-use-cua-driver --gone --timeout 5
+wait --id computer-use-native --gone --timeout 5
+wait --id computer-use-current --contains "Install Cua Driver on" --timeout 10
+shot computer-use-neither-installed
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture computer-use --fixture computer-use-reset --fixture computer-use-no-desktop
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+hold --id sidebar-settings --seconds 0.15
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+reveal up --id connection-connected-apps --max-drags 6
+tap --id connection-connected-apps
+wait --id computer-use-cua-driver --contains "1" --timeout 10
+wait --id computer-use-native --gone --timeout 5
+wait --id computer-use-current --contains "Lets agents see the screen" --timeout 10
+wait --id computer-use-note --contains "after Cupola restarts" --timeout 5
+shot computer-use-driver-only
+# Host startup has computer use disabled even though the driver is installed.
+# It says where that is set, with no commands, never a switch that saves and
+# silently snaps back.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture computer-use --fixture computer-use-reset --fixture computer-use-host-disabled
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+hold --id sidebar-settings --seconds 0.15
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+reveal up --id connection-connected-apps --max-drags 6
+tap --id connection-connected-apps
+wait --id computer-use-cua-driver --gone --timeout 5
+wait --id computer-use-current --contains "Turned off in Cupola’s setup on" --timeout 10
+wait --id computer-use-native --gone --timeout 5
+shot computer-use-host-disabled

@@ -1,0 +1,6 @@
+[
+ {"type":"document","path":"/home/user/.config/opencode/opencode.json","info":{"$schema":"https://opencode.ai/config.json","mcp":{"redacted":{"type":"local","environment":{"TOKEN":"synthetic-secret-not-a-credential"}}},"providers":{"redacted":{"apiKey":"synthetic-secret-not-a-credential"}}}},
+ {"type":"directory","path":"/home/user/.config/opencode"},
+ {"type":"document","path":"/home/user/project/opencode.json","info":{"model":{"providerID":"opencode","model":"beam-free"}}},
+ {"type":"directory","path":"/home/user/.opencode"}
+]

@@ -1,0 +1,15 @@
+{
+  "approvalId": "runtime:2",
+  "conversationId": "example-chat",
+  "method": "item/tool/call",
+  "actionNonce": "example-nonce",
+  "resolutionIdempotencyKey": null,
+  "params": {
+    "tool": "wonder_computer_use",
+    "threadId": "example-thread",
+    "turnId": "example-turn",
+    "arguments": {
+      "action": "screenshot"
+    }
+  }
+}

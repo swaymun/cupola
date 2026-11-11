@@ -1,0 +1,7 @@
+# A rejected empty answer follows native recovery. No provider or APNs request.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-notification-question-failure
+wait --contains "Enter a short answer, or open the conversation to reply." --timeout 20
+shot notification-question-invalid
+tap --label "OK"
+wait --contains "Enter a short answer, or open the conversation to reply." --gone --timeout 5
+shot notification-question-recovered

@@ -1,0 +1,15 @@
+# A thread an automation posts into shows a clock in Chats (with an
+# exclamation mark after a failed run, spoken with the row), and the prompt
+# it posted says "Automation: <name>" with a clock instead of reading as yours.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+# The row's clock is spoken with it: the run failed, and why.
+wait --id pinned-thread:codex:read-fixture --contains "Automation Nightly check failed" --timeout 10
+wait --id pinned-thread:codex:read-fixture --contains "needs a paired phone or iPad"
+shot automation-marks-row
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Automation: Nightly check" --timeout 20
+wait --contains "From Release planner" --timeout 5
+shot automation-marks-message

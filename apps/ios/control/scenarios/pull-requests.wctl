@@ -1,0 +1,195 @@
+# devices: iphone iphone-27 duo
+# iPad shows this tool in the companion pane, closed from its pill: companion-pane.wctl
+# A Project thread's pull requests live in the conversation title menu, which
+# shows the count; the sheet opens on its PRs tab, one line per pull request (title, number, state and checks) in
+# the Mac's order, refreshing on opening. Reopening it, the fixture's refresh fails: the sheet explains it and
+# keeps the list. The fixture stands in for the Mac's GitHub CLI.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-pull-requests --fixture project-pull-requests-refresh-fails
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --timeout 15
+tap --id conversation-title-menu
+wait --contains "Pull requests (1)" --timeout 5
+tap --contains "Pull requests"
+wait --id pull-request-row:128 --timeout 10
+wait --id changes-scope --gone --timeout 2
+wait --id changes-branch --gone --timeout 2
+wait --id pull-request-row:121 --gone --timeout 2
+tap --label "All"
+order --ids pull-request-row:128,pull-request-row:121,pull-request-row:7
+wait --contains "Show a thread's pull requests" --timeout 5
+wait --contains "2 of 5 checks running" --timeout 5
+wait --contains "1 of 5 checks failed" --timeout 5
+shot pull-requests-sheet
+tap --id pull-request-row:128
+wait --id pull-request-detail --timeout 10
+wait --contains "Unit tests" --timeout 5
+wait --contains "Skipped" --timeout 5
+shot pull-request-checks
+# The modal AX tree retains a full-window scrim and a zero-size detail copy.
+# Two native drags reach this fixture's footer; assert its visible rows below.
+swipe up
+swipe up
+wait --contains "example/mobile (team)" --timeout 5
+wait --id pull-request-merge-status --timeout 5
+wait --contains "GitHub reports this merge is blocked" --timeout 5
+wait --id pull-request-files --timeout 5
+wait --id pull-request-github --timeout 5
+shot pull-request-review-and-merge
+back
+wait --id pull-request-row:7 --timeout 5
+tap --id pull-request-row:7
+wait --id pull-request-details-unavailable --timeout 5
+wait --id pull-request-github --timeout 5
+shot pull-request-older-mac
+back
+wait --id pull-request-row:128 --timeout 5
+swipe down --from-sheet
+wait --id pull-request-row:128 --gone --timeout 10
+tap --id conversation-title-menu
+wait --contains "Pull requests" --timeout 5
+tap --contains "Pull requests"
+wait --id pull-requests-error --timeout 10
+wait --id pull-requests-retry --timeout 5
+wait --id pull-request-row:128 --timeout 5
+shot pull-requests-refresh-failed
+tap --id pull-request-row:128
+wait --id pull-request-detail-error --timeout 5
+wait --id pull-request-detail-retry --timeout 5
+wait --contains "Unit tests" --timeout 5
+shot pull-request-details-refresh-failed
+tap --id pull-request-detail-retry
+wait --id pull-request-detail-error --gone --timeout 10
+swipe up
+swipe up
+wait --contains "Approved" --timeout 5
+shot pull-request-details-refreshed
+# Foreground refresh reads the Mac's cache; it must retain the latest details.
+button home
+activate
+wait --id pull-request-detail --timeout 10
+wait --contains "Approved" --timeout 5
+wait --contains "Review required" --never 3
+shot pull-request-details-after-foreground
+back
+swipe down --from-sheet
+wait --id pull-request-row:128 --gone --timeout 10
+wait --id conversation-title-menu --timeout 5
+
+# Open plus draft count, failing checks, and compact accessibility presentation.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-pull-requests --arg=-diagnostics-pull-requests-attention --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --timeout 15
+tap --id conversation-title-menu
+wait --contains "needs attention" --timeout 5
+shot pull-requests-attention-accessibility
+
+# The in-app merge form is pinned to the commit it shows (headOid -> expectedHeadOid). The
+# fixture Mac is GitHub: it holds commit A, merges only a request that names A, and refuses
+# a request that names a commit it no longer has (headChanged). Merge on GitHub stays beside it.
+# Unchanged head: the menu offers both entries, the form reads A, and the merge goes through.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-pull-requests --fixture project-git-merge-ready-preview
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --timeout 15
+tap --id conversation-title-menu
+wait --contains "Pull requests (1)" --timeout 5
+tap --contains "Pull requests"
+wait --id pull-request-row:128 --timeout 10
+tap --id pull-request-actions:128
+wait --id pull-request-merge:128 --timeout 5
+wait --id pull-request-merge-review:128 --timeout 5
+shot pull-request-merge-menu
+tap --id pull-request-merge-review:128
+wait --id merge-ready --timeout 10
+wait --id merge-head-unknown --gone --timeout 2
+shot pull-request-merge-form
+tap --id merge-confirm-open
+wait --id merge-confirm --timeout 5
+shot pull-request-merge-confirm
+tap --id merge-confirm
+wait --contains "Merged #128" --timeout 10
+shot pull-request-merge-done
+
+# Head B arrives after the form read A and the owner confirmed A: the Mac refuses with
+# headChanged, no merge happens, and the form reads B and asks to review it again.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-pull-requests --fixture project-git-merge-ready-preview
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --timeout 15
+tap --id conversation-title-menu
+wait --contains "Pull requests (1)" --timeout 5
+tap --contains "Pull requests"
+wait --id pull-request-row:128 --timeout 10
+tap --id pull-request-actions:128
+wait --id pull-request-merge:128 --timeout 5
+tap --id pull-request-merge-review:128
+wait --id merge-ready --timeout 10
+signal git-head-moves
+tap --id merge-confirm-open
+wait --id merge-confirm --timeout 5
+tap --id merge-confirm
+wait --contains "New commits arrived since you opened this pull request" --timeout 10
+wait --id merge-new-commits --timeout 10
+wait --contains "Merged #128" --never 2
+wait --id merge-confirm-open --timeout 5
+shot pull-request-merge-head-changed
+
+# The head moves while the confirmation is open and the app returns to the foreground: the
+# confirmation closes, nothing is sent, and the owner confirms the new revision themselves.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-pull-requests --fixture project-git-merge-ready-preview
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --timeout 15
+tap --id conversation-title-menu
+wait --contains "Pull requests (1)" --timeout 5
+tap --contains "Pull requests"
+wait --id pull-request-row:128 --timeout 10
+tap --id pull-request-actions:128
+wait --id pull-request-merge:128 --timeout 5
+tap --id pull-request-merge-review:128
+wait --id merge-ready --timeout 10
+tap --id merge-confirm-open
+wait --id merge-confirm --timeout 5
+signal git-head-moves
+button home
+activate
+wait --id merge-new-commits --timeout 10
+wait --id merge-confirm --gone --timeout 5
+wait --id merge-action-status --gone --timeout 2
+shot pull-request-merge-confirmation-voided
+
+# The Mac reports no head commit: Merge and Merge when ready are unavailable and say why;
+# the GitHub link still opens.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-pull-requests --fixture project-git-head-missing-preview
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --timeout 15
+tap --id conversation-title-menu
+wait --contains "Pull requests (1)" --timeout 5
+tap --contains "Pull requests"
+wait --id pull-request-row:128 --timeout 10
+tap --id pull-request-actions:128
+wait --id pull-request-merge:128 --timeout 5
+wait --id pull-request-merge-review:128 --timeout 5
+tap --id pull-request-merge-review:128
+wait --id merge-head-unknown --timeout 10
+wait --id merge-ready --gone --timeout 2
+tap --id merge-confirm-open
+wait --id merge-confirm --never 2
+tap --id merge-auto
+wait --id merge-action-status --never 2
+shot pull-request-merge-head-missing

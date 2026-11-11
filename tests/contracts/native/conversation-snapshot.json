@@ -1,0 +1,291 @@
+{
+  "assistantMessages": [
+    {
+      "codexThreadId": "thread-contract",
+      "codexTurnId": "turn-contract",
+      "createdAt": "2026-09-05T21:48:43.500Z",
+      "itemId": "item-contract",
+      "messageId": "assistant:turn-contract:item-contract",
+      "state": "completed",
+      "text": "hello hello world",
+      "updatedAt": "2026-09-05T21:48:43.510Z"
+    }
+  ],
+  "codexThreadId": "thread-contract",
+  "conversationId": "default",
+  "events": [
+    {
+      "approvalId": null,
+      "conversationId": "default",
+      "deviceId": null,
+      "event": {
+        "data": {
+          "state": "accepted_by_codex"
+        },
+        "type": "message_state"
+      },
+      "eventId": "55d48da5-6010-4b21-967c-275b550a67f4",
+      "hostEpoch": "contract-epoch",
+      "itemId": null,
+      "messageId": "14cb8bbb-c440-4a84-827c-2d2b1aa4cf17",
+      "occurredAt": "2026-09-05T21:48:43.49111Z",
+      "requestId": null,
+      "sequence": 27,
+      "threadId": "thread-contract",
+      "turnId": "turn-contract"
+    },
+    {
+      "approvalId": null,
+      "conversationId": "default",
+      "deviceId": null,
+      "event": {
+        "data": {
+          "state": "streaming"
+        },
+        "type": "message_state"
+      },
+      "eventId": "adffca0b-5a21-45fa-9c97-6c6815b73f29",
+      "hostEpoch": "contract-epoch",
+      "itemId": null,
+      "messageId": "14cb8bbb-c440-4a84-827c-2d2b1aa4cf17",
+      "occurredAt": "2026-09-05T21:48:43.501705Z",
+      "requestId": null,
+      "sequence": 31,
+      "threadId": "thread-contract",
+      "turnId": "turn-contract"
+    },
+    {
+      "approvalId": null,
+      "conversationId": "default",
+      "deviceId": null,
+      "event": {
+        "data": {
+          "text": "hello "
+        },
+        "type": "assistant_delta"
+      },
+      "eventId": "6fb2b94e-70e5-49b5-ac33-5f18b81863e8",
+      "hostEpoch": "contract-epoch",
+      "itemId": "item-contract",
+      "messageId": "14cb8bbb-c440-4a84-827c-2d2b1aa4cf17",
+      "occurredAt": "2026-09-05T21:48:43.502496Z",
+      "requestId": null,
+      "sequence": 32,
+      "threadId": "thread-contract",
+      "turnId": "turn-contract"
+    },
+    {
+      "approvalId": null,
+      "conversationId": "default",
+      "deviceId": null,
+      "event": {
+        "data": {
+          "text": "hello "
+        },
+        "type": "assistant_delta"
+      },
+      "eventId": "ff369be9-4ea9-41f1-830a-fbeedf739c25",
+      "hostEpoch": "contract-epoch",
+      "itemId": "item-contract",
+      "messageId": "14cb8bbb-c440-4a84-827c-2d2b1aa4cf17",
+      "occurredAt": "2026-09-05T21:48:43.505424Z",
+      "requestId": null,
+      "sequence": 35,
+      "threadId": "thread-contract",
+      "turnId": "turn-contract"
+    },
+    {
+      "approvalId": null,
+      "conversationId": "default",
+      "deviceId": null,
+      "event": {
+        "data": {
+          "text": "world"
+        },
+        "type": "assistant_delta"
+      },
+      "eventId": "a88459cf-d788-4d8d-b69f-4f1b119e0097",
+      "hostEpoch": "contract-epoch",
+      "itemId": "item-contract",
+      "messageId": "14cb8bbb-c440-4a84-827c-2d2b1aa4cf17",
+      "occurredAt": "2026-09-05T21:48:43.507756Z",
+      "requestId": null,
+      "sequence": 38,
+      "threadId": "thread-contract",
+      "turnId": "turn-contract"
+    },
+    {
+      "approvalId": null,
+      "conversationId": "default",
+      "deviceId": null,
+      "event": {
+        "data": {
+          "text": "hello hello world"
+        },
+        "type": "assistant_completed"
+      },
+      "eventId": "1766e382-931a-4dee-875d-806a7ce5f701",
+      "hostEpoch": "contract-epoch",
+      "itemId": "item-contract",
+      "messageId": "14cb8bbb-c440-4a84-827c-2d2b1aa4cf17",
+      "occurredAt": "2026-09-05T21:48:43.511336Z",
+      "requestId": null,
+      "sequence": 41,
+      "threadId": "thread-contract",
+      "turnId": "turn-contract"
+    },
+    {
+      "approvalId": null,
+      "conversationId": "default",
+      "deviceId": null,
+      "event": {
+        "data": {
+          "state": "completed"
+        },
+        "type": "message_state"
+      },
+      "eventId": "0977991b-270d-4beb-86f0-be54024343b7",
+      "hostEpoch": "contract-epoch",
+      "itemId": null,
+      "messageId": "14cb8bbb-c440-4a84-827c-2d2b1aa4cf17",
+      "occurredAt": "2026-09-05T21:48:43.512087Z",
+      "requestId": null,
+      "sequence": 42,
+      "threadId": "thread-contract",
+      "turnId": "turn-contract"
+    },
+    {
+      "approvalId": null,
+      "conversationId": "default",
+      "deviceId": null,
+      "event": {
+        "data": {
+          "category": "thread_item_upsert",
+          "detail": "{\"item\":{\"content\":[{\"text\":\"late completion must not overwrite\"}],\"id\":\"item-contract\"},\"itemId\":\"item-contract\",\"state\":\"completed\",\"turnId\":\"turn-contract\"}",
+          "state": "updated"
+        },
+        "type": "activity"
+      },
+      "eventId": "ff5c52ee-cbee-4fb4-8ca4-952cf7f85de6",
+      "hostEpoch": "contract-epoch",
+      "itemId": "item-contract",
+      "messageId": "14cb8bbb-c440-4a84-827c-2d2b1aa4cf17",
+      "occurredAt": "2026-09-05T21:48:43.514809Z",
+      "requestId": null,
+      "sequence": 44,
+      "threadId": "thread-contract",
+      "turnId": "turn-contract"
+    }
+  ],
+  "hostEpoch": "contract-epoch",
+  "lastSequence": 55,
+  "historyRevision": 0,
+  "messages": [
+    {
+      "attachmentIds": [],
+      "body": "continue after completion",
+      "bodySha256": "3f80f8ea3bd4339989e6f7bfe7b5587e48f3e8d74851458b0dac844002c3157e",
+      "clientMessageId": "00000000-0000-4000-8000-000000000002",
+      "codexThreadId": "thread-contract",
+      "codexTurnId": "turn-contract",
+      "createdAt": "2026-09-01T10:01:00Z",
+      "messageId": "7cacf233-1e8d-4366-b445-d16724fda05d",
+      "state": "completed"
+    },
+    {
+      "attachmentIds": [],
+      "body": "active turn",
+      "bodySha256": "a90445d3f66da224abe8474cbb3e3bddfb8c1653ee22c11cbf8cff8c6b7e0503",
+      "clientMessageId": "00000000-0000-4000-8000-000000000099",
+      "codexThreadId": "thread-contract",
+      "codexTurnId": "turn-guard",
+      "createdAt": "2026-09-01T10:02:00Z",
+      "messageId": "65772b97-52ad-4430-8b96-ce5c291e33a8",
+      "state": "completed"
+    },
+    {
+      "attachmentIds": [],
+      "body": "say hello",
+      "bodySha256": "3cad3da3dbbe1c106b3219f6c278a565f411cee74f0848956aff65d3df4846a7",
+      "clientMessageId": "00000000-0000-4000-8000-000000000001",
+      "codexThreadId": "thread-contract",
+      "codexTurnId": "turn-contract",
+      "createdAt": "2026-09-05T21:48:42.504Z",
+      "messageId": "14cb8bbb-c440-4a84-827c-2d2b1aa4cf17",
+      "state": "completed"
+    }
+  ],
+  "thread": {
+    "hydrated": true,
+    "nextCursor": null,
+    "threadId": "thread-contract",
+    "turns": [
+      {
+        "createdAt": "2026-09-01T10:01:00Z",
+        "id": "turn-contract",
+        "items": [
+          {
+            "createdAt": "2026-09-01T10:01:00Z",
+            "id": "7cacf233-1e8d-4366-b445-d16724fda05d",
+            "payload": {
+              "attachments": [],
+              "clientId": "00000000-0000-4000-8000-000000000002",
+              "deliveryState": "completed"
+            },
+            "state": "completed",
+            "text": "continue after completion",
+            "type": "userMessage",
+            "updatedAt": "2026-09-01T10:01:00Z"
+          },
+          {
+            "createdAt": "2026-09-05T21:48:42.504Z",
+            "id": "14cb8bbb-c440-4a84-827c-2d2b1aa4cf17",
+            "payload": {
+              "attachments": [],
+              "clientId": "00000000-0000-4000-8000-000000000001",
+              "deliveryState": "completed"
+            },
+            "state": "completed",
+            "text": "say hello",
+            "type": "userMessage",
+            "updatedAt": "2026-09-05T21:48:42.504Z"
+          },
+          {
+            "createdAt": "2026-09-05T21:48:43.500Z",
+            "id": "item-contract",
+            "payload": {
+              "phase": "final"
+            },
+            "state": "completed",
+            "text": "hello hello world",
+            "type": "agentMessage",
+            "updatedAt": "2026-09-05T21:48:43.514809Z"
+          }
+        ],
+        "status": "completed",
+        "updatedAt": "2026-09-05T21:48:43.514809Z"
+      },
+      {
+        "createdAt": "2026-09-01T10:02:00Z",
+        "id": "turn-guard",
+        "items": [
+          {
+            "createdAt": "2026-09-01T10:02:00Z",
+            "id": "65772b97-52ad-4430-8b96-ce5c291e33a8",
+            "payload": {
+              "attachments": [],
+              "clientId": "00000000-0000-4000-8000-000000000099",
+              "deliveryState": "completed"
+            },
+            "state": "completed",
+            "text": "active turn",
+            "type": "userMessage",
+            "updatedAt": "2026-09-01T10:02:00Z"
+          }
+        ],
+        "status": "completed",
+        "updatedAt": "2026-09-01T10:02:00Z"
+      }
+    ]
+  }
+}

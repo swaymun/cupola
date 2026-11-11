@@ -1,0 +1,69 @@
+# Notifications need a Cupola account; everything else works without one.
+# -diagnostics-account-fixture starts signed out against a local stand-in for
+# the notification service: no Apple sign-in, Cloudflare call, APNs or Keychain
+# write. WonderDiagnosticsTests account tests cover the request contract, device
+# binding, sign-out and deletion turning notifications off.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture account-fixture --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+# Signed out there is no Notifications row: the Apple sign-in sits in Settings itself.
+wait --id settings-notifications --gone --timeout 2
+wait --id account-consent --contains "notifications and Live Activities" --timeout 10
+wait --id account-privacy --timeout 2
+wait --id account-sign-in-apple --timeout 5
+shot notifications-consent
+tap --id account-sign-in-apple
+# Signed in: Notifications and Live Activities are two rows with their own switches; Cupola account (Signed in) opens its own page with Sign out and Delete.
+wait --id settings-notifications --contains "Off" --timeout 10
+wait --id account-provider --timeout 5
+wait --id account-consent --gone --timeout 2
+order --ids settings-notifications,account-provider
+shot notifications-signed-in
+# Delete account asks first, then removes the account and signs out.
+tap --id account-provider
+tap --id account-delete
+wait --label "Delete your Cupola account?" --timeout 5
+shot notifications-delete-confirm
+tap --label "Delete" --type Button
+wait --id account-sign-in-apple --timeout 10
+wait --id account-provider --gone --timeout 2
+shot notifications-deleted
+
+# Isolated presentation fixture selects ActivityKit availability explicitly. It never enables notifications or calls APNs. The
+# Live Activities toggle still saves through the production coordinator.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture account-fixture --arg=-diagnostics-live-activities-settings --arg=-diagnostics-account-signed-in --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+tap --id sidebar-settings
+wait --id settings-notifications --timeout 10
+wait --id settings-notifications --timeout 5
+wait --id settings-live-activities --timeout 5
+# Notifications are off here and Live Activities still work: no prerequisite note.
+wait --id notifications-note --gone --timeout 3
+shot live-activities-without-notifications
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture account-fixture --arg=-diagnostics-live-activities-settings --arg=-diagnostics-account-signed-in --arg=-live-activities-enabled-v1 --arg=YES --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+tap --id sidebar-settings
+wait --id settings-notifications --timeout 10
+wait --id settings-live-activities --timeout 5
+shot live-activities-on
+# Native switch actions are unchecked here: AXe's
+# synthetic tap does not actuate this UISwitch; select presentation state here.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture account-fixture --arg=-diagnostics-live-activities-settings --arg=-diagnostics-account-signed-in --arg=-live-activities-enabled-v1 --arg=NO --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+tap --id sidebar-settings
+wait --id settings-notifications --timeout 10
+wait --id settings-live-activities --timeout 5
+shot live-activities-off
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture account-fixture --arg=-diagnostics-live-activities-settings --arg=-diagnostics-account-signed-in --arg=-diagnostics-live-activities-system-off --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+tap --id sidebar-settings
+wait --id settings-notifications --timeout 10
+wait --id notifications-settings --timeout 5
+wait --id settings-live-activities --timeout 5
+shot live-activities-off-in-settings

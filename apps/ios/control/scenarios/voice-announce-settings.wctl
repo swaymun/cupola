@@ -1,0 +1,23 @@
+# Settings → Voice at the Announcements switch, light and dark: the screen the
+# Announcements setting changed (it sits after Ask before, before Limits).
+# Offline fixtures only; nothing is minted, spoken or sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --arg=-diagnostics-theme --arg=cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-voice
+tap --id settings-voice
+wait --id voice-key-computer --contains "Synthetic fixture" --timeout 15
+reveal up --id voice-announce
+shot voice-settings-announce-light
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --arg=-diagnostics-theme --arg=cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-voice
+tap --id settings-voice
+wait --id voice-key-computer --contains "Synthetic fixture" --timeout 15
+reveal up --id voice-announce
+shot voice-settings-announce-dark

@@ -1,0 +1,8 @@
+# devices: iphone duo
+# A narrow conversation (iPhone, the folded Duo) has no mini map, even while
+# scrolling with the fixture that holds it shown on wide screens. Nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-held --fixture open-project-thread
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+wait --id conversation-minimap --gone --timeout 3
+shot minimap-narrow

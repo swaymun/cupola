@@ -1,0 +1,40 @@
+# devices: duo
+# DUO-CHROME-CENTRE: unfolded Duo (vertical hinge) with only a chat open puts Chats on the leading display and
+# the chat alone on the trailing one: pill, composer and arrow never cross the hinge. Opening then closing a tool
+# pane restores exactly that (placement is a function of the layout). The driver opens/closes the pane because
+# Duo taps are gated (#387); folded stays a phone window. The companion-terminal fixture launches with the pane open; the Files pill reopens one (this offline host drops the Terminal pill once closed).
+hinge 180
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture terminal-preview --fixture companion-terminal --arg=-diagnostics-scroll-top
+assert --path pane.tool --equals '"terminal"' --timeout 30
+driver off
+wait --id companion-pane --timeout 10
+shot chat-centre-unfolded-tool-open --display primary-1
+driver on
+tap --id conversation-terminal-pill
+assert --path pane --equals null --timeout 10
+driver off
+wait --id companion-pane --gone --timeout 10
+wait --id message-draft --timeout 10
+wait --id chats-sidebar --timeout 15
+shot chat-centre-unfolded-chat-alone --display primary-1
+check-layout duo-chat-centre --settle 10
+driver on
+tap --id conversation-files-pill
+assert --path pane.tool --equals '"files"' --timeout 10
+driver off
+wait --id companion-pane --timeout 10
+shot chat-centre-unfolded-files-open --display primary-1
+driver on
+tap --id conversation-files-pill
+assert --path pane --equals null --timeout 10
+driver off
+wait --id companion-pane --gone --timeout 10
+wait --id chats-sidebar --timeout 15
+shot chat-centre-unfolded-closed-again --display primary-1
+check-layout duo-chat-centre --settle 10
+hinge 0
+orient portrait
+wait --id message-draft --timeout 20
+shot chat-centre-folded --display primary

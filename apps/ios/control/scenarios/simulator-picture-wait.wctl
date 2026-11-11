@@ -1,0 +1,21 @@
+# devices: iphone ipad duo
+# A simulator that connects live but sends no frame is not a black pane: it
+# says it is waiting for the picture, then after a few seconds says there is
+# none yet with Try again and Choose another simulator, and shows the picture
+# once the first frame arrives. The fixture holds the frame back until
+# `signal simulator-picture`; nothing reaches a computer.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --fixture no-hardware-keyboard --arg=-diagnostics-simulator-no-picture
+wait --id conversation-simulators-pill --timeout 30
+tap --id conversation-simulators-pill
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001 --timeout 15
+tap --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001
+wait --id simulator-waiting-picture --contains "Waiting for the picture" --timeout 15
+shot simulator-picture-waiting
+wait --id simulator-picture-notice --contains "No picture from iPhone 17 Pro yet" --timeout 20
+wait --id simulator-picture-recovery --contains "screen is on"
+wait --id simulator-picture-alternative --label "Choose another simulator"
+shot simulator-picture-stalled
+signal simulator-picture
+wait --id simulator-picture-notice --gone --timeout 10
+wait --id simulator-take-control --timeout 10
+shot simulator-picture-arrived

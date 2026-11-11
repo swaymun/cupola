@@ -1,0 +1,19 @@
+# Linux retains keyboard control and exposes its own shortcuts.
+# This offline fixture checks controls only; VM acceptance proves actual video/input.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture linux-host --fixture no-hardware-keyboard
+wait --id computer-session-take-control --timeout 30
+tap --id computer-session-take-control
+wait --id computer-session-control-active --timeout 15
+# The shortcut row is on the system keyboard.
+tap --id computer-session-keyboard
+wait --id computer-session-shortcuts-row --timeout 10
+wait --id computer-session-shortcut-super
+wait --id computer-session-shortcut-activities
+wait --id computer-session-shortcut-app-switcher --contains "Alt Tab"
+wait --id computer-session-shortcut-all-windows --gone
+wait --id computer-session-keyboard
+shot computer-linux-control
+tap --id computer-session-done
+wait --id computer-session-take-control --timeout 15
+wait --id computer-session-control-active --gone
+shot computer-linux-released

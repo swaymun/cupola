@@ -1,0 +1,23 @@
+# devices: duo
+# Replay with capture-computer-entry-duo.py --semantic-taps (native Duo taps unavailable, #387). Folded and unfolded: take control, shortcut row and control row present with and without the keyboard dock.
+driver on
+hinge 0
+orient portrait
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture no-hardware-keyboard
+pause 4
+tap --id computer-session-take-control
+pause 3
+shot duo-folded-rows-no-keyboard
+signal computer-dock-keyboard
+pause 3
+shot duo-folded-rows-keyboard
+hinge 180
+orient portrait
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture no-hardware-keyboard
+pause 4
+tap --id computer-session-take-control
+pause 3
+shot duo-unfolded-rows-no-keyboard
+signal computer-dock-keyboard
+pause 3
+shot duo-unfolded-rows-keyboard

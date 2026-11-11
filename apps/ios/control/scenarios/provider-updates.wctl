@@ -1,0 +1,39 @@
+# Settings > computer > Claude: a provider with an update the Mac can install
+# says "Update available" and offers Update; Update shows the update running
+# on the computer, then its result (here the Mac's failure reason, in red,
+# with Update offered again). The Claude app setting is off by default,
+# explains the claude --resume alternative and saves when turned on.
+# Host response fixture only: no installer runs and nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture provider-updates
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id connection-rename --timeout 10
+tap --id settings-provider:claude
+wait --contains "Signed in with Claude Max" --timeout 15
+wait --id provider-update:claude --contains "Update available" --timeout 5
+wait --id provider-action:claude --contains "Update" --timeout 5
+shot provider-update-available
+tap --id provider-action:claude
+wait --id provider-update:claude --contains "Updating Claude on" --timeout 10
+shot provider-update-running
+# The fixture holds the update running until now; the next status check fails it.
+signal provider-update
+wait --id provider-update:claude --contains "couldn’t be downloaded or checked" --timeout 15
+wait --id provider-action:claude --timeout 5
+shot provider-update-failed
+swipe up
+wait --id claude-app-sync --contains "0" --timeout 10
+wait --id claude-app-explanation --contains "claude --resume" --timeout 5
+shot claude-app-off
+hold --id claude-app-sync --seconds 0.15
+wait --id claude-app-sync --contains "1" --timeout 10
+wait --id claude-app-failure --gone --timeout 2
+shot claude-app-on
+back
+tap --id settings-provider:claude
+swipe up
+wait --id claude-app-sync --contains "1" --timeout 10

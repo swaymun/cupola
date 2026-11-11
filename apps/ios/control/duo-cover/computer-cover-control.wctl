@@ -1,0 +1,23 @@
+# Duo only; outside the feature map until #387 closes. Offline fixture only.
+# Contract (WD-COMPUTER, was B-216 U1): on the folded Duo the picture is centred
+# in the spare height (top: false) and the floating title row sits in its
+# letterbox instead of a bar above it. Fit stays the default; Fill and taps
+# still line up with the picture (taps: iPhone/iPad). Since U2 the controls are items in the side
+# bar (computer-bar-controls.wctl), not a slab.
+# Check in the shots: the title row floats over the letterbox, not the picture.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --arg=-computer.fillsViewport --arg unset
+hinge 0
+orient portrait
+wait --id computer-session-more --contains "100 percent" --timeout 30
+wait --id computer-viewport-appearances --contains "top: false;" --timeout 10
+check-layout computer
+shot duo-cover-computer-fit
+# Duo taps do not register (#387): control starts from the fixture, not a tap.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-control-active --arg=-computer.fillsViewport --arg unset
+hinge 0
+orient portrait
+wait --id computer-session-control-active --timeout 30
+wait --id computer-viewport-appearances --contains "top: false;" --timeout 10
+check-layout computer --controlling
+shot duo-cover-computer-controlling
+# Fill and Fit through the More menu need native taps (#387): check them on iPhone/iPad (computer-view-states).

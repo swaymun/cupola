@@ -1,0 +1,41 @@
+# Open trip.json (Formatted, then Raw), broken.json (invalid notice) and events.jsonl
+# (collapsible records, one invalid line) from Files. Copy puts the shown form on the
+# pasteboard: pretty text in Formatted, the file's own text in Raw. Big numbers keep
+# every digit. The Raw/Formatted choice persists, so a run that failed in Raw would
+# leave the next one in Raw: pick Formatted first rather than assume it.
+launch --fixture read-preview --fixture send-preview --fixture files-preview --fixture project-files-conversation-preview --fixture workspace-viewer-preview
+wait --id conversation-files-pill
+tap --id conversation-files-pill
+wait --id workspace-file-list
+# The file list scrolls on a short screen (the Duo).
+swipe up --in workspace-file-list
+wait --id workspace-file-entry:trip.json --timeout 5
+tap --id workspace-file-entry:trip.json --timeout 5
+tap --label Formatted --type RadioButton --timeout 10
+wait --id workspace-json-formatted --timeout 10
+shot json-formatted
+clipboard --clear
+tap --id workspace-viewer-copy
+clipboard --contains "\"name\": \"trip\"" --contains "1234567890123456789012" --contains "0.10000000000000000555" --not-contains "{\"name\":\"trip\""
+tap --label Raw --type RadioButton
+wait --id workspace-json-formatted --gone --timeout 5
+wait --contains "\"zebra\":true" --timeout 5
+shot json-raw
+clipboard --clear
+tap --id workspace-viewer-copy
+clipboard --contains "{\"name\":\"trip\",\"days\":2" --not-contains "\"name\": \"trip\""
+tap --label Formatted --type RadioButton
+wait --id workspace-json-formatted --timeout 5
+tap --id workspace-preview-back
+wait --id workspace-file-list
+tap --id workspace-file-entry:broken.json --timeout 5
+wait --id workspace-json-notice --timeout 10
+shot json-invalid
+tap --id workspace-preview-back
+wait --id workspace-file-list
+tap --id workspace-file-entry:events.jsonl --timeout 5
+wait --id workspace-jsonl-records --timeout 10
+wait --contains "Not valid JSON" --timeout 5
+tap --id jsonl-record:3 --type Button
+wait --contains "usage" --timeout 5
+shot jsonl-records

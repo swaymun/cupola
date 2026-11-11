@@ -1,0 +1,28 @@
+# Settings > computer: the page shows Cupola on the computer once, with its
+# installed and newest version, the Homebrew command that updates it and why it
+# is a command (Cupola restarts to update). Settings > computer > Codex shows Codex with its installed and newest version, an Update it can run, and the
+# plain-words warning that chats work while one optional feature is off.
+# Host response fixture only: nothing is installed and nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture provider-versions --fixture host-update
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id connection-rename --timeout 10
+wait --id host-versions --contains "Cupola 1.0.256 · Latest 1.0.300" --timeout 15
+wait --id host-update-note --contains "brew upgrade --cask cupola" --timeout 5
+wait --id host-update-why --contains "restarts to update" --timeout 5
+shot computer-update-row
+reveal up --id settings-provider:codex --in connection-settings
+tap --id settings-provider:codex
+wait --id provider-versions:codex --contains "Latest 0.170.0" --timeout 5
+wait --id provider-warning:codex --contains "Message search" --timeout 5
+wait --id provider-action:codex --contains "Update" --timeout 5
+shot provider-versions-codex
+back
+reveal up --id settings-provider:claude --in connection-settings
+tap --id settings-provider:claude
+wait --id provider-versions:claude --contains "Up to date" --timeout 15
+shot provider-versions-claude

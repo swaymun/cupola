@@ -1,0 +1,14 @@
+# Create a Project schedule against the automations fixture and see the saved row.
+launch --fixture automations-fixture
+wait --id project-automation-new --timeout 15
+tap --id project-automation-new
+wait --id project-automation-thread --timeout 15
+# Fill the lower field before the keyboard covers it on the folded Duo.
+tap --id project-automation-prompt
+type "Review the launch plan."
+tap --id project-automation-name
+type "Daily launch review"
+tap --id project-automation-save --type Button
+wait --id automation-row:fixture-project-schedule --timeout 10
+wait --label "Daily launch review"
+shot automation-saved

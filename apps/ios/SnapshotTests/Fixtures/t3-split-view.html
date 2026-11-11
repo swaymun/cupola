@@ -1,0 +1,90 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><style id="t3-theme">:root{color-scheme:dark;--background:#0a0a0a;--foreground:#f5f5f5;--muted:#111111;--muted-foreground:#818181;--card:#111111;--card-foreground:#f5f5f5;--popover:#111111;--popover-foreground:#f5f5f5;--secondary:#111111;--secondary-foreground:#f5f5f5;--border:#191919;--input:#1e1e1e;--ring:#346bf1;--primary:#346bf1;--primary-foreground:#ffffff;--accent:#346bf1;--accent-foreground:#ffffff;--accent-surface:#141414;--accent-surface-foreground:#f5f5f5;--destructive:#fb414a;--destructive-foreground:#ff6467;--destructive-surface:#301214;--warning:#fe9a00;--warning-foreground:#ffb900;--warning-surface:#312108;--success:#10b981;--success-foreground:#34d399;--info:#3b82f6;--info-foreground:#60a5fa;--code-background:#111111;--code-foreground:#f5f5f5;--chart-1:#346bf1;--chart-2:#2dd4bf;--chart-3:#fbbf24;--chart-4:#c084fc;--chart-5:#fb7185;--chart-6:#a3e635;--radius:0.625rem;--font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;--font-mono:"SF Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;}@media (prefers-color-scheme: light){:root{color-scheme:light;--background:#fcfcfc;--foreground:#27272a;--muted:#fafafa;--muted-foreground:#71717b;--card:#ffffff;--card-foreground:#27272a;--popover:#ffffff;--popover-foreground:#27272a;--secondary:#fafafa;--secondary-foreground:#27272a;--border:#e4e4e7;--input:#d4d4d8;--ring:#1b4ed8;--primary:#1b4ed8;--primary-foreground:#ffffff;--accent:#1b4ed8;--accent-foreground:#ffffff;--accent-surface:#f4f4f5;--accent-surface-foreground:#18181b;--destructive:#fb2c36;--destructive-foreground:#c10007;--destructive-surface:#fcebec;--warning:#fe9a00;--warning-foreground:#bb4d00;--warning-surface:#fcf4e8;--success:#10b981;--success-foreground:#047857;--info:#3b82f6;--info-foreground:#1d4ed8;--code-background:#ffffff;--code-foreground:#27272a;--chart-1:#1b4ed8;--chart-2:#0d9488;--chart-3:#d97706;--chart-4:#9333ea;--chart-5:#e11d48;--chart-6:#65a30d;--radius:0.625rem;--font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;--font-mono:"SF Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;}}html{background:var(--background);color:var(--foreground);font-family:var(--font-sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;scrollbar-width:none}html::-webkit-scrollbar{display:none}body{margin:0}code,kbd,pre,samp{font-family:var(--font-mono)}:where(:focus-visible){outline:2px solid var(--ring)}:focus-visible{outline-width:2px!important;outline-offset:-2px!important}:where(img:not(a[href] img,button img)){cursor:zoom-in}</style><script>(function(){var s=document.getElementById("t3-theme"),n=0;if(!s)return;var b="html{background:var(--background);color:var(--foreground);font-family:var(--font-sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;scrollbar-width:none}html::-webkit-scrollbar{display:none}body{margin:0}code,kbd,pre,samp{font-family:var(--font-mono)}:where(:focus-visible){outline:2px solid var(--ring)}:focus-visible{outline-width:2px!important;outline-offset:-2px!important}:where(img:not(a[href] img,button img)){cursor:zoom-in}";function a(t){if(!t||typeof t!=="object"||!t.variables||typeof t.variables!=="object")return;var c=":root{color-scheme:"+(t.appearance==="light"?"light":"dark")+";";for(var k in t.variables){if(/^--[a-z0-9-]+$/.test(k))c+=k+":"+String(t.variables[k]).replace(/[;{}<>]/g,"")+";";}s.textContent=c+"}"+b;}try{var m=/[#&]t3-theme=([^&]*)/.exec(location.hash);if(m){a(JSON.parse(decodeURIComponent(m[1])));history.replaceState(history.state,"",location.pathname+location.search);}}catch(e){}window.addEventListener("message",function(e){var d=e.data,p=d&&d.params;if(d&&d.jsonrpc==="2.0"&&d.method==="ui/notifications/host-context-changed"&&p&&p.styles)a({appearance:p.theme,variables:p.styles.variables});});document.addEventListener("click",function(e){var l=e.isTrusted?e.composedPath().find(function(t){return t&&t.matches&&t.matches("a[href]");}):null,u;if(!l)return;try{u=new URL(l.getAttribute("href"),document.baseURI);}catch(x){return;}if(!/^https?:$/.test(u.protocol)||u.href.split("#")[0]===location.href.split("#")[0])return;if(window.parent!==window){e.preventDefault();window.parent.postMessage({jsonrpc:"2.0",id:"t3-link-"+(++n),method:"ui/open-link",params:{url:u.href,metaKey:e.metaKey,ctrlKey:e.ctrlKey}},"*");}else{l.setAttribute("target","_blank");l.setAttribute("rel","noopener");}},true);if(window.parent!==window){var h,o,z=function(){var r=document.documentElement,v=Math.ceil(r.scrollHeight>r.clientHeight?r.scrollHeight:r.getBoundingClientRect().height);if(v===h)return;h=v;window.parent.postMessage({jsonrpc:"2.0",method:"ui/notifications/size-changed",params:{height:v}},"*");};if(window.ResizeObserver){o=new ResizeObserver(z);o.observe(document.documentElement);}document.addEventListener("DOMContentLoaded",function(){if(o&&document.body)o.observe(document.body);z();});window.addEventListener("load",z);window.addEventListener("click",function(e){var t=e.composedPath()[0],u;if(!e.isTrusted||e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||!t||t.tagName!=="IMG"||t.closest("a[href],button"))return;u=t.currentSrc||t.src;if(u)setTimeout(function(){if(!e.defaultPrevented)window.parent.postMessage({jsonrpc:"2.0",method:"t3/notifications/open-image",params:{src:u,name:t.alt||t.title||""}},"*");});});var K=[],B=[],C={"Backquote":"`","Backslash":"\\","BracketLeft":"[","BracketRight":"]","Comma":",","Digit0":"0","Digit1":"1","Digit2":"2","Digit3":"3","Digit4":"4","Digit5":"5","Digit6":"6","Digit7":"7","Digit8":"8","Digit9":"9","Equal":"=","Minus":"-","Period":".","Quote":"'","Semicolon":";","Slash":"/"};window.addEventListener("message",function(e){var d=e.data,p=d&&d.params;if(e.source===window.parent&&d&&d.jsonrpc==="2.0"&&d.method==="t3/notifications/shortcuts"&&p&&Array.isArray(p.shortcuts)&&Array.isArray(p.blocked)){K=p.shortcuts;B=p.blocked;}});window.addEventListener("keydown",function(e){var t=e.composedPath()[0],c=e.code||"",l=e.key.toLowerCase(),x=/^[a-z]$/.test(l)?[l]:[l,/^Key[A-Z]$/.test(c)?c.slice(3).toLowerCase():"",C.hasOwnProperty(c)?C[c]:""],f,m=function(s){return s&&s.metaKey===e.metaKey&&s.ctrlKey===e.ctrlKey&&s.shiftKey===e.shiftKey&&s.altKey===e.altKey&&x.indexOf(s.key)>-1;};if(!e.isTrusted||e.isComposing||e.getModifierState("AltGraph")&&!/^[a-z0-9]$/i.test(e.key)||t&&(t.isContentEditable||/^(?:INPUT|TEXTAREA|SELECT)$/.test(t.tagName))||!K.some(m)||B.some(m))return;f=function(v){window.removeEventListener("keydown",f);if(v!==e||e.defaultPrevented)return;e.preventDefault();window.parent.postMessage({jsonrpc:"2.0",method:"t3/notifications/keydown",params:{key:e.key,code:e.code,metaKey:e.metaKey,ctrlKey:e.ctrlKey,shiftKey:e.shiftKey,altKey:e.altKey,repeat:e.repeat}},"*");};window.addEventListener("keydown",f);setTimeout(function(){window.removeEventListener("keydown",f);});},true);}})();</script><meta charset="utf-8"><style>
+body{font-family:var(--font-sans);color:var(--foreground)}
+h3{font-size:15px;margin:22px 0 4px}
+p.n{font-size:12.5px;color:var(--muted-foreground);margin:0 0 10px;line-height:1.45}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.cap{font-size:12px;margin-top:6px;line-height:1.4}.cap b{font-weight:600}
+.dev{position:relative;aspect-ratio:4/3;border:2px solid var(--border);border-radius:14px;background:var(--card);overflow:hidden;display:flex}
+.duo{aspect-ratio:3/2.3}
+.side{width:22%;background:var(--secondary);border-right:1px solid var(--border);padding:6px;box-sizing:border-box}
+.side i{display:block;height:6px;border-radius:3px;background:var(--muted-foreground);margin:5px 0;opacity:.35}
+.chat{flex:1;display:flex;flex-direction:column;padding:22px 6px 6px;box-sizing:border-box;gap:5px;min-width:0}
+.b{height:9px;border-radius:5px;background:var(--muted-foreground);opacity:.4;width:70%}
+.b.u{align-self:flex-end;background:var(--accent);opacity:.6;width:50%}
+.comp{margin-top:auto;height:14px;border-radius:7px;border:1px solid var(--border);background:var(--background)}
+.pane{display:flex;flex-direction:column;padding:6px;box-sizing:border-box;gap:4px;min-width:0}
+.pane .t{font-size:10px;font-weight:600;color:var(--muted-foreground)}
+.pane .c{flex:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+.k-comp{background:color-mix(in srgb,var(--chart-1) 30%,transparent)}
+.k-term{background:color-mix(in srgb,var(--chart-2) 30%,transparent);font-family:var(--font-mono)}
+.k-web{background:color-mix(in srgb,var(--chart-3) 30%,transparent)}
+.k-git{background:color-mix(in srgb,var(--chart-4) 30%,transparent)}
+.k-files{background:color-mix(in srgb,var(--chart-5) 30%,transparent)}
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+.sheet{position:absolute;left:18%;right:18%;top:14%;bottom:8%;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;padding:6px;gap:4px}
+.full{position:absolute;inset:0;padding:8px;display:flex;flex-direction:column;background:var(--card)}
+.div{width:14px;display:flex;align-items:center;justify-content:center;position:relative;background:var(--background)}
+.div::before{content:"";position:absolute;top:0;bottom:0;width:1px;background:var(--border)}
+.flip{position:relative;z-index:1;width:22px;height:22px;border-radius:11px;background:var(--primary);color:var(--primary-foreground);font-size:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.hinge{width:10px;background:repeating-linear-gradient(0deg,var(--border) 0 4px,transparent 4px 8px);display:flex;align-items:center;justify-content:center}
+.tag{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:10px;padding:1px 6px;border-radius:8px;background:var(--destructive-surface);color:var(--destructive);z-index:2}
+.tag.ok{background:color-mix(in srgb,var(--success) 20%,var(--card));color:var(--success)}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin-top:6px}
+td,th{padding:6px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--muted-foreground);font-size:11.5px}
+</style></head><body>
+<h3>Today on iPad</h3>
+<p class="n">Based on reading the code. There's no split anywhere except the Chats sidebar. Every tool covers the conversation one way or another.</p>
+<div class="row">
+ <div><div class="dev"><div class="side"><i></i><i></i><i></i><i></i></div>
+  <div class="pane" style="flex:1"><div class="t">Files</div><div class="c k-files">Files list</div><div class="comp"></div></div><span class="tag">chat hidden</span></div>
+  <div class="cap"><b>Files and Approvals</b> take the conversation's place in the same column.</div></div>
+ <div><div class="dev"><div class="side"><i></i><i></i><i></i></div><div class="chat"><div class="b"></div><div class="b u"></div><div class="b"></div><div class="comp"></div></div>
+  <div class="dim"></div><div class="sheet"><div class="t" style="font-size:10px;font-weight:600;color:var(--muted-foreground)">Terminal</div><div class="k-term" style="flex:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px">$ npm run dev</div></div><span class="tag">chat blocked</span></div>
+  <div class="cap"><b>Terminal, Browser, Code changes, Goal and task transcripts</b> open as a centered sheet. The chat is dimmed behind it and you can't use it.</div></div>
+ <div><div class="dev"><div class="full"><div class="pane" style="flex:1;padding:0"><div class="t">Computer</div><div class="c k-comp">Mac screen</div></div></div><span class="tag">everything covered</span></div>
+  <div class="cap"><b>Computer, image viewer and file preview</b> go full screen and cover even the sidebar. A small picture-in-picture window is the only thing that floats over the chat.</div></div>
+</div>
+<h3>Proposed on iPad: the chat with a tool beside it</h3>
+<p class="n">Tapping a pill opens the tool in a pane next to the chat, and the composer stays usable. Drag the divider to resize. The middle button <b>⇄</b> swaps the two sides. Double-tapping the divider (or ⤢) makes the tool fill the screen. On a narrow iPad window, the Chats sidebar tucks away.</p>
+<div class="row">
+ <div><div class="dev"><div class="chat" style="flex:1"><div class="b"></div><div class="b u"></div><div class="b"></div><div class="b u"></div><div class="comp"></div></div>
+  <div class="div"><div class="flip">⇄</div></div><div class="pane" style="flex:1.25"><div class="t">Computer</div><div class="c k-comp">Mac screen</div></div></div>
+  <div class="cap">Editing in the chat while watching the <b>Computer</b>.</div></div>
+ <div><div class="dev"><div class="pane" style="flex:1.25"><div class="t">Computer</div><div class="c k-comp">Mac screen</div></div><div class="div"><div class="flip">⇄</div></div>
+  <div class="chat" style="flex:1"><div class="b"></div><div class="b u"></div><div class="b"></div><div class="comp"></div></div></div>
+  <div class="cap">After tapping <b>⇄</b>: the same two panels with sides swapped (say, for left-hand use or to keep the Mac nearer a keyboard).</div></div>
+ <div><div class="dev"><div class="side"><i></i><i></i><i></i></div><div class="chat" style="flex:1"><div class="b"></div><div class="b u"></div><div class="b"></div><div class="comp"></div></div>
+  <div class="div"><div class="flip">⇄</div></div><div class="pane" style="flex:1"><div class="t">Code changes</div><div class="c k-git">+42 −7 diff</div></div></div>
+  <div class="cap">On a 13" iPad there's room for the sidebar, chat and tool together.</div></div>
+</div>
+<h3>Proposed on the unfolded Duo: one panel per side of the fold</h3>
+<p class="n">The fold is the natural divider, so it doesn't resize: each half takes one panel, and <b>⇄</b> sits on the fold to swap them. Folded, the cover screen keeps today's single-panel behavior. The Computer's half-folded "laptop pose" (screen above, trackpad below) stays as it is.</p>
+<div class="row">
+ <div><div class="dev duo"><div class="chat" style="flex:1"><div class="b"></div><div class="b u"></div><div class="b"></div><div class="b u"></div><div class="comp"></div></div>
+  <div class="hinge"><div class="flip">⇄</div></div><div class="pane" style="flex:1"><div class="t">Browser</div><div class="c k-web">localhost page</div></div></div>
+  <div class="cap">Chat on the left, <b>Browser</b> on the right.</div></div>
+ <div><div class="dev duo"><div class="pane" style="flex:1"><div class="t">Terminal</div><div class="c k-term">$ cargo test</div></div>
+  <div class="hinge"><div class="flip">⇄</div></div><div class="chat" style="flex:1"><div class="b"></div><div class="b u"></div><div class="b"></div><div class="comp"></div></div></div>
+  <div class="cap">Flipped, with the <b>Terminal</b> on the left.</div></div>
+ <div><div class="dev duo"><div class="pane" style="flex:1"><div class="t">Computer</div><div class="c k-comp">Mac screen</div></div>
+  <div class="hinge"><div class="flip">⇄</div></div><div class="chat" style="flex:1"><div class="b"></div><div class="b u"></div><div class="comp"></div></div></div>
+  <div class="cap">Today the <b>Computer</b> is a full-screen card here. Proposed: it takes one half.</div></div>
+</div>
+<h3>Which tools split and which go full screen</h3>
+<table>
+<tr><th>Tool</th><th>Today (iPad / unfolded Duo)</th><th>Proposed</th></tr>
+<tr><td>Computer</td><td>Full screen / full screen</td><td><b>Split</b>, with ⤢ for full screen; laptop pose unchanged</td></tr>
+<tr><td>Browser</td><td>Sheet / centered card</td><td><b>Split</b> (iPad side-by-side is already being built)</td></tr>
+<tr><td>Terminal</td><td>Sheet / centered card</td><td><b>Split</b></td></tr>
+<tr><td>Code changes (Git)</td><td>Sheet / centered card</td><td><b>Split</b>; commit and push forms stay small sheets</td></tr>
+<tr><td>Files</td><td>Replaces the chat</td><td><b>Split</b>; opening a file stays inside the pane</td></tr>
+<tr><td>Agent task transcript</td><td>Sheet / centered card</td><td><b>Split</b>: watch a subtask beside the main chat</td></tr>
+<tr><td>Conversation details</td><td>Sheet</td><td><b>Split</b>, as an info pane</td></tr>
+<tr><td>Approvals</td><td>Replaces the chat</td><td>Keep in the chat: an approval belongs to the conversation</td></tr>
+<tr><td>Goal, context usage, agent task list</td><td>Sheet / popover</td><td>Keep as popovers: short and glanceable</td></tr>
+<tr><td>Image viewer, expanded file preview</td><td>Full screen</td><td>Keep <b>full screen</b>: viewing one thing up close</td></tr>
+<tr><td>Pairing, Settings, camera, sketch</td><td>Sheet / page</td><td>Keep as they are: setup flows, not side-by-side work</td></tr>
+</table>
+<p class="n" style="margin-top:8px">Only one tool is open beside the chat at a time. Tapping another pill replaces it. iPhone and the folded Duo keep today's sheets, except the Browser, which is becoming a panel inside the chat.</p>
+</body></html>

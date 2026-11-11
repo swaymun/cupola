@@ -1,0 +1,30 @@
+# Settings > computer > Connected apps: settings that loaded, then a failed save,
+# then the computer going away. The page then shows the one plain offline line:
+# the earlier "Couldn't save" text, its Try again and the loaded switch are gone.
+# The fixture stands in for the Mac; nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture computer-use --fixture computer-use-reset --fixture computer-use-save-held --fixture computer-use-save-fails-once --fixture mac-offline
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+hold --id sidebar-settings --seconds 0.15
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+reveal up --id connection-connected-apps --max-drags 6
+tap --id connection-connected-apps
+wait --id computer-use-cua-driver --contains "1" --timeout 10
+hold --id computer-use-cua-driver --seconds 0.15
+wait --id computer-use-saving --timeout 10
+signal computer-use-save
+wait --id computer-use-error --contains "Couldn’t save" --timeout 10
+wait --id computer-use-retry --timeout 5
+shot computer-use-failed-online
+signal mac-gone
+button home
+activate
+wait --id computer-offline --timeout 20
+wait --id computer-use-error --gone --timeout 5
+wait --id computer-use-retry --gone --timeout 5
+wait --id computer-use-cua-driver --gone --timeout 5
+wait --id t3code-retry --gone --timeout 5
+wait --contains "couldn’t check T3 Code" --never 1
+shot computer-use-offline-after-failure

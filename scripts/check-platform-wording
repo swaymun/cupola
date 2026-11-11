@@ -1,0 +1,327 @@
+#!/usr/bin/env python3
+"""Audit paired-computer and device copy. Use --list to include reviewed exceptions.
+
+Scans production Swift/Rust string literals and embedded HTML pairing-page copy,
+including multiline/raw strings. A normal full audit also runs check-brand-name
+through this existing scripts/land entry point; focused/list/JSON audits stay platform-only.
+Comments, test modules/files, diagnostic fixtures, protocol user-agents and logs are excluded.
+Other literals are conservatively reviewed rather than guessing from UI call names:
+errors and prepared model values reach the UI too. Exceptions match a path and
+the complete literal, never a line number or a broad platform keyword.
+
+App Swift copy is also checked for "iPhone"/"phone": the same app runs on iPad,
+so it says "this device" (or `UIDevice.current.model` in a view). Device-support
+descriptions ("iPhone or iPad", "iPhone and iPad") and whitespace-free literals
+(accessibility IDs, model identifiers) are not copy and are skipped.
+"""
+import argparse
+import json
+import re
+import sys
+import subprocess
+from pathlib import Path
+from html.parser import HTMLParser
+
+ROOT = Path(__file__).resolve().parent.parent
+ALLOWLIST = ROOT / "scripts/platform-wording-allowlist.json"
+PLATFORM = re.compile(r"\b(?:Mac|Macs|macOS)\b")
+DEVICE = re.compile(r"\b(?:iPhones?|[Pp]hones?)\b")
+DEVICE_SUPPORT = re.compile(r"\biPhones? (?:or|and) iPads?\b")
+STRING_START = re.compile(r'r(?P<rust>\#*)"|(?P<swift>\#+)?(?P<quote>"""|")')
+CHARACTER = re.compile(r"'(?:\\(?:u\{[0-9a-fA-F]+\}|x[0-9a-fA-F]{2}|.)|[^'\\\n])'")
+
+
+def string_end(source, start):
+    match = STRING_START.match(source, start)
+    hashes = match['rust'] if match['rust'] is not None else match['swift'] or ""
+    quote = '"' if match['rust'] is not None else match['quote']
+    terminator = quote + hashes
+    escape = "\\" + hashes
+    i = match.end()
+    while i < len(source):
+        if source.startswith(terminator, i):
+            return i + len(terminator)
+        if match['rust'] is None and source.startswith(escape + "(", i):
+            # Swift interpolation may itself contain quoted fallback labels.
+            depth = 1
+            i += len(escape) + 1
+            while i < len(source) and depth:
+                if STRING_START.match(source, i):
+                    i = string_end(source, i)
+                    continue
+                depth += (source[i] == "(") - (source[i] == ")")
+                i += 1
+        elif match['rust'] is None and not hashes and source[i] == "\\":
+            i += 2
+        else:
+            i += 1
+    raise ValueError(f"Unterminated literal at offset {start}")
+
+
+def literals(source):
+    """Return offsets and literals, plus a same-sized mask for code structure."""
+    found, masked, i = [], list(source), 0
+    while i < len(source):
+        start = i
+        if source.startswith("//", i):
+            i = source.find("\n", i)
+            if i < 0:
+                i = len(source)
+        elif source.startswith("/*", i):
+            depth, i = 1, i + 2
+            while i < len(source) and depth:
+                if source.startswith("/*", i):
+                    depth, i = depth + 1, i + 2
+                elif source.startswith("*/", i):
+                    depth, i = depth - 1, i + 2
+                else:
+                    i += 1
+        elif character := CHARACTER.match(source, i):
+            i = character.end()
+        elif STRING_START.match(source, i):
+            i = string_end(source, i)
+            found.append((start, source[start:i]))
+        else:
+            i += 1
+            continue
+        masked[start:i] = ["\n" if c == "\n" else " " for c in source[start:i]]
+    return found, "".join(masked)
+
+
+def block_end(code, start, opening="{", closing="}"):
+    depth = 0
+    for i in range(start, len(code)):
+        if code[i] == opening:
+            depth += 1
+        elif code[i] == closing:
+            depth -= 1
+            if depth == 0:
+                return i + 1
+    return len(code)
+
+
+def diagnostics_only(condition):
+    """A Diagnostics/Debug-only branch: every `||` alternative names one of
+    those builds (`WONDER_SHARE_EXTENSION || WONDER_DIAGNOSTICS` ships)."""
+    condition = condition.split("//")[0]
+    return "!" not in condition and all(re.search(r"\b(?:WONDER_DIAGNOSTICS|DEBUG)\b", part)
+                                        for part in condition.split("||"))
+
+
+def excluded_ranges(code):
+    ranges = []
+    # Dedicated Diagnostics/preview branches never ship to users. Keep a release
+    # #else branch in the audit, and handle nested platform conditionals.
+    stack = []
+    for match in re.finditer(r"(?m)^\s*#(if|elseif|else|endif)\b([^\n]*)", code):
+        directive, condition = match.groups()
+        if directive == "if":
+            stack.append((match.start(), diagnostics_only(condition)))
+        elif directive in ("else", "elseif") and stack:
+            start, excluded = stack.pop()
+            if excluded:
+                ranges.append((start, match.start()))
+            stack.append((match.start(), directive == "elseif" and diagnostics_only(condition)))
+        elif directive == "endif" and stack:
+            start, excluded = stack.pop()
+            if excluded:
+                ranges.append((start, match.end()))
+    # Rust unit modules and individual tests. Integration tests live outside src.
+    for match in re.finditer(r"#\[\s*(?:cfg\((?:test|all\(test,\s*\w+\))\)|(?:[\w:]+::)?test(?:\([^\]]*\))?)\s*\]"
+                             r"\s*(?:#\[[^\]]*\]\s*)*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?(?:fn|mod)\s+\w+", code):
+        start = code.find("{", match.end())
+        declaration_end = code.find(";", match.end())
+        if start >= 0 and not (declaration_end >= 0 and declaration_end < start):
+            ranges.append((match.start(), block_end(code, start)))
+    # Structured logs and Swift debug output are developer diagnostics, not copy.
+    for match in re.finditer(r"\b(?:tracing::|log::)?(?:trace|debug|info|warn|error)!\s*\(|"
+                             r"\b(?:print|debugPrint|os_log)\s*\(|"
+                             r"\b(?:logger|log)\.(?:record|trace|debug|info|notice|warning|error|fault)\s*\(", code):
+        start = code.find("(", match.start())
+        ranges.append((match.start(), block_end(code, start, "(", ")")))
+    return ranges
+
+
+def source_paths():
+    paths = []
+    # Shipping targets and the shared Presentation/PushShared sources they compile.
+    for directory in [*sorted((ROOT / "apps/ios").glob("Wonder*")),
+                      ROOT / "apps/ios/Presentation", ROOT / "apps/ios/PushShared"]:
+        if "Tests" not in directory.name:
+            paths.extend(directory.rglob("*.swift"))
+    paths.extend((ROOT / "apps/native/Sources").rglob("*.swift"))
+    paths.extend((ROOT / "crates/wonderd/src").rglob("*.rs"))
+    paths.extend((ROOT / "crates/wonderd/src").rglob("*.html"))
+    return sorted(p for p in paths if not re.search(
+        r"(?:^|/)(?:Diagnostic[^/]*|test_support|[^/]*Tests?|[^/]*_tests)\.(?:swift|rs)$", p.as_posix()))
+
+
+class HTMLCopy(HTMLParser):
+    """Visible document text and accessible control labels, excluding markup/code."""
+    def __init__(self):
+        super().__init__()
+        self.hidden = 0
+        self.copy = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag in {"script", "style"}:
+            self.hidden += 1
+        if not self.hidden:
+            self.copy.extend((self.getpos()[0], value) for key, value in attrs
+                             if key in {"alt", "title", "aria-label", "placeholder"} and value)
+
+    def handle_endtag(self, tag):
+        if tag in {"script", "style"}:
+            self.hidden = max(0, self.hidden - 1)
+
+    def handle_data(self, data):
+        if not self.hidden and data.strip():
+            self.copy.append((self.getpos()[0], data.strip()))
+
+
+def self_test():
+    # Contract: copy in prepared values/errors is checked just like Text/Label;
+    # comments, logs, fixtures and tests cannot become allowlist noise.
+    cases = [
+        ('Text("Connect to your Mac")', 1),
+        ('let error = "Your Mac is offline"', 1),
+        ('return Err("Connect to your Mac".into());', 1),
+        ('Label(#"Connect to your Mac"#, systemImage: "desktopcomputer")', 1),
+        ('Text("""Connect to your Mac""")', 1),
+        ('Text("Connect to \\(name ?? "Mac")")', 1),
+        ('let html = r##"<p>Connect to your Mac</p>"##;', 1),
+        ('// Text("Connect to your Mac")\n/* nested /* Mac */ "Mac" */', 0),
+        ('#[cfg(test)] mod tests { fn copy() { "Mac"; } }\nconst COPY: &str = "Mac";', 1),
+        ('#[tokio::test] async fn copy() { "Mac"; }', 0),
+        ('#[cfg(all(test, unix))] mod tests { fn copy() { "Mac"; } }', 0),
+        ('#[cfg(test)] mod test_support;\nfn production() { "Mac"; }', 1),
+        ('#if DEBUG || WONDER_DIAGNOSTICS\nText("Mac")\n#else\nText("Mac")\n#endif', 1),
+        ('#if WONDER_DIAGNOSTICS\n#if os(iOS)\nText("Mac")\n#endif\n#endif', 0),
+        ('#if WONDER_SHARE_EXTENSION || WONDER_DIAGNOSTICS\nText("Mac")\n#endif', 1),
+        ('#if WONDER_DIAGNOSTICS && os(iOS)\nText("Mac")\n#endif', 0),
+        ('tracing::warn!("Mac"); logger.record("Mac"); print("Mac")', 0),
+        ('let desktopUserAgent = "Connect to your Mac"', 1),
+        ('let desktopUserAgent =\n  "Mozilla/5.0 (Mac OS X)"\nText("Mac")', 1),
+        (r'''let quote = '\"'; let slash = r"\"; let message = "Mac";''', 1),
+    ]
+    for source, expected in cases:
+        strings, code = literals(source)
+        excluded = excluded_ranges(code)
+        count = sum(bool(PLATFORM.search(s)) and not is_protocol_metadata(source, off, s)
+                    and not any(a <= off < b for a, b in excluded)
+                    for off, s in strings)
+        assert count == expected, (source, expected, count)
+    device_cases = [
+        ('Text("Unlock your iPhone and try again.")', 1),
+        ('let error = "Check this phone on your computer."', 1),
+        ('Text("Talk to agents from your iPhone or iPad.")', 0),
+        ('Text("Stops on every iPhone and iPad signed in.")', 0),
+        ('.accessibilityIdentifier("computer-session-paste-from-phone")', 0),
+        ('if model == "iPhone" { }', 0),
+        ('// Unlock your iPhone\nText("Unlock this device")', 0),
+    ]
+    for source, expected in device_cases:
+        strings, code = literals(source)
+        excluded = excluded_ranges(code)
+        count = sum(names_one_device(s) and not any(a <= off < b for a, b in excluded) for off, s in strings)
+        assert count == expected, (source, expected, count)
+    html = HTMLCopy()
+    html.feed('<h1>Connect to your Mac</h1><!-- Mac --><script>"Mac"</script>'
+              '<style>/* Mac */</style><button aria-label="Use your Mac">Continue</button>')
+    assert [text for _, text in html.copy if PLATFORM.search(text)] == [
+        "Connect to your Mac", "Use your Mac"]
+    print(f"Platform wording scanner: {len(cases) + len(device_cases) + 1} cases passed.")
+
+
+def names_one_device(literal):
+    """True for app copy that names the iPhone (or a phone) where an iPad also shows it."""
+    body = re.sub(r'^r?#*"+|"+#*$', "", literal)
+    return not re.fullmatch(r"\S*", body) and bool(DEVICE.search(DEVICE_SUPPORT.sub("", body)))
+
+
+def is_protocol_metadata(source, offset, literal):
+    # A desktop Safari user-agent is a protocol value, never displayed copy.
+    return literal.startswith('"Mozilla/5.0 (') and bool(re.search(
+        r"\b(?:let|var)\s+\w*UserAgent\s*=\s*$", source[max(0, offset - 100):offset]))
+
+
+def audit(paths):
+    hits = []
+    for path in paths:
+        source = path.read_text()
+        if path.suffix == ".html":
+            html = HTMLCopy()
+            html.feed(source)
+            hits.extend({"path": path.relative_to(ROOT).as_posix(), "line": line, "literal": value}
+                        for line, value in html.copy if PLATFORM.search(value))
+            continue
+        try:
+            strings, code = literals(source)
+        except ValueError as error:
+            sys.exit(f"{path}: {error}")
+        excluded = excluded_ranges(code)
+        for offset, literal in strings:
+            if any(a <= offset < b for a, b in excluded):
+                continue
+            hit = {"path": path.relative_to(ROOT).as_posix(),
+                   "line": source.count("\n", 0, offset) + 1, "literal": literal}
+            if PLATFORM.search(literal) and not is_protocol_metadata(source, offset, literal):
+                hits.append(hit)
+            # Host (Rust) copy is read on the computer itself; app copy shows on iPad too.
+            elif path.suffix == ".swift" and names_one_device(literal):
+                hits.append({**hit, "device": True})
+    return hits
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--list", action="store_true", help="list all hits, including allowed ones")
+    parser.add_argument("--json", action="store_true", help="emit the audit with counts as JSON")
+    parser.add_argument("--self-test", action="store_true", help="verify scanner inclusion/exclusion contracts")
+    parser.add_argument("paths", nargs="*", help="optional source files for a focused check")
+    args = parser.parse_args()
+    if args.self_test:
+        self_test()
+        return 0
+    entries = json.loads(ALLOWLIST.read_text())
+    allowed = {}
+    for entry in entries:
+        key = (entry["path"], entry["literal"])
+        if not entry.get("reason", "").strip() or "\n" in entry["reason"] or key in allowed:
+            sys.exit("Platform wording allowlist needs unique path/literal entries with a one-line reason.")
+        allowed[key] = entry["reason"]
+    paths = [Path(p).resolve() for p in args.paths] if args.paths else source_paths()
+    hits = audit(paths)
+    for hit in hits:
+        hit["reason"] = allowed.get((hit["path"], hit["literal"]))
+    failures = [hit for hit in hits if not hit["reason"]]
+    stale = sorted(set(allowed) - {(h["path"], h["literal"]) for h in hits}) if not args.paths else []
+    counts = {"literals": len(hits), "allowed": len(hits) - len(failures),
+              "unreviewed": len(failures), "stale_exceptions": len(stale)}
+    if args.json:
+        print(json.dumps({"counts": counts, "hits": hits, "stale": stale}, indent=2))
+    else:
+        for hit in hits if args.list else failures:
+            reason = f" [allowed: {hit['reason']}]" if hit["reason"] else ""
+            print(f"{hit['path']}:{hit['line']}: {hit['literal']}{reason}")
+        for path, literal in stale:
+            print(f"{path}: remove stale platform wording exception: {literal}")
+        print("Platform wording: " + ", ".join(f"{k}={v}" for k, v in counts.items()))
+        if any(hit.get("device") for hit in failures):
+            print('Say "this device" (or `UIDevice.current.model` in a view) for app copy, since iPad '
+                  'shows it too. Keep "iPhone" only for a genuinely iPhone-only case; add its exact literal '
+                  'and a one-line reason to scripts/platform-wording-allowlist.json.', file=sys.stderr)
+        if any(not hit.get("device") for hit in failures):
+            print('Use "your computer" (or the known host name/platform) for paired-host copy. '
+                  'Keep Mac/macOS only for a genuinely macOS-specific feature; add its exact literal '
+                  'and a one-line reason to scripts/platform-wording-allowlist.json.', file=sys.stderr)
+    result = int(bool(failures or stale))
+    # scripts/land already owns this product-copy gate. Share its entry point
+    # without changing the separately owned land script or its job interface.
+    if not result and not args.paths and not args.list and not args.json:
+        result = subprocess.run([str(ROOT / "scripts/check-brand-name")]).returncode
+    return result
+
+
+if __name__ == "__main__":
+    sys.exit(main())

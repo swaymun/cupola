@@ -1,0 +1,50 @@
+# devices: iphone iphone-27 ipad
+# Native hit targets plus the largest Dynamic Type size and a real keyboard.
+# Offline voice fixture: no microphone, network, model, or message send.
+# Send must remain fully visible; the draft scrolls within a one-line editor
+# while the shared voice bar needs space. Duo cover input is qualified
+# separately by voice-mode.wctl with --input rig; no Duo keyboard claim.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture send-states --fixture voice-preview --fixture open-project-thread --fixture no-hardware-keyboard --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+tap --id voice-start
+tap --id open-sidebar
+driver off
+wait --label "Mute voice in Read status fixture"
+tap --id voice-bar-mute:diagnostic-host
+wait --label "Unmute voice in Read status fixture"
+driver on
+assert --path voice.muted --equals 'true'
+driver off
+tap --id voice-bar-mute:diagnostic-host
+wait --label "Mute voice in Read status fixture"
+shot voice-bar-native-Chats
+tap --id voice-target:diagnostic-host
+driver on
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 15
+assert --path sidebarOpen --equals 'false'
+open-thread fixture-fork-conversation --host diagnostic-host
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 20
+driver off
+wait --label "Talking in Read status fixture"
+tap --id message-draft
+type "Voice keyboard draft"
+wait --id message-draft --contains "Voice keyboard draft"
+reveal up --id send-message --max-drags 0
+shot voice-bar-native-keyboard
+tap --id voice-bar-mute:diagnostic-host
+wait --label "Unmute voice in Read status fixture"
+driver on
+assert --path voice.muted --equals 'true'
+driver off
+tap --id voice-bar-mute:diagnostic-host
+wait --label "Mute voice in Read status fixture"
+shot voice-bar-native-B
+tap --id voice-bar-end:diagnostic-host
+wait --id voice-session-bar:diagnostic-host --gone --timeout 5
+driver on
+assert --path voice.active --equals 'false'
+assert --path voice.historyUnchanged --equals 'true'
+assert --path fixtureSends.bodies --equals '[]'
+driver off
+shot voice-bar-native-ended

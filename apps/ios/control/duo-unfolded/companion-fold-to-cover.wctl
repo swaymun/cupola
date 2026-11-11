@@ -1,0 +1,22 @@
+# Unfolded iPhone Duo only: run by hand with
+#   scripts/wonderctl --device duo run apps/ios/control/duo-unfolded/companion-fold-to-cover.wctl
+# A tool open beside the chat moves to its phone presentation when the Duo folds:
+# the cover never keeps a split, and the tool is shown once (its sheet), not
+# twice. Needs no taps (#387): launch fixtures open the tool, the hinge folds.
+hinge 180
+orient portrait
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture project-git-preview --fixture companion-files
+wait --id companion-pane --timeout 30
+wait --id workspace-file-list --timeout 10
+hinge 0
+wait --id companion-pane --gone --timeout 10
+wait --id workspace-file-list --timeout 10
+shot companion-fold-files-on-cover
+hinge 180
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture project-git-preview --fixture terminal-preview --fixture companion-terminal
+wait --id companion-pane --timeout 30
+wait --id terminal-output --contains "build.sh" --timeout 10
+hinge 0
+wait --id companion-pane --gone --timeout 10
+wait --id terminal-output --contains "build.sh" --timeout 10
+shot companion-fold-terminal-on-cover

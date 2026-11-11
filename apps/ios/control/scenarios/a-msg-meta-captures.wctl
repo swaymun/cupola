@@ -1,0 +1,109 @@
+# devices: iphone ipad
+# A-MSG-META captures: time + Copy under a finished reply, none while streaming. Offline fixtures; nothing is sent.
+# std / cupola-light: finished reply (time + Copy), streaming reply (none), long-press menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Reply 12. The update is ready." --timeout 20
+shot a-msg-meta-std-cupola-light-finished
+hold --contains "Reply 12. The update is ready."
+wait --id select-message-text-action --timeout 10
+shot a-msg-meta-std-cupola-light-menu
+tap --id select-message-text-action
+wait --id select-message-text --timeout 10
+tap --id select-message-done --type Button
+wait --id select-message-text --gone --timeout 10
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture stream-reply --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Streaming reply, part one." --timeout 15
+wait --contains "part ten." --never 1
+shot a-msg-meta-std-cupola-light-streaming
+signal stream
+wait --contains "part ten." --timeout 15
+shot a-msg-meta-std-cupola-light-streamed
+
+# std / cupola-dark: finished reply (time + Copy), streaming reply (none), long-press menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture theme --arg cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Reply 12. The update is ready." --timeout 20
+shot a-msg-meta-std-cupola-dark-finished
+hold --contains "Reply 12. The update is ready."
+wait --id select-message-text-action --timeout 10
+shot a-msg-meta-std-cupola-dark-menu
+tap --id select-message-text-action
+wait --id select-message-text --timeout 10
+tap --id select-message-done --type Button
+wait --id select-message-text --gone --timeout 10
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture stream-reply --fixture theme --arg cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Streaming reply, part one." --timeout 15
+wait --contains "part ten." --never 1
+shot a-msg-meta-std-cupola-dark-streaming
+signal stream
+wait --contains "part ten." --timeout 15
+shot a-msg-meta-std-cupola-dark-streamed
+
+# std / nord: finished reply (time + Copy), streaming reply (none), long-press menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture theme --arg nord
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Reply 12. The update is ready." --timeout 20
+shot a-msg-meta-std-nord-finished
+hold --contains "Reply 12. The update is ready."
+wait --id select-message-text-action --timeout 10
+shot a-msg-meta-std-nord-menu
+tap --id select-message-text-action
+wait --id select-message-text --timeout 10
+tap --id select-message-done --type Button
+wait --id select-message-text --gone --timeout 10
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture stream-reply --fixture theme --arg nord
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Streaming reply, part one." --timeout 15
+wait --contains "part ten." --never 1
+shot a-msg-meta-std-nord-streaming
+signal stream
+wait --contains "part ten." --timeout 15
+shot a-msg-meta-std-nord-streamed
+
+# std / misty-forest: finished reply (time + Copy), streaming reply (none), long-press menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture theme --arg misty-forest
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Reply 12. The update is ready." --timeout 20
+shot a-msg-meta-std-misty-forest-finished
+hold --contains "Reply 12. The update is ready."
+wait --id select-message-text-action --timeout 10
+shot a-msg-meta-std-misty-forest-menu
+tap --id select-message-text-action
+wait --id select-message-text --timeout 10
+tap --id select-message-done --type Button
+wait --id select-message-text --gone --timeout 10
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture stream-reply --fixture theme --arg misty-forest
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Streaming reply, part one." --timeout 15
+wait --contains "part ten." --never 1
+shot a-msg-meta-std-misty-forest-streaming
+signal stream
+wait --contains "part ten." --timeout 15
+shot a-msg-meta-std-misty-forest-streamed

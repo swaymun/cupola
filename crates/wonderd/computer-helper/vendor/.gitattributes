@@ -1,0 +1,10 @@
+# Preserve upstream source/header/patch whitespace verbatim. Our modified native
+# files retain whitespace checking; do not apply a whole-vendor cleanup.
+webrtc-sys/** -whitespace
+webrtc-sys/build.rs whitespace=blank-at-eol,blank-at-eof,space-before-tab
+webrtc-sys/src/video_encoder_factory.cpp whitespace=blank-at-eol,blank-at-eof,space-before-tab
+webrtc-sys/src/video_decoder_factory.cpp whitespace=blank-at-eol,blank-at-eof,space-before-tab
+webrtc-sys/src/nvidia/windows* whitespace=blank-at-eol,blank-at-eof,space-before-tab
+webrtc-sys/src/vaapi/h264_encoder_impl.cpp whitespace=blank-at-eol,blank-at-eof,space-before-tab
+webrtc-sys/src/vaapi/vaapi_encoder_factory.cpp whitespace=blank-at-eol,blank-at-eof,space-before-tab
+webrtc-sys/src/vaapi/vaapi_h264_encoder_wrapper.* whitespace=blank-at-eol,blank-at-eof,space-before-tab

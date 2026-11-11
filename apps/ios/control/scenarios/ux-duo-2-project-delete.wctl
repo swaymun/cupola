@@ -1,0 +1,21 @@
+# devices: iphone ipad
+# UX-DUO-2: deleting a Project from Manage Projects makes this device forget every chat of it: the ones it
+# listed and one cached in an earlier session, none left cached or listed. The launch below carries the driver; the native swipe and taps run with it off.
+# Owned fixtures only, no sends.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg cupola-light --arg=-diagnostics-manage-projects-open
+driver off
+wait --id project-include:diagnostic-host:read-project --timeout 30
+swipe left --from-label "Read status"
+wait --id project-delete:read-project --timeout 10
+tap --id project-delete:read-project
+wait --label "Delete “Read status”?" --timeout 10
+tap --id project-delete-confirm
+wait --id project-include:diagnostic-host:read-project --gone --timeout 15
+driver on
+assert --path projectDelete.projectId --equals '"read-project"' --timeout 10
+assert --path projectDelete.purged --equals '["fixture-parent-conversation","read-project-earlier-session-chat"]'
+assert --path projectDelete.stillCached --equals '[]'
+assert --path projectDelete.stillListed --equals '[]'
+driver off
+shot ux-duo-2-project-deleted-store

@@ -1,0 +1,26 @@
+# nightly-ipad: the sidebar's All Chats view and its menu (a popover on iPad)
+# Held public-safe catalog; no live work. The scenario chooses the view itself.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-filters --arg=-diagnostics-account-fixture --arg=-diagnostics-account-signed-in --arg=-AppleLanguages --arg='(en)' --arg=-AppleLocale --arg=en_US --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id project-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --timeout 20
+shot all-chats-by-project
+tap --id sidebar-session-filter
+shot all-chats-menu
+tap --label "All Chats" --type Button
+wait --id chat-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --timeout 20
+wait --id project-row:read-project --gone
+# All Chats keeps the header: Cupola's icon, New chat and Add Project.
+order --ids sidebar-cupola,chat-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80
+wait --id sidebar-new-chat --timeout 5
+wait --id sidebar-add-project --timeout 5
+shot all-chats-list
+# The older page only joins the list when asked for.
+wait --id chat-thread:opencode:older-filter --gone
+tap --id chats-more:diagnostic-host
+wait --id chat-thread:opencode:older-filter --timeout 10
+shot all-chats-older
+tap --id sidebar-session-filter
+tap --label "By Project" --type Button
+wait --id project-row:read-project --timeout 10
+wait --id chat-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --gone

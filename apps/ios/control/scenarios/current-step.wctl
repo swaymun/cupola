@@ -1,0 +1,44 @@
+# Native SDK regression: activity omitted by the old bounded transcript tail.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture native-subagent-missing
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id project-subagent-status-pill --timeout 15
+tap --id project-subagent-status-pill
+wait --id project-subagent-roster:fixture-third-child-thread --timeout 15
+wait --contains "Reading AppShell.swift" --gone --timeout 5
+shot native-subagent-missing
+# Held native items; no sends, live provider or model work. The step runs
+# until the scenario signals it finished; then the header, the agent's row and
+# the sidebar drop it.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture current-step-finishes
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --contains "Searching for isWorking" --timeout 20
+shot current-step-sidebar
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --contains "Searching for isWorking" --timeout 15
+shot current-step-header
+# One current-step row whose time ticks (it becomes the turn's Worked-for row below).
+wait --id activity-group:current-step-turn/current-step --contains "Searching for isWorking ·" --timeout 15
+tap --id project-subagent-status-pill
+wait --id project-subagent-roster:fixture-third-child-thread --contains "Reading AppShell.swift" --timeout 15
+shot current-step-agent
+signal current-step-finish
+wait --id project-subagent-roster:fixture-third-child-thread --contains "Reading AppShell.swift" --gone --timeout 30
+wait --id project-subagent-roster:fixture-third-child-thread --timeout 5
+wait --contains "Searching for isWorking" --gone --timeout 30
+shot current-step-agent-finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture current-step-finished
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --contains "Searching for isWorking" --gone --timeout 10
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --timeout 15
+wait --contains "Searching for isWorking" --gone --timeout 5
+# The finished turn is the one Worked-for row.
+wait --id activity-group:current-step-turn/current-step --contains "Worked for 1m 12s" --timeout 10
+tap --id project-subagent-status-pill
+wait --contains "Reading AppShell.swift" --gone --timeout 5
+shot current-step-finished

@@ -1,0 +1,42 @@
+# devices: duo
+# One chat at each level on the Duo, folded (cover) and unfolded (inner display).
+# Duo touch input isn't qualified (#387), so the menus themselves are checked on
+# iPhone and iPad; here each launch starts the fixture chat on its own level
+# (`chat-detail-override-*`) and the rows decide: the fixture Mac shows Thinking
+# for every provider, Conversation hides the thinking group and the tool rows and
+# keeps the reply, Commentary & tools shows the tool rows. Held fixture only.
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture thinking-detail --fixture open-project-thread
+wait --id activity-group:thinking-turn/measured-thinking --timeout 30
+shot chat-detail-per-chat-default-folded
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture thinking-detail --fixture open-project-thread --fixture chat-detail-override-conversation
+wait --contains "The layout keeps the message composer available." --timeout 30
+wait --id activity-group:thinking-turn/measured-thinking --gone --timeout 10
+wait --id activity-group:thinking-turn/fixture-command-1 --gone --timeout 10
+shot chat-detail-per-chat-conversation-folded
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture thinking-detail --fixture open-project-thread --fixture chat-detail-override-everything
+wait --id activity-group:thinking-turn/fixture-command-1 --timeout 30
+wait --id activity-group:thinking-turn/measured-thinking --gone --timeout 10
+shot chat-detail-per-chat-commentary-folded
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture thinking-detail --fixture open-project-thread --fixture chat-detail-override-thinking
+wait --id activity-group:thinking-turn/measured-thinking --timeout 30
+shot chat-detail-per-chat-thinking-folded
+
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture thinking-detail --fixture open-project-thread
+wait --id activity-group:thinking-turn/measured-thinking --timeout 30
+shot chat-detail-per-chat-default-unfolded --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture thinking-detail --fixture open-project-thread --fixture chat-detail-override-conversation
+wait --contains "The layout keeps the message composer available." --timeout 30
+wait --id activity-group:thinking-turn/measured-thinking --gone --timeout 10
+wait --id activity-group:thinking-turn/fixture-command-1 --gone --timeout 10
+shot chat-detail-per-chat-conversation-unfolded --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture thinking-detail --fixture open-project-thread --fixture chat-detail-override-everything
+wait --id activity-group:thinking-turn/fixture-command-1 --timeout 30
+wait --id activity-group:thinking-turn/measured-thinking --gone --timeout 10
+shot chat-detail-per-chat-commentary-unfolded --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture thinking-detail --fixture open-project-thread --fixture chat-detail-override-thinking
+wait --id activity-group:thinking-turn/measured-thinking --timeout 30
+shot chat-detail-per-chat-thinking-unfolded --display primary-1

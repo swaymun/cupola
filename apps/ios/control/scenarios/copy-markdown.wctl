@@ -1,0 +1,12 @@
+# Copy the preview conversation as Markdown from the header menu; the confirmation
+# appears and the pasteboard holds both speakers' words as Markdown.
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview
+wait --id conversation-title-menu
+clipboard --clear
+tap --id conversation-title-menu
+wait --id copy-conversation-markdown
+tap --id copy-conversation-markdown
+wait --id chat-notice
+clipboard --contains "Can you help me plan a relaxed Saturday?" --contains "Start with breakfast at home" --not-contains "pasted_content"
+clipboard --show
+shot copy-markdown

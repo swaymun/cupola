@@ -1,0 +1,49 @@
+# A message sent while nothing runs is decided up front: it shows in the
+# conversation from its first frame and never as Queued, before the Mac's
+# receipt and before dispatch starts it. send-held keeps both moments until
+# the scenario signals them, so a slow tap cannot outrun them. The send
+# button says Send, not Queue. The words then sit in exactly one of the owner's
+# bubbles and the draft is empty: the text alone also matches the editor while
+# the words are still in it, so it cannot tell a send from no send.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-held
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 15
+tap --id message-draft --type TextArea
+type "Ship the build"
+wait --label "Send message" --timeout 10
+tap --id send-message
+wait --label "Sending message" --timeout 3
+wait --contains "Queued message" --never 3
+signal receipt
+wait --label "Sending message" --gone --timeout 10
+wait --contains "Queued message" --never 2
+driver on
+assert --path composer.text --equals '""' --timeout 5
+assert --path "userMessageCounts.Ship the build" --equals 1 --timeout 5
+# The computer received it once and did not queue it.
+assert --path fixtureSends.bodies --equals '["Ship the build"]' --timeout 5
+assert --path fixtureSends.duplicates --equals 0
+assert --path fixtureSends.queued --equals 0
+driver off
+# Reopening reads the Mac's queue while dispatch has not started the message.
+# New chat starts from a project in the sidebar.
+sidebar open
+tap --id project-row:read-project
+wait --id new-chat-draft --timeout 10
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 10
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Queued message" --never 3
+# Reopening restores the reading anchor; bring the new bubble into the viewport.
+swipe up --in conversation-scroll
+wait --label "Ship the build" --timeout 3
+driver on
+assert --path composer.text --equals '""' --timeout 5
+assert --path "userMessageCounts.Ship the build" --equals 1 --timeout 5
+driver off
+shot send-direct

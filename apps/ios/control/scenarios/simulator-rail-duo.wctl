@@ -1,0 +1,36 @@
+# devices: duo
+# The Simulators tool opens on the list, never a simulator unasked. Folded, the
+# tool covers the chat, so the selected Simulators button sits in the Duo's bar
+# and closes it, with no Close at the top; unfolded, the pane's rail pill does,
+# and the pane header (the Duo simulator opens by argument) has a Full screen that covers both screens (opened by
+# signal: native Duo taps are not drivable, #387) with an exit.
+driver on
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture companion-simulators --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --arg=-diagnostics-simulator-phone-duo --arg=-wonder.sidebar.hidden --arg=YES
+driver off
+wait --id simulator-picker-list --timeout 30
+wait --id simulator-close --gone
+wait --id conversation-simulators-pill --contains "Open" --timeout 10
+shot simulator-rail-duo-folded-list
+driver on
+tap --id conversation-simulators-pill
+driver off
+wait --id simulator-view --gone --timeout 10
+driver on
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture companion-simulators --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --arg=-diagnostics-simulator-phone-duo --arg=-wonder.sidebar.hidden --arg=YES --arg=-diagnostics-simulator-open-duo
+driver off
+wait --id simulator-screen --label "iPhone Duo screen" --timeout 15
+wait --id simulator-full-screen --timeout 10
+shot simulator-rail-duo-unfolded-pane --display primary-1
+signal simulator-cover
+wait --id simulator-exit-full-screen --timeout 15
+shot simulator-rail-duo-unfolded-full-screen --display primary-1
+signal simulator-uncover
+wait --id simulator-exit-full-screen --gone --timeout 15
+driver on
+tap --id conversation-simulators-pill
+driver off
+wait --id simulator-view --gone --timeout 10

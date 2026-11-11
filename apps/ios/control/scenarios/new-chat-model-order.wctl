@@ -1,0 +1,21 @@
+# A new chat starts on the model last chosen in its Project (kept by the
+# computer, so iPhone and iPad agree), not on the computer's default, and the
+# chat's own choice then wins. The owner of the full order
+# is this scenario plus the host's record (`create_stores_the_resolved_effort_and_speed`,
+# `preparation_retries_one_conversation_without_starting_work`).
+# The fixture Project last used Codex Fixture Mini at Low; the computer's
+# default is Codex Fixture. A fresh draft is selected by launch argument.
+# The chip drops the provider name ("Fixture Mini", not "Codex Fixture Mini").
+# Synthetic host; nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch --fixture fresh-agent-defaults --fixture project-last-model
+wait --id project-agent-picker --contains "Fixture Mini" --timeout 30
+wait --id new-chat-effort --timeout 10
+wait --contains "Low"
+shot model-order-project-last
+tap --id project-agent-picker
+wait --id new-chat-model:gpt-fixture --timeout 10
+tap --id new-chat-model:gpt-fixture
+wait --id new-chat-model:gpt-fixture --gone --timeout 10
+wait --id project-agent-picker --timeout 10
+wait --contains "Fixture Mini" --never 1
+shot model-order-chat-choice

@@ -1,0 +1,32 @@
+# Pictures a tool made: one keeps its own proportions (a reported 480x240 shows
+# 2:1, not a fixed box); three made one after another share a sideways row with
+# their real file names; a picture opens in the photo viewer, which swipes
+# through that row's pictures ("2 of 3") and no others.
+# Offline preview fixture; nothing is sent.
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture activity-mixed-preview --fixture activity-final-image-preview --fixture activity-gallery-preview
+wait --id tool-gallery:gallery-wide --timeout 30
+wait --id tool-image:gallery-wide
+wait --label "Preview wide-layout.png"
+wait --label "Preview phone-layout.png"
+wait --id tool-image:final-preview
+shot tool-images-row-and-single
+swipe left --in tool-gallery:gallery-wide
+wait --label "Preview icon.png"
+shot tool-images-row-scrolled
+tap --label "Preview phone-layout.png"
+wait --id photo-viewer-name --timeout 15
+wait --label "phone-layout.png"
+wait --id photo-viewer-position --contains "2 of 3"
+wait --id photo-viewer-image:gallery-tall
+shot tool-images-viewer
+swipe right --in photo-viewer-pager
+wait --label "wide-layout.png" --timeout 10
+wait --id photo-viewer-position --contains "1 of 3"
+wait --id photo-viewer-image:gallery-wide
+wait --id photo-viewer-image:gallery-tall --gone --timeout 5
+shot tool-images-viewer-first
+swipe left --in photo-viewer-pager
+wait --label "phone-layout.png" --timeout 10
+wait --id photo-viewer-position --contains "2 of 3"
+wait --id photo-viewer-image:gallery-tall
+shot tool-images-viewer-swiped

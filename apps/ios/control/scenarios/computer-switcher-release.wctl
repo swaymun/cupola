@@ -1,0 +1,56 @@
+# devices: iphone ipad
+# UX-DUO-5 (issue 24): the ⌘ held by the ⌘ Tab key is let go by any tap (the
+# picture, a button), by any other key, and not by the switcher's own keys; a
+# double-tap keeps it held, shown by an underline, until the key is tapped
+# again. Asserted on the keys the synthetic computer still holds (its input
+# log), not on the picture. Signals call the production actions of the visible
+# keys; the taps are real AXe taps on the picture and on the ⋯ button.
+driver on
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-dock --fixture no-hardware-keyboard
+assert --path computer.hasPicture --equals true --timeout 30
+signal computer-dock-take-control
+assert --path computer.controlling --equals true --timeout 15
+assert --path computer.heldKeys --equals '[]'
+# One tap on the key opens the switcher with ⌘ down; a tap on the picture lets go.
+signal computer-dock-switcher-open-1
+assert --path computer.heldKeys --equals '["command"]' --timeout 10
+assert --path computer.appSwitcher --equals true
+axe-tap --id computer-session-preview
+assert --path computer.heldKeys --equals '[]' --timeout 10
+assert --path computer.appSwitcher --equals false
+# A tap on a button (not the picture) lets go as well.
+signal computer-dock-switcher-open-2
+assert --path computer.heldKeys --equals '["command"]' --timeout 10
+axe-tap --id computer-session-more
+assert --path computer.heldKeys --equals '[]' --timeout 10
+assert --path computer.appSwitcher --equals false
+axe-tap --id computer-session-more
+# Any other key lets go.
+signal computer-dock-switcher-open-3
+assert --path computer.heldKeys --equals '["command"]' --timeout 10
+signal computer-dock-type-a
+assert --path computer.heldKeys --equals '[]' --timeout 10
+assert --path computer.appSwitcher --equals false
+# A quick second tap on the key keeps ⌘ held, underlined; taps no longer let go;
+# tapping the key again does.
+signal computer-dock-switcher-latch
+assert --path computer.heldKeys --equals '["command"]' --timeout 10
+assert --path computer.switcherLatched --equals true
+axe-tap --id computer-session-more
+axe-tap --id computer-session-more
+axe-tap --id computer-session-preview
+assert --path computer.heldKeys --equals '["command"]'
+assert --path computer.switcherLatched --equals true
+signal computer-dock-switcher-close
+assert --path computer.heldKeys --equals '[]' --timeout 10
+assert --path computer.switcherLatched --equals false
+# The ⌘ Tab key is on the system keyboard's shortcut row; raising the keyboard
+# ends the switcher, so the underline is captured with a latch made while it is up.
+signal computer-dock-keyboard
+assert --path computer.keyboardPresented --equals true --timeout 10
+signal computer-dock-switcher-latch-2
+assert --path computer.heldKeys --equals '["command"]' --timeout 10
+assert --path computer.switcherLatched --equals true
+driver off
+wait --id computer-session-switcher-latched --timeout 10
+shot computer-switcher-latched

@@ -1,0 +1,13 @@
+# devices: duo
+hinge 180
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture project-pull-requests --fixture project-subagents --fixture terminal-available --fixture open-project-thread --fixture rail-fixture --fixture theme --arg cupola-light --arg=-wonder.sidebar.hidden --arg=YES --arg=-diagnostics-companion-simulators
+driver off
+wait --id message-draft --timeout 30
+shot duo-ux4-unfolded-simulators --display primary-1
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture project-pull-requests --fixture project-subagents --fixture terminal-available --fixture open-project-thread --fixture rail-fixture --fixture theme --arg cupola-light --arg=-wonder.sidebar.hidden --arg=YES --arg=-diagnostics-companion-agent-task
+driver off
+wait --id message-draft --timeout 30
+shot duo-ux4-unfolded-tasks --display primary-1

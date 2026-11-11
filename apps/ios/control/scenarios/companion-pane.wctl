@@ -1,0 +1,225 @@
+# nightly-ipad: tools open in the companion pane beside the chat instead of a sheet; stacked in a portrait window
+# devices: ipad
+# In a regular-width window a pill opens its tool in the companion pane and the
+# chat stays usable. A portrait iPad stacks the tool above the chat; ⇄ swaps
+# them; another pill replaces the tool; the tool's pill closes it (no Done while
+# the pill shows); ⤢ fills the window and ⤡ returns; Files opens in the pane with
+# the chat beside it. Terminal keeps its keys under the terminal and takes
+# typing, which stays out of the message draft; Code changes pushes a file's
+# diff inside the pane. Computer opens in the pane from its pill; an agent
+# task's transcript uses its selected Tasks pill; Details keeps its own close.
+# Each tool is read from the pane's own state, not
+# only from a control that a sheet would show as well. Landscape (side by
+# side) has no automated owner because wonderctl cannot rotate an iPad. VoiceOver's escape on the pane has no
+# wonderctl or XCTest gesture and stays unchecked. Local fixtures; nothing
+# reaches a computer.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture project-files-conversation-preview --fixture project-git-preview --fixture terminal-preview
+driver off
+wait --id conversation-terminal-pill --timeout 20
+tap --id conversation-terminal-pill
+wait --id companion-pane --timeout 10
+wait --id terminal-output --contains "build.sh" --timeout 10
+wait --id message-draft --timeout 5
+wait --id companion-pane-divider --timeout 5
+wait --id terminal-done --gone --timeout 2
+order --axis x --ids terminal-menu,companion-pane-expand
+# Stacked: the tool above the chat and its composer; the keys under the terminal.
+# Read the shot: the divider is a 16 pt strip, and only the swap button's disc
+# may overlap the key row (the strip once painted 14 pt over it).
+order --ids terminal-output,terminal-key-ctrl,message-draft
+shot ipad-portrait-terminal-stacked
+type "pwd"
+wait --id terminal-output --contains "wonder-app % pwd" --timeout 5
+# The keyboard stays inside the pane: the terminal took the typing, and the
+# draft the fixture filled in is unchanged.
+driver on
+assert --path pane.tool --equals '"terminal"' --timeout 5
+assert --path composer.text --equals '"Keep the evening free too."'
+driver off
+tap --id companion-pane-flip
+order --ids message-draft,terminal-output
+shot ipad-portrait-terminal-flipped
+# Expand and restore the same terminal; output survives both grid changes.
+tap --id companion-pane-expand
+wait --id message-draft --gone --timeout 5
+wait --id terminal-output --contains "wonder-app % pwd" --timeout 5
+shot ipad-terminal-expanded-grid
+tap --id companion-pane-expand
+wait --id message-draft --timeout 5
+wait --id terminal-output --contains "wonder-app % pwd" --timeout 5
+tap --id companion-pane-flip
+order --ids terminal-output,message-draft
+# PRs opens in a companion pane from the title menu and its Close button closes it.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-pull-requests
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --timeout 20
+tap --id conversation-title-menu
+wait --contains "Pull requests" --timeout 5
+tap --contains "Pull requests"
+wait --id companion-pane --timeout 10
+wait --id pull-request-row:128 --timeout 10
+wait --id changes-scope --gone --timeout 2
+wait --id message-draft --timeout 5
+driver on
+assert --path pane.tool --equals '"pull-requests"' --timeout 5
+driver off
+tap --id companion-pane-expand
+wait --id message-draft --gone --timeout 5
+shot ipad-portrait-pull-requests-expanded
+tap --id pull-request-row:128
+wait --id pull-request-detail --timeout 10
+back
+wait --id pull-request-row:128 --timeout 10
+tap --id companion-pane-expand
+wait --id message-draft --timeout 5
+# Pull requests has no pill, so the pane's own Close button closes it.
+wait --label "Close" --timeout 5
+tap --label "Close"
+wait --id companion-pane --gone --timeout 5
+# Restore the terminal and files fixture for the remaining pane checks.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture project-files-conversation-preview --fixture project-git-preview --fixture terminal-preview
+driver off
+# Files in the pane, the chat still beside it; its pill closes it too.
+tap --id conversation-files-pill
+wait --id workspace-file-list --timeout 10
+wait --id message-draft --timeout 5
+wait --id workspace-sheet-done --gone --timeout 2
+shot ipad-portrait-files-with-chat
+tap --id conversation-files-pill
+wait --id companion-pane --gone --timeout 5
+wait --id message-draft --timeout 5
+# Reopening Terminal reattaches to the same shell.
+tap --id conversation-terminal-pill
+wait --id terminal-output --contains "build.sh" --timeout 10
+tap --id conversation-terminal-pill
+wait --id companion-pane --gone --timeout 5
+driver on
+assert --path pane --equals null --timeout 5
+driver off
+shot ipad-portrait-pane-closed
+# Computer opens in the pane from its pill.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture computer-session-available-fixture
+driver off
+wait --id computer-status-pill --timeout 20
+tap --id computer-status-pill
+wait --id computer-session-container --timeout 15
+wait --id computer-session-connection-picker --timeout 10
+wait --id message-draft --timeout 5
+driver on
+assert --path pane.tool --equals '"computer"' --timeout 5
+assert --path panels --equals '[]'
+driver off
+shot ipad-portrait-computer
+tap --id companion-pane-expand
+wait --id message-draft --gone --timeout 5
+driver on
+assert --path pane.expanded --equals true --timeout 5
+driver off
+tap --id companion-pane-expand
+wait --id message-draft --timeout 5
+tap --id computer-status-pill
+wait --id companion-pane --gone --timeout 5
+wait --id computer-session-container --gone --timeout 5
+# The agent task uses its selected Tasks pill; Details keeps its own close.
+# Both open in the pane with the chat beside them.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-subagent-status-pill --timeout 15
+tap --id project-subagent-status-pill
+wait --id project-subagent-roster:fixture-child-thread --timeout 10
+tap --id project-subagent-roster:fixture-child-thread
+wait --id companion-pane --timeout 10
+wait --id project-subagent-transcript --timeout 15
+wait --contains "Checking the parser." --timeout 15
+wait --id message-draft --timeout 5
+driver on
+assert --path pane.tool --equals '"agent-task"' --timeout 5
+driver off
+wait --id project-subagent-sheet-done --gone --timeout 2
+wait --id project-subagent-status-pill --contains "Open" --timeout 5
+shot ipad-portrait-agent-transcript
+tap --id conversation-title-menu
+tap --label "Chat details" --timeout 5
+wait --id thread-details-rename --timeout 10
+assert --id project-thread-pin --gone
+wait --id project-subagent-transcript --gone --timeout 5
+wait --id message-draft --timeout 5
+driver on
+assert --path pane.tool --equals '"details"' --timeout 5
+driver off
+shot ipad-portrait-details
+tap --id thread-details-done
+wait --id companion-pane --gone --timeout 5
+wait --id message-draft --timeout 5
+driver on
+assert --path pane --equals null --timeout 5
+driver off
+# Largest text: the swap button's disc stays small and the strip covers no keys.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture terminal-preview --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+driver off
+wait --id conversation-terminal-pill --timeout 20
+tap --id conversation-terminal-pill
+wait --id companion-pane --timeout 10
+wait --id terminal-key-ctrl --timeout 10
+wait --id companion-pane-flip --timeout 5
+order --ids terminal-output,terminal-key-ctrl,message-draft
+shot ipad-portrait-terminal-stacked-ax-xxxl
+tap --id companion-pane-flip
+order --ids message-draft,terminal-output
+shot ipad-portrait-terminal-flipped-ax-xxxl
+tap --id companion-pane-flip
+order --ids terminal-output,message-draft
+tap --id conversation-terminal-pill
+wait --id companion-pane --gone --timeout 5
+# Files on a fold (simulated: the Duo's pane draws its own header): one header
+# row holds only a meaningful nested location, Swap and the actions; no root title
+# and actions above the list. Back inside a folder sits in that row and returns
+# to the top; a preview keeps its Back to Files. Read the shot: one row, the list
+# right under it.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture companion-files --fixture companion-fold
+driver off
+wait --id workspace-file-list --timeout 20
+wait --id workspace-pane-title --gone --timeout 5
+wait --id companion-pane-expand --gone --timeout 5
+wait --id companion-pane-flip --timeout 5
+wait --id workspace-hidden-toggle --timeout 5
+wait --id workspace-view-toggle --timeout 5
+wait --id workspace-sheet-done --gone --timeout 2
+order --ids companion-pane-flip,workspace-directory-entry:Projects
+shot ipad-files-fold-one-header
+tap --id "workspace-directory-entry:Projects"
+wait --id "workspace-file-entry:Projects/Plan.md" --timeout 10
+wait --id workspace-pane-title --contains "Projects" --timeout 5
+shot ipad-files-fold-nested
+tap --id workspace-back
+wait --id "workspace-file-entry:README.md" --timeout 10
+wait --id workspace-back --gone --timeout 5
+tap --id "workspace-file-entry:README.md"
+wait --id workspace-preview-back --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list --timeout 10
+# Largest text: the actions move into ⋯ rather than being cut short.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture companion-files --fixture companion-fold --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+driver off
+wait --id workspace-file-list --timeout 20
+wait --id workspace-header-menu --timeout 5
+wait --id workspace-view-toggle --gone --timeout 2
+shot ipad-files-fold-one-header-ax-xxxl
+tap --id workspace-header-menu
+wait --id workspace-view-toggle --timeout 5

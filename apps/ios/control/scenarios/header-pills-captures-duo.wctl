@@ -1,0 +1,21 @@
+# devices: duo
+# Automations and Usage use the same title header as Settings (the floating pill beside
+# the rail), with no extra header gap. Folded, then unfolded (inner shots use primary-1).
+# Pages are opened by launch flags (Duo taps are gated, #387); the tap path is checked on iPhone and iPad.
+hinge 0
+orient portrait
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture automations-fixture --fixture automations-open --fixture theme --arg cupola-light
+wait --id automation-row:fixture-morning-schedule --timeout 30
+shot header-pills-duo-folded-automations
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-live-reset --fixture theme --arg cupola-light --fixture usage-open
+wait --id usage-page --timeout 30
+shot header-pills-duo-folded-usage
+
+hinge 180
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture automations-fixture --fixture automations-open --fixture theme --arg cupola-light
+wait --id automation-row:fixture-morning-schedule --timeout 30
+shot --display primary-1 header-pills-duo-unfolded-automations
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-live-reset --fixture theme --arg cupola-light --fixture usage-open
+wait --id usage-page --timeout 30
+shot --display primary-1 header-pills-duo-unfolded-usage

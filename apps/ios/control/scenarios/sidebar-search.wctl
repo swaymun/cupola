@@ -1,0 +1,36 @@
+# nightly-ipad: the sidebar's search field, keyboard and empty row
+# Search matches, empty results and clearing on a forced theme. Nothing is sent.
+# Check the empty row has the same background as the sidebar and readable text.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg dracula
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search
+tap --id sidebar-search
+type "Read"
+wait --id sidebar-search --contains Read
+wait --id project-row:read-project
+shot sidebar-search-match
+tap --label "Clear search"
+tap --id sidebar-search
+type "no-matching-thread-742"
+wait --id sidebar-search --contains no-matching-thread-742
+wait --id project-row:read-project --gone
+wait --id pinned-thread:codex:read-fixture --gone
+wait --label "No matching chats"
+shot sidebar-search-empty
+tap --label "Clear search"
+wait --id project-row:read-project
+wait --id pinned-thread:codex:read-fixture
+shot sidebar-search-restored
+# Message text: a thread on the Mac Wonder has not opened yet and a message
+# Wonder stored. Opening the Mac's thread attaches it and shows the chat.
+tap --id sidebar-search
+type "Scout"
+wait --id sidebar-search --contains Scout
+wait --id search-result:thread:fixture-native-thread --timeout 15
+wait --id search-result:message:fixture-parent-message
+wait --label "No matching chats" --gone
+shot sidebar-search-messages
+tap --id search-result:thread:fixture-native-thread
+wait --id conversation-scroll --timeout 20
+shot sidebar-search-opened

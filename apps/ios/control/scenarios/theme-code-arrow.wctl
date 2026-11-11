@@ -1,0 +1,24 @@
+# devices: iphone
+# The scroll-to-bottom arrow sits in its own strip under the timeline, so it never covers
+# the line ends of a long code block (the wide-code fixture, opened at the top where the
+# arrow shows). Check the shots: the arrow is below the code block's lower edge and
+# the right ends of its lines are visible; keywords, strings and comments read on the
+# code background in each theme (the contrast floor is WonderThemeTests). No sends.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture wide-code --fixture theme --arg nord --arg=-diagnostics-scroll-top
+driver off
+wait --id scroll-to-bottom --timeout 30
+tree --json
+shot theme-code-arrow-nord
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture wide-code --fixture theme --arg cupola-dark --arg=-diagnostics-scroll-top
+driver off
+wait --id scroll-to-bottom --timeout 30
+tree --json
+shot theme-code-arrow-cupola-dark
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture wide-code --fixture theme --arg cupola-light --arg=-diagnostics-scroll-top
+driver off
+wait --id scroll-to-bottom --timeout 30
+tree --json
+shot theme-code-arrow-cupola-light

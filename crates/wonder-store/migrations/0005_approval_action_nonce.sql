@@ -1,0 +1,1 @@
+ALTER TABLE approvals ADD COLUMN action_nonce TEXT NOT NULL DEFAULT '';

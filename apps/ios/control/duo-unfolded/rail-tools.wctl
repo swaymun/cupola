@@ -1,0 +1,42 @@
+# devices: duo
+# Launch fixtures + semantic production actions, never Duo native tap coverage (#387).
+# The real AppShell's placement/geometry is checked by capture-rail.py; this
+# existing preview transport owns Terminal output and Computer's synthetic view.
+# Two complete open/close cycles for each selected tool through W1's reducer.
+hinge 180
+orient portrait
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture project-git-preview --fixture terminal-preview --fixture computer-session-available-fixture --arg=-composerPills --arg=computer,files,terminal --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+assert --path pane --equals null --timeout 20
+tap --id conversation-files-pill
+assert --path pane.tool --equals '"files"' --timeout 10
+assert --id conversation-files-pill --contains "Open" --timeout 10
+tap --id conversation-files-pill
+assert --path pane --equals null --timeout 10
+assert --id conversation-files-pill --contains "Closed" --timeout 10
+tap --id conversation-files-pill
+assert --path pane.tool --equals '"files"' --timeout 10
+tap --id conversation-files-pill
+assert --path pane --equals null --timeout 10
+tap --id conversation-terminal-pill
+assert --path pane.tool --equals '"terminal"' --timeout 10
+assert --id conversation-terminal-pill --contains "Open" --timeout 10
+tap --id conversation-terminal-pill
+assert --path pane --equals null --timeout 10
+assert --id conversation-terminal-pill --contains "Closed" --timeout 10
+tap --id conversation-terminal-pill
+assert --path pane.tool --equals '"terminal"' --timeout 10
+tap --id conversation-terminal-pill
+assert --path pane --equals null --timeout 10
+tap --id computer-status-pill
+assert --path pane.tool --equals '"computer"' --timeout 10
+assert --id computer-status-pill --contains "Open" --timeout 10
+tap --id computer-status-pill
+assert --path pane --equals null --timeout 10
+assert --id computer-status-pill --contains "Closed" --timeout 10
+tap --id computer-status-pill
+assert --path pane.tool --equals '"computer"' --timeout 10
+tap --id computer-status-pill
+assert --path pane --equals null --timeout 10
+hinge 0
+orient portrait

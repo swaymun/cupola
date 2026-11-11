@@ -1,0 +1,47 @@
+# The thread header shows how full the context window is as a ring where New
+# chat used to be; tapping it shows "Context window 84K / 258K (33%)" when the
+# Mac reports it (Codex token usage or Claude's last request). A Mac that sends
+# neither a reading nor a reason (an older one) shows no ring, and never a gauge
+# standing in for the plan's Usage, which lives only beside Settings; the saved
+# reading and the "not reported" explanation are context-usage-persist.wctl. The composer has
+# separate model and effort buttons; effort is a slider over the model's own
+# levels. The panel anchors to the visible ring, beside it on the Duo rail,
+# with one surface for its body and arrow (check context-usage-panel and the
+# layout-captures AX/source measurements). Nothing reaches a Mac or a model.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch --fixture context-usage
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-composer-model --timeout 15
+wait --id new-chat --gone
+wait --id context-usage-ring --timeout 10
+wait --id context-usage-ring --contains "33 percent used"
+wait --id project-composer-effort
+shot context-usage-composer
+tap --id context-usage-ring
+wait --id context-usage-window --timeout 10
+wait --contains "33 percent used, 84,210 of 258,400 tokens" --timeout 5
+shot context-usage-panel
+tap --xy 200,500
+wait --id context-usage-window --gone --timeout 5
+tap --id project-composer-effort
+wait --id project-composer-effort-slider --timeout 5
+shot context-usage-effort
+# Without a report or a reason from the Mac the header has no ring.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-composer-model --timeout 15
+wait --id context-usage-ring --gone --timeout 5
+shot context-usage-unmeasured
+
+# A failed plan read does not touch the header: the measured context stays in an open
+# panel that says nothing about the plan.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture open-project-thread --fixture context-usage --fixture usage-unavailable --arg=-diagnostics-context-usage-open
+wait --id context-usage-window --timeout 20
+wait --contains "usage couldn’t be loaded" --never 2
+wait --contains "33 percent used, 84,210 of 258,400 tokens"
+shot context-usage-failed

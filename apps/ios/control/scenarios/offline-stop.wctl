@@ -1,0 +1,22 @@
+# The running-turn variant of offline-outbox.wctl: the computer stops
+# answering while a reply runs. Stop stays available (reachability may be
+# stale); a Stop that can't reach the computer says so, never claims the reply
+# stopped and never advises a refresh. The reason stays until dismissed.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture mac-offline
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 15
+wait --id stop-response --timeout 15
+signal mac-gone
+button home
+activate
+wait --id composer-mac-unreachable --timeout 20
+tap --id stop-response
+wait --contains "Couldn’t reach your computer, so the reply wasn’t stopped." --timeout 20
+wait --id stop-response --timeout 5
+shot offline-stop-unreachable
+tap --id composer-action-issue-dismiss
+wait --id composer-action-issue --gone --timeout 5
+wait --id stop-response --timeout 5

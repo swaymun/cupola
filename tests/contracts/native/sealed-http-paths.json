@@ -1,0 +1,23 @@
+{
+  "comment": "Which HTTP API paths a phone may call inside the relay's sealed channel (http.request). wonderd's rpc::tests checks sealed_http_path against this table; the phone's relay connection test serves only `served` and refuses `refused` the way the host does.",
+  "served": [
+    "/api/v1/pairing/session/refresh-challenge",
+    "/api/v1/pairing/session",
+    "/api/v1/devices",
+    "/api/v1/host/status",
+    "/api/v1/relay",
+    "/api/v1/projects",
+    "/api/v1/sync/checkpoint"
+  ],
+  "refused": [
+    "/api/v1/pairing/claim",
+    "/api/v1/pairing/code",
+    "/api/v1/pairing/offers",
+    "/api/v1/pairing/session/other",
+    "/api/v1/events",
+    "/api/v1/rpc",
+    "/api/v1/rpc/sealed",
+    "/api/v1/mcp",
+    "/api/v1/terminals/term_1/socket"
+  ]
+}

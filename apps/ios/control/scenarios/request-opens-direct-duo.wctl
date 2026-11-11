@@ -1,0 +1,25 @@
+# devices: duo
+# A permission, a question and a secret request open in front on their own, folded
+# and unfolded. The Duo driver exposes no request controls (#387), so the state
+# is the capture; the iPhone/iPad scenarios (approval-dock, vault-secrets) assert it.
+hinge 0
+orient portrait
+launch --fixture read-preview --fixture send-preview --fixture phone-approval-preview --arg command
+wait --id message-draft --timeout 20
+shot request-opens-direct-duo-folded-permission
+launch --fixture read-preview --fixture send-preview --fixture question-preview
+wait --id message-draft --timeout 20
+shot request-opens-direct-duo-folded-question
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture open-project-thread --fixture vault --fixture vault-prompt --fixture theme --arg light-classic
+wait --id message-draft --timeout 30
+shot request-opens-direct-duo-folded-secret
+hinge 180
+orient portrait
+launch --fixture read-preview --fixture send-preview --fixture phone-approval-preview --arg command
+wait --id message-draft --timeout 20
+shot request-opens-direct-duo-unfolded-permission --display primary-1
+launch --fixture read-preview --fixture send-preview --fixture question-preview
+wait --id message-draft --timeout 20
+shot request-opens-direct-duo-unfolded-question --display primary-1
+hinge 0
+orient portrait

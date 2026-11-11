@@ -1,0 +1,32 @@
+# devices: duo
+# Launch/semantic fixture coverage while #387 gates Duo native HID input.
+# No taps, host calls or model work. iPhone/iPad own native Try again and
+# chat-switch interaction. Select control explicitly at launch only once.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-control-active
+wait --id computer-session-done --timeout 30
+signal computer-network-change
+wait --id computer-session-preview --contains "showing the last picture" --timeout 10
+assert --id computer-session-done --gone
+shot recovery-duo-network-change
+signal computer-recovery-ready
+wait --id computer-session-live-status --contains Live --timeout 15
+wait --id computer-session-take-control --timeout 10
+assert --id computer-session-done --gone
+shot recovery-duo-network-view-only
+# Half-fold launch fixture; the view survives background in the laptop pane.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-control-active --fixture computer-fold
+wait --id computer-session-done --timeout 30
+signal computer-background
+wait --id computer-session-live-status --contains Paused --timeout 10
+wait --id computer-session-preview --contains "showing the last picture" --timeout 10
+assert --id computer-session-done --gone
+shot recovery-duo-background
+signal computer-foreground
+wait --id computer-session-notice --contains Reconnecting --timeout 10
+wait --id computer-session-preview --contains "showing the last picture" --timeout 10
+shot recovery-duo-foreground
+signal computer-recovery-ready
+wait --id computer-session-live-status --contains Live --timeout 15
+wait --id computer-session-take-control --timeout 10
+assert --id computer-session-done --gone
+shot recovery-duo-foreground-view-only

@@ -1,0 +1,88 @@
+# devices: duo
+# A-PILLS: production semantic actions plus native resulting-state captures.
+# Cover/inner HID touch delivery remains unverified (#387). No model requests.
+driver on
+hinge 0
+orient portrait
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture terminal-preview --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture computer-simulator-fixture --fixture open-project-thread --arg=-composerPills --arg=preview,terminal,computer,files,git
+wait --id conversation-terminal-pill --contains "Closed" --timeout 30
+tap --id conversation-terminal-pill
+driver off
+wait --id terminal-output --contains "build.sh" --timeout 15
+shot duo-terminal-production-open
+driver on
+dismiss
+driver off
+wait --id terminal-sheet --gone --timeout 15
+driver on
+wait --id conversation-terminal-pill --contains "Closed" --timeout 15
+tap --id conversation-terminal-pill
+driver off
+wait --id terminal-output --contains "build.sh" --timeout 15
+driver on
+dismiss
+driver off
+wait --id terminal-sheet --gone --timeout 15
+driver on
+wait --id conversation-terminal-pill --contains "Closed" --timeout 15
+tap --id computer-status-pill
+wait --id computer-status-pill --contains "Open" --timeout 15
+driver off
+wait --id computer-session-container --timeout 15
+shot duo-computer-production-open
+driver on
+tap --id computer-status-pill
+wait --id computer-status-pill --contains "Closed" --timeout 15
+driver off
+wait --id computer-session-container --gone --timeout 15
+driver on
+tap --id computer-status-pill
+wait --id computer-status-pill --contains "Open" --timeout 15
+driver off
+wait --id computer-session-container --timeout 15
+driver on
+tap --id computer-status-pill
+wait --id computer-status-pill --contains "Closed" --timeout 15
+driver off
+wait --id computer-session-container --gone --timeout 15
+driver on
+wait --id conversation-terminal-pill --contains "Closed" --timeout 15
+tap --id conversation-files-pill
+driver off
+wait --id workspace-file-list --timeout 15
+driver on
+tap --id conversation-files-pill
+driver off
+wait --id workspace-file-list --gone --timeout 15
+shot duo-pills-production-closed-twice
+driver on
+assert --path sheets --equals '[]' --timeout 10
+assert --path pane --equals null --timeout 10
+assert --path panels --equals '[]' --timeout 10
+assert --path presented --equals '[]' --timeout 10
+# The rail retains its opening toggle. The row is a native modal popover;
+# use its existing production dismissal action and label this as semantic evidence.
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture open-project-thread --fixture task-roster-open
+driver off
+wait --id project-subagent-roster-list --timeout 30
+shot duo-roster-rail-before-toggle --display primary-1
+driver on
+tap --id project-subagent-status-pill
+driver off
+wait --id project-subagent-roster-list --gone --timeout 15
+shot duo-roster-rail-after-toggle --display primary-1
+orient landscape-right
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture open-project-thread --fixture task-roster-open
+driver off
+wait --id project-subagent-roster-list --timeout 30
+shot duo-roster-row-before-toggle --display primary-1
+driver on
+dismiss
+driver off
+wait --id project-subagent-roster-list --gone --timeout 15
+shot duo-roster-row-after-dismiss --display primary-1
+hinge 0
+orient portrait

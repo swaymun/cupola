@@ -1,0 +1,25 @@
+# Synthetic, read-only route switch: block the home endpoint, check the working
+# fallback while a quiet probe is pending, then restore home. Real proof checks
+# and the real model commit run; actual TLS, NWPathMonitor and sockets are separate.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture routes-switch
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+tap --id settings-computer:diagnostic-host
+wait --contains "Synthetic fixture · Ready" --timeout 15
+wait --id connection-state --label Connected --timeout 5
+shot routes-switch-ready
+signal routes-block-home
+wait --contains "Synthetic fixture · Backup ready" --timeout 10
+wait --id connection-state --label Connected --timeout 5
+shot routes-switch-backup
+signal routes-check
+wait --id connection-state --label "Not connected" --never 1
+wait --contains "Synthetic fixture · Checked" --timeout 15
+wait --id connection-state --label Connected --timeout 5
+shot routes-switch-checked
+signal routes-restore-home
+wait --contains "Synthetic fixture · Restored" --timeout 10
+wait --id connection-state --label Connected --timeout 5
+shot routes-switch-restored

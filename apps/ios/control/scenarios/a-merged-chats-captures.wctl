@@ -1,0 +1,167 @@
+# devices: iphone ipad
+# Merged Chats and Projects across computers; Manage Projects once. Offline fixtures only, no sends.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-mobile-cupola-light-projects-several
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --arg=-diagnostics-sidebar-all-chats
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-mobile-cupola-light-chats-several
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-mobile-cupola-light-projects-one
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg cupola-light --arg=-diagnostics-sidebar-all-chats
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-mobile-cupola-light-chats-one
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+tap --id sidebar-session-filter
+shot a-merged-chats-mobile-cupola-light-menu
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-session-filter --timeout 30
+tap --id sidebar-session-filter
+tap --label "Manage Projects" --type Button
+wait --id project-include:diagnostic-host:read-project --timeout 15
+shot a-merged-chats-mobile-cupola-light-manage
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 30
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 20
+tap --id settings-computer:diagnostic-host
+reveal up --id connection-projects --max-drags 12
+shot a-merged-chats-mobile-cupola-light-settings-projects
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-mobile-cupola-dark-projects-several
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --arg=-diagnostics-sidebar-all-chats
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-mobile-cupola-dark-chats-several
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-mobile-cupola-dark-projects-one
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg cupola-dark --arg=-diagnostics-sidebar-all-chats
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-mobile-cupola-dark-chats-one
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+tap --id sidebar-session-filter
+shot a-merged-chats-mobile-cupola-dark-menu
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-session-filter --timeout 30
+tap --id sidebar-session-filter
+tap --label "Manage Projects" --type Button
+wait --id project-include:diagnostic-host:read-project --timeout 15
+shot a-merged-chats-mobile-cupola-dark-manage
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 30
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 20
+tap --id settings-computer:diagnostic-host
+reveal up --id connection-projects --max-drags 12
+shot a-merged-chats-mobile-cupola-dark-settings-projects
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg nord
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-mobile-nord-projects-several
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg nord --arg=-diagnostics-sidebar-all-chats
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-mobile-nord-chats-several
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg nord
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-mobile-nord-projects-one
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg nord --arg=-diagnostics-sidebar-all-chats
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-mobile-nord-chats-one
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg nord
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+tap --id sidebar-session-filter
+shot a-merged-chats-mobile-nord-menu
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg nord
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-session-filter --timeout 30
+tap --id sidebar-session-filter
+tap --label "Manage Projects" --type Button
+wait --id project-include:diagnostic-host:read-project --timeout 15
+shot a-merged-chats-mobile-nord-manage
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg nord
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 30
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 20
+tap --id settings-computer:diagnostic-host
+reveal up --id connection-projects --max-drags 12
+shot a-merged-chats-mobile-nord-settings-projects
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg misty-forest
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-search --timeout 30
+shot a-merged-chats-mobile-misty-forest-projects-several
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg misty-forest
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-session-filter --timeout 30
+tap --id sidebar-session-filter
+tap --label "Manage Projects" --type Button
+wait --id project-include:diagnostic-host:read-project --timeout 15
+shot a-merged-chats-mobile-misty-forest-manage
+

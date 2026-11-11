@@ -1,0 +1,107 @@
+# One chat's own "Show" choice, from its header menu and its sidebar long-press
+# menu. The fixture Mac shows Thinking for every provider (thinking-detail), so
+# with nothing checked the chat shows the thinking group (measured-thinking).
+# Conversation hides it and the tool rows ("Ran 3 commands") and keeps the reply;
+# Thinking brings the thinking back; Commentary & tools shows the tool rows
+# without the thinking; tapping a checked level again clears the choice (nothing
+# checked, the provider's Thinking applies). A menu's check mark isn't in the
+# accessibility tree, so the checked level's id ends in ":checked".
+# Held fixture only; nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture thinking-detail --fixture open-project-thread
+wait --id activity-group:thinking-turn/measured-thinking --timeout 30
+wait --contains "The layout keeps the message composer available." --timeout 10
+shot chat-detail-per-chat-default
+tap --id conversation-title-menu
+wait --id chat-detail-menu --timeout 10
+shot chat-detail-per-chat-header-menu
+tap --id chat-detail-menu
+wait --id chat-detail:conversation --timeout 10
+wait --id chat-detail:everything --timeout 5
+wait --id chat-detail:thinking --timeout 5
+shot chat-detail-per-chat-menu-open
+tap --id chat-detail:conversation
+wait --id activity-group:thinking-turn/measured-thinking --gone --timeout 10
+wait --id activity-group:thinking-turn/fixture-command-1 --gone --timeout 10
+wait --contains "The layout keeps the message composer available." --timeout 10
+shot chat-detail-per-chat-conversation
+
+# The same choice from the sidebar row's long-press menu.
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 10
+hold --id pinned-thread:codex:read-fixture
+wait --id chat-detail-menu --timeout 10
+tap --id chat-detail-menu
+wait --id chat-detail:conversation:checked --timeout 10
+shot chat-detail-per-chat-sidebar-menu
+tap --id chat-detail:thinking
+wait --id chat-detail:thinking --gone --timeout 10
+sidebar closed
+wait --id activity-group:thinking-turn/measured-thinking --timeout 10
+shot chat-detail-per-chat-thinking
+
+# Commentary & tools beats the provider's Thinking: tool rows, no thinking.
+tap --id conversation-title-menu
+wait --id chat-detail-menu --timeout 10
+tap --id chat-detail-menu
+wait --id chat-detail:thinking:checked --timeout 10
+wait --id chat-detail:conversation --timeout 5
+shot chat-detail-per-chat-thinking-checked
+tap --id chat-detail:everything
+wait --id activity-group:thinking-turn/measured-thinking --gone --timeout 10
+wait --id activity-group:thinking-turn/fixture-command-1 --timeout 10
+shot chat-detail-per-chat-commentary
+
+# Tapping the checked level again clears it: nothing checked, the provider's
+# Thinking applies again.
+tap --id conversation-title-menu
+wait --id chat-detail-menu --timeout 10
+tap --id chat-detail-menu
+wait --id chat-detail:everything:checked --timeout 10
+tap --id chat-detail:everything:checked
+wait --id activity-group:thinking-turn/measured-thinking --timeout 10
+tap --id conversation-title-menu
+wait --id chat-detail-menu --timeout 10
+tap --id chat-detail-menu
+wait --id chat-detail:conversation --timeout 10
+wait --id chat-detail:everything --timeout 5
+wait --id chat-detail:thinking --timeout 5
+shot chat-detail-per-chat-cleared
+# Thinking chosen and tapped again ends the same way.
+tap --id chat-detail:thinking
+wait --id activity-group:thinking-turn/measured-thinking --timeout 10
+tap --id conversation-title-menu
+wait --id chat-detail-menu --timeout 10
+tap --id chat-detail-menu
+wait --id chat-detail:thinking:checked --timeout 10
+tap --id chat-detail:thinking:checked
+wait --id activity-group:thinking-turn/measured-thinking --timeout 10
+tap --id conversation-title-menu
+wait --id chat-detail-menu --timeout 10
+tap --id chat-detail-menu
+wait --id chat-detail:thinking --timeout 10
+wait --id chat-detail:conversation --timeout 5
+wait --id chat-detail:everything --timeout 5
+shot chat-detail-per-chat-cleared-again
+
+# A Mac that does not save the choice: the chat says so and keeps what it had.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture thinking-detail --fixture open-project-thread --fixture chat-detail-save-fails
+wait --id activity-group:thinking-turn/measured-thinking --timeout 30
+tap --id conversation-title-menu
+wait --id chat-detail-menu --timeout 10
+tap --id chat-detail-menu
+tap --id chat-detail:conversation
+wait --contains "What this chat shows couldn’t be saved" --timeout 10
+wait --id activity-group:thinking-turn/measured-thinking --timeout 10
+shot chat-detail-per-chat-save-failed
+# Choices after a failed save fall back to what the Mac last confirmed too:
+# a second failing choice leaves the chat on the provider's Thinking, nothing checked.
+tap --id conversation-title-menu
+wait --id chat-detail-menu --timeout 10
+tap --id chat-detail-menu
+wait --id chat-detail:conversation --timeout 10
+wait --id chat-detail:everything --timeout 5
+wait --id chat-detail:thinking --timeout 5
+tap --id chat-detail:everything
+wait --contains "What this chat shows couldn’t be saved" --timeout 10
+wait --id activity-group:thinking-turn/measured-thinking --timeout 10
+wait --id activity-group:thinking-turn/fixture-command-1 --gone --timeout 10

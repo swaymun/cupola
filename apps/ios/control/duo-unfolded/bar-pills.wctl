@@ -1,0 +1,32 @@
+# devices: duo
+# visual-review: inspect all inner-display captures: side posture keeps pills in the vertical bar, upright uses the composer row; check order, clipping and the task roster without treating launch fixtures as native tap coverage.
+# Unfolded iPhone Duo only: run with
+#   scripts/wonderctl --device duo run apps/ios/control/duo-unfolded/bar-pills.wctl
+# Captures explicitly select the inner display in both orientations.
+# Unfolded with the bar down the side (`orient portrait`: wide, as the owner
+# holds it), the composer's pills sit in the system's vertical bar under the
+# sidebar button, as on the folded cover; the composer has no pill row. Upright,
+# iOS puts the status bar across the top and the pills stay in the row. Bar
+# items are not found by id, so check the inner-display capture. No taps
+# (#387). Nothing is sent.
+hinge 180
+orient portrait
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture files-preview --fixture project-files-conversation-preview
+wait --id message-draft --timeout 30
+shot duo-bar-pills-side --display primary-1
+orient landscape-right
+wait --id message-draft --timeout 30
+shot duo-bar-pills-upright --display primary-1
+orient portrait
+
+# The roster opens from its own pill at launch; no Duo taps or model work.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture open-project-thread --fixture task-roster-open --fixture task-roster-in-bar
+wait --id message-draft --timeout 30
+wait --id project-subagent-roster-list --timeout 20
+shot duo-bar-pills-roster-side --display primary-1
+orient landscape-right
+wait --id project-subagent-roster-list --timeout 20
+shot duo-bar-pills-roster-upright --display primary-1
+# Leave a known cover posture for the next scenario.
+hinge 0
+orient portrait

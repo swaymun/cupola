@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+"""Keep provider-name branches in the host down to runtime routing.
+
+Which features a provider offers lives in one record, `ProviderCapabilities` in
+crates/wonder-store/src/provider.rs; host code asks `family.provider().capabilities`.
+The `AgentFamily::Codex/Claude/OpenCode/Cursor` mentions left in non-test host code route a
+request to the right runtime or parse that runtime's native format. Their per-file
+counts are pinned in scripts/provider-routing-baseline.json, so a new branch fails
+here and has to say which of the two it is.
+
+  scripts/check-provider-routing           # check
+  scripts/check-provider-routing --update  # rewrite the baseline after review
+"""
+import json
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+BASELINE = ROOT / "scripts/provider-routing-baseline.json"
+CRATES = ROOT / "crates"
+# The registry owns every per-provider fact; its exhaustive matches are the point.
+OWNER = "crates/wonder-store/src/provider.rs"
+MENTION = re.compile(r"\bAgentFamily::(Codex|Claude|OpenCode|Cursor)\b")
+# `all(test, unix)`: test modules whose shell-script fixtures cannot run on Windows.
+TEST_MODULE = re.compile(r"^#\[cfg\((test|all\(test, unix\))\)\]\s*$")
+
+
+def is_test_file(path):
+    name = path.name
+    return (name.endswith("_tests.rs") or name in {"tests.rs", "test_support.rs"}
+            or "tests" in path.parts or "benches" in path.parts)
+
+
+def count(path):
+    lines = path.read_text().splitlines()
+    total = 0
+    for index, line in enumerate(lines):
+        # Test modules sit at the end of a file by convention; stop at the first one.
+        if TEST_MODULE.match(line) and index + 1 < len(lines) and re.match(r"^\s*(pub(\([^)]*\))?\s+)?mod\s", lines[index + 1]):
+            break
+        if line.lstrip().startswith("//"):
+            continue
+        total += len(MENTION.findall(line))
+    return total
+
+
+def measure():
+    counts = {}
+    for path in sorted(CRATES.rglob("*.rs")):
+        relative = path.relative_to(ROOT).as_posix()
+        if relative == OWNER or is_test_file(path.relative_to(CRATES)):
+            continue
+        found = count(path)
+        if found:
+            counts[relative] = found
+    return counts
+
+
+def main():
+    counts = measure()
+    if "--update" in sys.argv[1:]:
+        BASELINE.write_text(json.dumps(counts, indent=2, sort_keys=True) + "\n")
+        print(f"wrote {BASELINE.relative_to(ROOT)}: {sum(counts.values())} mentions in {len(counts)} files")
+        return 0
+    baseline = json.loads(BASELINE.read_text())
+    failures = 0
+    for path in sorted(set(counts) | set(baseline)):
+        now, pinned = counts.get(path, 0), baseline.get(path, 0)
+        if now > pinned:
+            failures += 1
+            print(f"{path}: {now} provider-name mentions, {pinned} pinned. If this decides a feature, add a field "
+                  f"to ProviderCapabilities ({OWNER}) and read family.provider().capabilities instead. If it only "
+                  f"routes to a runtime or parses its native format, run scripts/check-provider-routing --update "
+                  f"and say why in the pull request.")
+        elif now < pinned:
+            failures += 1
+            print(f"{path}: {now} provider-name mentions, {pinned} pinned. Fewer is good: run "
+                  f"scripts/check-provider-routing --update so the baseline keeps the new count.")
+    if failures:
+        return 1
+    print(f"provider routing ok: {sum(counts.values())} pinned mentions in {len(counts)} files")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

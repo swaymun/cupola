@@ -1,0 +1,24 @@
+# devices: iphone ipad
+# UX-HEADER-POLISH captures: the open thread's header (title pill, one Usage entry beside Settings, context ring),
+# the reply footers, and the first row scrolled under the header's scroll edge. Offline fixtures; nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture theme --arg cupola-light
+wait --id message-draft --timeout 30
+wait --contains "Reply 12. The update is ready." --timeout 20
+wait --id context-usage-ring --timeout 15
+shot header-polish-light-thread
+swipe down
+swipe down
+shot header-polish-light-scrolled
+tap --id scroll-to-bottom
+wait --contains "Reply 13. Continuing the project" --timeout 20
+hold --contains "Reply 13. Continuing the project"
+wait --id select-message-text-action --timeout 10
+shot header-polish-light-menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture theme --arg cupola-dark
+wait --id message-draft --timeout 30
+wait --contains "Reply 12. The update is ready." --timeout 20
+wait --id context-usage-ring --timeout 15
+shot header-polish-dark-thread
+swipe down
+swipe down
+shot header-polish-dark-scrolled

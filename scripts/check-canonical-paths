@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+r"""Keep wonderd's canonical paths in one spelling.
+
+`std::fs::canonicalize` returns `\\?\C:\...` on Windows, while saved Project roots,
+`current_exe()` and typed paths use `C:\...`; `Path` comparison treats them as
+different folders. Every canonicalize in crates/wonderd/src therefore goes through
+`canonical_path::canonicalize` / `canonicalize_async` (or `canonical_path::simplified`
+for a path that is already canonical).
+
+A line that needs the verbatim form on purpose (a test pinning the difference) ends
+with `// canonical-path: verbatim on purpose`.
+
+  scripts/check-canonical-paths
+"""
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+SRC = ROOT / "crates/wonderd/src"
+OWNER = SRC / "canonical_path.rs"
+RAW = re.compile(r"\bfs::canonicalize\b|\.canonicalize\(\)")
+MARKER = "canonical-path: verbatim"
+
+
+def main():
+    bad = []
+    for path in sorted(SRC.rglob("*.rs")):
+        if path == OWNER:
+            continue
+        for number, line in enumerate(path.read_text(errors="replace").splitlines(), 1):
+            code = line.split("//", 1)[0] if MARKER not in line else ""
+            if RAW.search(code):
+                bad.append(f"{path.relative_to(ROOT)}:{number}: {line.strip()}")
+    for entry in bad:
+        print(entry, file=sys.stderr)
+    if bad:
+        print("check-canonical-paths: use crate::canonical_path::canonicalize (wonderd:: in the "
+              "headless binary), canonicalize_async for tokio, or simplified for an already "
+              "canonical path; a deliberate verbatim spelling ends its line with "
+              f"`// {MARKER} on purpose`", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

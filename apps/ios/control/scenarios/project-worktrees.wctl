@@ -1,0 +1,48 @@
+# Host response fixture only; no messages, providers or owner chats are changed.
+# The Rust temp-repository contract covers real Git discovery and persistence.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-project-worktrees
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --contains "Worktree agent/fixture-worker" --timeout 20
+# Selecting the Project expands it even when a prior run left it collapsed.
+tap --id project-row:read-project
+sidebar open
+wait --id project-thread:claude:worktree-fixture --contains "Worktree agent/fixture-worker" --timeout 20
+wait --id project-thread:opencode:worktree-fixture --contains "Worktree agent/fixture-worker" --timeout 20
+shot worktree-chats-on
+tap --id pinned-thread:codex:read-fixture
+wait --id conversation-title-menu --contains "worktree agent/fixture-worker" --timeout 20
+shot worktree-header
+sidebar open
+tap --id sidebar-settings
+tap --id settings-computer:diagnostic-host
+# One short scroll: Auto-archive and Continuing work follow this switch, and a
+# full-height drag carries it under the navigation bar on iPhone.
+swipe up
+wait --id include-worktrees-chats --contains "1" --timeout 10
+shot worktree-setting-on
+# Form exposes both the full row and its native switch as CheckBox nodes; only the
+# row has the id. Press the row's trailing switch, not the label's center.
+hold --id include-worktrees-chats --x-fraction 0.88 --seconds 0.15
+wait --id include-worktrees-chats --contains "0" --timeout 10
+shot worktree-setting-off
+back
+back
+sidebar open
+wait --id pinned-thread:codex:read-fixture --gone --timeout 10
+wait --id project-thread:claude:worktree-fixture --gone --timeout 10
+wait --id project-thread:opencode:worktree-fixture --gone --timeout 10
+shot worktree-chats-off
+tap --id sidebar-settings
+tap --id settings-computer:diagnostic-host
+swipe up
+wait --id include-worktrees-chats --contains "0" --timeout 10
+hold --id include-worktrees-chats --x-fraction 0.88 --seconds 0.15
+wait --id include-worktrees-chats --contains "1" --timeout 10
+back
+back
+sidebar open
+wait --id pinned-thread:codex:read-fixture --contains "Worktree agent/fixture-worker" --timeout 20
+wait --id project-thread:claude:worktree-fixture --contains "Worktree agent/fixture-worker" --timeout 20
+wait --id project-thread:opencode:worktree-fixture --contains "Worktree agent/fixture-worker" --timeout 20
+shot worktree-chats-restored

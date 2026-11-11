@@ -1,0 +1,27 @@
+# devices: duo
+# The real-hinge twin of computer-duo-trackpad: the ordinary middle fold (hinge 90,
+# landscape) puts the picture above the fold and the trackpad and the system
+# keyboard below it together. Native taps are unavailable in this pose (#387; the
+# HID rig refuses it), so the keyboard is raised by the dock signal; the pad-modifier and Apps-search
+# steps of the iPhone scenario stay unverified on the Duo.
+driver on
+hinge 180
+orient portrait
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-dock --fixture computer-fold --fixture computer-control-active --fixture no-hardware-keyboard
+assert --path computer.hasPicture --equals true --timeout 30
+assert --path computer.controlling --equals true --timeout 15
+hinge 90
+orient landscape-left
+driver off
+wait --id computer-viewport-appearances --contains "laptop: true;" --timeout 10
+wait --id computer-session-trackpad --timeout 10
+shot computer-duo-pad-only --display primary-1
+signal computer-dock-keyboard
+wait --id computer-viewport-appearances --contains "laptop: true;" --timeout 10
+wait --id computer-session-shortcuts-row --timeout 10
+wait --id computer-session-key-escape --timeout 10
+wait --id computer-session-trackpad --timeout 10
+shot computer-duo-keyboard-and-pad --display primary-1
+signal computer-dock-persistent-trackpad
+wait --id computer-session-trackpad --timeout 10
+shot computer-duo-keyboard-hidden --display primary-1

@@ -1,0 +1,31 @@
+# devices: duo
+# Duo folded and unfolded runs of chat-open-switch-away's link flap, the chat opens at launch.
+# Duo taps are on the input canary (#387), so the Try again retry is asserted on iPhone/iPad only.
+# folded
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture chat-resolve-held --fixture open-project-thread
+driver off
+wait --id conversation-loading --timeout 15
+shot duo-folded-loading
+signal mac-link-down
+signal mac-link-up
+signal chat-resolve
+wait --id conversation-loading --gone --timeout 10
+shot duo-folded-after-flap
+wait --label "Try again" --timeout 10
+# unfolded
+hinge 180
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture chat-resolve-held --fixture open-project-thread
+driver off
+wait --id conversation-loading --timeout 15
+shot duo-unfolded-loading
+signal mac-link-down
+signal mac-link-up
+signal chat-resolve
+wait --id conversation-loading --gone --timeout 10
+shot duo-unfolded-after-flap
+wait --label "Try again" --timeout 10

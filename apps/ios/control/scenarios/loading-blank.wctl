@@ -1,0 +1,85 @@
+# Regression: a saved row is shorter than the viewport, but its 6 pt
+# top inset makes its end overflow. Three dialogs stay present until the
+# requested Reply 6 is readable. The fixture holds geometry, never a timer.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-older --fixture loading-blank --fixture large-history --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+signal mac-waiting
+signal mac-dialog-three
+wait --id mac-dialog-notification:00000000-0000-4000-8000-000000000210 --timeout 15
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id conversation-title-menu --timeout 15
+shot loading-blank-boundary-banner
+wait --id conversation-loading --gone --timeout 15
+wait --contains "Reply 6." --timeout 10
+shot loading-blank-boundary-readable
+signal mac-permission-closed
+wait --id mac-dialog-notification:00000000-0000-4000-8000-000000000210 --gone --timeout 10
+wait --id conversation-loading --gone --timeout 10
+wait --contains "Reply 6." --timeout 10
+shot loading-blank-boundary-cleared
+tap --id scroll-to-bottom
+wait --contains "Reply 13." --timeout 10
+shot loading-blank-boundary-bottom
+
+# Offline restore probe: 690 older turns, an explicit saved reading anchor,
+# and three Mac dialogs already waiting when the Project thread opens.
+# Contract: the requested history is readable while the banner remains present,
+# and clearing the banner preserves a readable timeline.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-older --fixture large-history --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+signal mac-waiting
+signal mac-dialog-three
+wait --id mac-dialog-notification:00000000-0000-4000-8000-000000000210 --timeout 15
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id conversation-title-menu --timeout 15
+shot loading-blank-older-banner
+wait --id conversation-loading --gone --timeout 15
+wait --contains "Reply 6." --timeout 10
+shot loading-blank-older-readable
+signal mac-permission-closed
+wait --id mac-dialog-notification:00000000-0000-4000-8000-000000000210 --gone --timeout 10
+wait --id conversation-loading --gone --timeout 10
+wait --contains "Reply 6." --timeout 10
+shot loading-blank-older-cleared
+# Repeat with the fixture's saved anchor near the end, where top alignment may
+# be limited by the end of the list rather than the requested row's height.
+launch --fixture subagent-fixture --fixture chat-layout --fixture large-history --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+signal mac-waiting
+signal mac-dialog-three
+wait --id mac-dialog-notification:00000000-0000-4000-8000-000000000210 --timeout 15
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id conversation-title-menu --timeout 15
+shot loading-blank-tail-banner
+wait --id conversation-loading --gone --timeout 15
+shot loading-blank-tail-readable
+signal mac-permission-closed
+wait --id mac-dialog-notification:00000000-0000-4000-8000-000000000210 --gone --timeout 10
+wait --id conversation-loading --gone --timeout 10
+shot loading-blank-tail-cleared
+# A saved reply taller than the viewport must show its beginning, including
+# when the dialog banner contributes a safe-area inset above the List.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-older --fixture large-history --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id open-sidebar --timeout 30
+signal mac-waiting
+signal mac-dialog-three
+wait --id mac-dialog-notification:00000000-0000-4000-8000-000000000210 --timeout 15
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id conversation-title-menu --timeout 15
+shot loading-blank-tall-banner
+wait --id conversation-loading --gone --timeout 15
+wait --contains "Reply 6." --timeout 10
+shot loading-blank-tall-readable
+signal mac-permission-closed
+wait --id mac-dialog-notification:00000000-0000-4000-8000-000000000210 --gone --timeout 10
+wait --id conversation-loading --gone --timeout 10
+wait --contains "Reply 6." --timeout 10
+shot loading-blank-tall-cleared

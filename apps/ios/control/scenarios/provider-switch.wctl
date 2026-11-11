@@ -1,0 +1,69 @@
+# nightly-ipad: the Model sheet's harness and model pages in a form sheet
+# A Project thread's Model sheet is New chat's: the harness first, then that
+# harness's models, with no footnote explaining the hand-over. Choosing another
+# harness shows its default model in the composer with no confirmation, and the
+# access menu is that harness's at once (its approval modes wait for the move);
+# the next message carries the model as projectModel (the fixture shows the
+# host's "Switched to ..." row only when the request had it). A same-harness pick
+# is still saved on the thread. Nothing reaches a Mac or a model.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-composer-model --timeout 15
+wait --contains "Codex Fixture" --timeout 10
+wait --contains "Switched to Codex Fixture" --timeout 15
+wait --contains "handed over" --never 1
+shot provider-switch-row
+tap --id project-composer-model
+wait --id project-agent:codex --timeout 10
+wait --id project-agent:claude --timeout 5
+wait --id project-model:gpt-fixture-mini --timeout 5
+wait --id project-model:claude-fixture --gone --timeout 2
+wait --contains "Your next message goes to" --never 1
+shot provider-switch-picker
+tap --id project-agent:claude
+wait --id project-model:claude-fixture --timeout 10
+wait --id project-model:gpt-fixture-mini --gone --timeout 2
+tap --label Done
+wait --id project-composer-model --timeout 10
+wait --contains "Claude Fixture" --timeout 10
+shot provider-switch-chosen
+# The access menu is already Claude's; Ask waits until the thread is Claude's.
+tap --id project-composer-access
+wait --id access-choice-auto --timeout 10
+# Claude's approval modes wait for the move: their rows say "Available after your
+# next message" (a menu subtitle AXe doesn't list; check the shot) and do nothing.
+wait --id access-choice-acceptEdits --timeout 5
+shot provider-switch-access
+tap --id access-choice-manual
+tap --xy 200,300
+wait --id project-composer-access --contains "Read only" --timeout 5
+tap --id message-draft --type TextArea
+type "Switch check"
+wait --id send-message --timeout 10
+tap --id send-message
+# The fixture adds this row only when the request carried projectModel.
+wait --contains "Switched to Claude Fixture" --timeout 20
+shot provider-switch-sent
+# A same-provider pick is saved on the thread as before.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-composer-model --timeout 15
+tap --id project-composer-model
+wait --id project-model:gpt-fixture-mini --timeout 10
+tap --id project-model:gpt-fixture-mini
+wait --id project-composer-model --timeout 10
+wait --contains "Codex Fixture Mini" --timeout 10
+shot provider-switch-same-provider
+
+# The model sheet offers no "Review with" action.
+tap --id project-composer-model
+wait --id project-model:gpt-fixture-mini --timeout 10
+swipe up
+wait --id project-review-start --gone --timeout 5
+shot provider-switch-no-review

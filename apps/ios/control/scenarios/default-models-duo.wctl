@@ -1,0 +1,20 @@
+# devices: duo
+# The Codex provider page (default model, effort, speed and the Models switches)
+# on the folded and unfolded Duo. AXe taps do not register on the Duo (#387), so
+# the page opens through the settings-search launch fixture; the hide flow itself
+# is checked by default-models and hidden-models on iPhone/iPad. Run once with
+# the simulator in light appearance and once in dark (`simctl ui UDID appearance dark`).
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture default-models --arg=-diagnostics-settings-open --arg=-diagnostics-settings-search-row --arg=default-model-codex
+wait --id default-model-codex --timeout 30
+wait --id model-shown:gpt-fixture-mini --timeout 10
+shot default-models-folded
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture default-models --arg=-diagnostics-settings-open --arg=-diagnostics-settings-search-row --arg=default-model-codex
+wait --id default-model-codex --timeout 30
+wait --id model-shown:gpt-fixture-mini --timeout 10
+shot default-models-unfolded --display primary-1
+hinge 0
+orient portrait

@@ -1,0 +1,30 @@
+# devices: iphone ipad duo
+# Full-screen controls use the one native text view; the system keyboard
+# carries the shortcut row, whose Apps key opens the app list over the cover.
+# First run prepare-computer-keyboard.py --device iphone|ipad on the owned lane
+# to dismiss Apple's OS keyboard introduction if that fresh clone shows it.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-control-active --fixture computer-full-screen --fixture no-hardware-keyboard
+wait --id computer-session-exit-full-screen --timeout 30
+wait --id computer-session-control-active --timeout 15
+tap --id computer-session-keyboard
+wait --id computer-session-shortcuts-row --timeout 10
+wait --id delete --timeout 10
+wait --id computer-viewport-appearances --contains "keyboards: 1;" --timeout 5
+shot computer-full-screen-system-keyboard
+tap --id computer-session-keyboard
+wait --id computer-session-keyboard --contains "Show keyboard" --timeout 10
+tap --id computer-session-keyboard
+wait --id computer-session-shortcuts-row --timeout 10
+# Apps is on the shortcut row; the cover presents the list rather than its hidden presenting view.
+tap --id computer-session-shortcut-applications
+wait --id computer-apps --timeout 10
+tap --contains "Search apps on" --type TextField
+type "term"
+wait --id computer-app-com.apple.Terminal --timeout 10
+tap --id computer-app-com.apple.Terminal
+wait --id computer-apps --gone --timeout 10
+wait --id computer-session-exit-full-screen --timeout 10
+tap --id computer-session-exit-full-screen
+wait --id computer-session-exit-full-screen --gone --timeout 10
+wait --id computer-viewport-appearances --contains "keyboards: 1;" --timeout 5
+shot computer-full-screen-keyboard-returned

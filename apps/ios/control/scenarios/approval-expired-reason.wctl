@@ -1,0 +1,14 @@
+# devices: iphone ipad
+# The Mac refuses an Allow because the provider restarted (409, plain words): the card
+# shows the Mac's sentence, not "Reply not confirmed". Owned offline fixture; no provider is contacted.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture approval-expired --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-needs-you --timeout 20
+tap --id sidebar-needs-you
+tap --id needs-you:diagnostic-host:fixture-opencode-approval
+wait --id approval-accept-fixture-opencode-approval
+tap --id approval-accept-fixture-opencode-approval
+wait --contains "This approval expired when the provider restarted" --timeout 20
+wait --contains "Reply not confirmed" --gone --timeout 1
+shot approval-expired-reason

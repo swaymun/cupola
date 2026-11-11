@@ -1,0 +1,18 @@
+# Send now that reaches the Mac after the Claude reply it was meant for ended
+# is queued and sent next, not failed: it shows as Queued, with no error.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture send-claude --fixture send-guide-ended --arg=-wonder.send.followUp --arg=queue
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id message-draft --timeout 15
+tap --id message-draft --type TextArea
+type "Make it shorter"
+wait --label "Queue message" --timeout 10
+hold --id send-message
+wait --label "Send now" --timeout 5
+tap --label "Send now"
+wait --contains "Queued message: Make it shorter" --timeout 10
+wait --contains "Couldn't send now" --never 2
+wait --contains "already finished" --never 1
+shot guide-ended-queues

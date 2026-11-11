@@ -1,0 +1,39 @@
+{
+  "clientKey": "hSDwCYkwp1R0i33ctD73Wg2_Og0mOBr066SpjqqbTmo",
+  "clientPrivate": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a",
+  "clientToHostKey": "43d31255dc921006ba2011ef1e15334e40be263593eb92351c16134bd5313550",
+  "frames": [
+    {
+      "direction": "clientToHost",
+      "plaintext": "{\"session\":\"vector-session\"}",
+      "sealed": "WSA9cqpBLhIPt8PXbBUQKSyUyU02Hd9_eOpYEXIXqC73rzZD8dgnQg1eQ6E"
+    },
+    {
+      "direction": "clientToHost",
+      "plaintext": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"auth.challenge\"}",
+      "sealed": "y3-Vu1LU68VoH_dArrjWtSLXmyhyBADII04wfLi8DDG8AT6RUae6wD7oTjUk2g4aazMDIRFQEoxqSnF17Q5mLtcm"
+    },
+    {
+      "direction": "hostToClient",
+      "plaintext": "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{}}",
+      "sealed": "VinpS5sIuJFTFfO2dWPDNQQH3_wRhDF79oQJxyTO7GpICajxIgfzTImUuS_nqybQuTg-hA"
+    },
+    {
+      "direction": "clientToHost",
+      "plaintext": "",
+      "sealed": "VcM97q3MYl1A3ywqf553hA"
+    }
+  ],
+  "handshakeNonce": "x1n6ZLZynkROuy9kXdAiRKB0OJWenvUSGtUcfSRcbmg",
+  "hello": "{\"v\":\"wonder-sealed-v1\",\"clientKey\":\"hSDwCYkwp1R0i33ctD73Wg2_Og0mOBr066SpjqqbTmo\"}",
+  "hostKeyPin": "Hw9F8Z_bwViioFxKVV0j4UTDzD8slCEHDjfDDeaO-J8",
+  "hostSecret": "5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c",
+  "hostToClientKey": "1b54bd1c0edc1482bbc2fb2450bdc76ba5b7c2395609dca2dd0fc48e18661226",
+  "origin": "https://r-k7x2q.getcupola.app",
+  "otherOrigin": "https://other.example",
+  "serverKey": "3p7bfXt9wbTTW2HC7OQ1Nz-DQ8hbeGdNrfx-FG-IK08",
+  "serverPrivate": "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb",
+  "sharedSecret": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742",
+  "version": "wonder-sealed-v1",
+  "welcome": "{\"serverKey\":\"3p7bfXt9wbTTW2HC7OQ1Nz-DQ8hbeGdNrfx-FG-IK08\",\"proof\":{\"hostKey\":\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEr3bgGyVInLcVULoAPMq6iogLkm0W-lun29mm5OdjskEdKV8Dhrb4N8hj0y24Vn46SCya5Qox4rK33yKM4pFWhA\",\"signature\":\"AvLtsIhepGzZuCTd8uljiKONGVKhih7u9hCbFxTkaZfVoUhXGllwjcI71-41fV6hKyz7BAiYBJHIodfH5gfM4g\"}}"
+}

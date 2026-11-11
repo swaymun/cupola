@@ -1,0 +1,14 @@
+# A refused Stop explains why in plain words and leaves the task running.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture project-claude-stop-fails
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-subagent-status-pill --timeout 15
+tap --id project-subagent-status-pill
+wait --id project-subagent-stop:fixture-third-child-thread --timeout 10
+tap --id project-subagent-stop:fixture-third-child-thread
+tap --id project-subagent-stop-confirm --nth 0
+wait --contains "Stop it there." --timeout 10
+wait --id project-subagent-stop:fixture-third-child-thread --timeout 5
+shot claude-agent-task-stop-refused

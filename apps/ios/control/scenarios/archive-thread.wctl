@@ -1,0 +1,233 @@
+# Archive a Codex thread from its long-press menu: it leaves the sidebar (Codex
+# archives it, so the Codex app hides it too). The Project's long-press menu lists
+# archived threads; Restore brings it back to the sidebar.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+hold --id pinned-thread:codex:read-fixture
+wait --id archive-project-thread --timeout 10
+tap --id archive-project-thread
+wait --id pinned-thread:codex:read-fixture --gone --timeout 10
+hold --id project-row:read-project
+wait --id project-archived-threads --timeout 10
+tap --id project-archived-threads
+wait --id archived-thread:codex:read-fixture --timeout 10
+wait --label "Archived in Codex"
+shot archive-thread-list
+tap --id restore-thread:codex:read-fixture
+wait --id archived-threads-empty --timeout 10
+back
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 10
+shot archive-thread-restored
+
+# Undo, and archive from the open chat. Archiving from the long-press menu shows
+# "Archived" with Undo where Settings sits, naming the Codex app effect; Undo
+# brings the row back. The open chat's menu archives it in place: "Chat
+# archived" says where, Restore reopens the chat, and Archived threads restores
+# it too, after which Back shows the chat, not a stale archived screen.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture undo-held --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-wonder.confirm.archive --arg=NO
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+hold --id pinned-thread:codex:read-fixture
+tap --id archive-project-thread
+wait --id pinned-thread:codex:read-fixture --gone --timeout 10
+wait --id sidebar-undo-message --contains "Archived" --timeout 10
+wait --id sidebar-undo-message --contains "Codex app"
+shot archive-thread-undo
+tap --id sidebar-undo
+wait --id pinned-thread:codex:read-fixture --timeout 10
+wait --id sidebar-undo --gone --timeout 10
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Reply 13. Continuing the project" --timeout 20
+tap --id conversation-title-menu
+wait --id archive-conversation --timeout 10
+shot archive-thread-header-menu
+tap --id archive-conversation
+wait --id archived-chat-restore --timeout 10
+wait --contains "Chat archived"
+wait --contains "Codex app"
+wait --id archived-chat-list
+shot archive-thread-archived-here
+tap --id archived-chat-restore
+wait --id conversation-title-menu --timeout 10
+wait --contains "Chat archived" --gone
+tap --id conversation-title-menu
+tap --id archive-conversation
+wait --id archived-chat-list --timeout 10
+tap --id archived-chat-list
+wait --id restore-thread:codex:read-fixture --timeout 10
+tap --id restore-thread:codex:read-fixture
+wait --id archived-threads-empty --timeout 10
+back
+wait --id conversation-title-menu --timeout 10
+wait --contains "Chat archived" --gone
+shot archive-thread-restored-from-list
+# A notice nobody acts on goes away when its time is up (held here until the signal).
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+hold --id pinned-thread:codex:read-fixture
+tap --id archive-project-thread
+wait --id sidebar-undo-message --contains "Archived" --timeout 10
+signal undo-expire
+wait --id sidebar-undo --gone --timeout 10
+wait --id sidebar-settings
+# With "Confirm before archiving" on, the open chat's menu asks first and names the effect.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-wonder.confirm.archive --arg=YES
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Reply 13. Continuing the project" --timeout 20
+tap --id conversation-title-menu
+tap --id archive-conversation
+wait --id archive-conversation-confirm --timeout 10
+wait --contains "Codex app"
+shot archive-thread-header-confirm
+tap --id archive-conversation-confirm
+wait --id archived-chat-restore --timeout 10
+tap --id archived-chat-restore
+wait --id conversation-title-menu --timeout 10
+
+# Offline, owned in-process fixtures only. Native selection, provider consequence,
+# successful archive/restore (restored rows back in the Project and in All Chats), per-item failure/retry, Chats/search and loaded paging.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture bulk-archive --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:bulk-1 --timeout 20
+wait --id project-thread:claude:bulk-2 --timeout 20
+# The long-press menu's Select starts choosing with that chat already chosen.
+hold --id pinned-thread:codex:bulk-1
+tap --id select-project-thread
+tap --id project-thread:claude:bulk-2
+tap --id project-thread:codex:bulk-3
+wait --id threads-archive --contains "Archive 3"
+wait --id pinned-thread:codex:bulk-1 --contains Selected
+shot bulk-archive-selection
+tap --id threads-archive
+wait --contains "Codex chats will also be archived in the Codex app"
+shot bulk-archive-confirmation
+tap --id threads-archive-confirm
+wait --id pinned-thread:codex:bulk-1 --gone
+wait --id project-thread:claude:bulk-2 --gone
+wait --id project-thread:codex:bulk-3 --gone
+wait --id project-thread:claude:bulk-4
+wait --id threads-archive-result --contains "Archived 3"
+shot bulk-archive-result
+tap --id threads-more:read-project
+wait --id project-thread:codex:bulk-5
+wait --id pinned-thread:codex:bulk-1 --gone
+wait --id project-thread:claude:bulk-2 --gone
+wait --id project-thread:codex:bulk-3 --gone
+shot bulk-archive-paging
+tap --id threads-selection-cancel
+hold --id project-row:read-project
+tap --id project-archived-threads
+wait --id archived-thread:codex:bulk-1
+wait --id archived-thread:claude:bulk-2
+wait --id archived-thread:codex:bulk-3
+shot bulk-archive-archived
+tap --id restore-thread:codex:bulk-1
+wait --id archived-thread:codex:bulk-1 --gone
+tap --id restore-thread:claude:bulk-2
+wait --id archived-thread:claude:bulk-2 --gone
+wait --id archived-thread:codex:bulk-3
+back
+sidebar open
+wait --id pinned-thread:codex:bulk-1
+wait --id project-thread:claude:bulk-2 --timeout 10
+wait --id project-thread:codex:bulk-3 --gone
+# The restored threads come back in All Chats too; the one still archived does not.
+tap --id sidebar-session-filter
+tap --label "All Chats" --timeout 5
+wait --id chat-thread:claude:bulk-2 --label "CLI review" --timeout 10
+wait --id chat-thread:codex:bulk-3 --gone
+shot bulk-archive-restored-chats
+# Select from a row menu; only the refused row remains selected after the batch.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture bulk-archive --fixture bulk-archive-failure --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:bulk-1 --timeout 20
+hold --id pinned-thread:codex:bulk-1
+tap --id select-project-thread
+tap --id project-thread:claude:bulk-2
+tap --id project-thread:codex:bulk-3
+tap --id threads-archive
+tap --id threads-archive-confirm
+wait --id threads-archive-result --contains "Archived 2; 1 could not be archived."
+wait --id pinned-thread:codex:bulk-1 --gone
+wait --id project-thread:codex:bulk-3 --gone
+wait --id project-thread:claude:bulk-2 --contains Selected
+tap --id threads-archive-failures
+wait --contains "Finish or stop this thread"
+shot bulk-archive-partial-failure
+tap --id threads-archive
+wait --contains "These chats will be archived in Cupola only."
+wait --contains "Codex chats will also be archived" --gone
+tap --id threads-archive-confirm
+wait --id project-thread:claude:bulk-2 --gone
+wait --id threads-archive-result --contains "Archived 1"
+shot bulk-archive-retried
+tap --id threads-selection-cancel
+hold --id project-row:read-project
+tap --id project-archived-threads
+wait --id archived-thread:codex:bulk-1
+wait --id archived-thread:claude:bulk-2
+wait --id archived-thread:codex:bulk-3
+back
+sidebar open
+# Chats uses the same identities. Select All includes loaded rows only; search
+# retains selection, Cancel restores navigation, Show more extends the selection.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture bulk-archive --fixture sidebar-all-chats --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id chat-thread:claude:bulk-2 --timeout 20
+hold --id chat-thread:claude:bulk-2
+tap --id select-project-thread
+tap --id threads-select-all
+wait --id threads-archive --contains "Archive 6"
+tap --id sidebar-search
+type "CLI"
+wait --id chat-thread:claude:bulk-2 --contains Selected
+wait --id threads-archive --contains "Archive 6"
+tap --label "Clear search"
+tap --id threads-selection-cancel
+wait --id chat-thread:claude:bulk-2 --label "CLI review"
+# Return closes the search keyboard, which would otherwise cover the older page's button.
+keys 28
+tap --id chats-more:diagnostic-host
+# The older page sits below the fold on iPhone; search brings it on screen.
+tap --id sidebar-search
+type "Older"
+wait --id chat-thread:codex:bulk-5
+tap --label "Clear search"
+hold --id chat-thread:claude:bulk-2
+tap --id select-project-thread
+tap --id threads-select-all
+wait --id threads-archive --contains "Archive 9"
+shot bulk-archive-chats-selection
+tap --id threads-selection-cancel
+# At the largest accessibility text size, selection lives in list options and
+# the bottom actions stack so every control retains its full words and hit area.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture bulk-archive --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:bulk-1 --timeout 20
+tap --id sidebar-session-filter
+wait --id threads-select
+tap --id threads-select
+tap --id pinned-thread:codex:bulk-1
+wait --id threads-archive --contains "Archive 1 chat"
+wait --id threads-select-all
+shot bulk-archive-selection-ax5
+tap --id threads-archive
+wait --contains "Codex chats will also be archived in the Codex app"
+wait --contains "Archive 1 chat?"
+shot bulk-archive-confirmation-ax5
+tap --id threads-archive-confirm
+wait --id pinned-thread:codex:bulk-1 --gone
+wait --id threads-archive-result --contains "Archived 1"
+shot bulk-archive-result-ax5
+tap --id threads-selection-cancel

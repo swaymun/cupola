@@ -1,0 +1,90 @@
+# Times syntax colouring of generated Swift, Rust, TypeScript and Python files of about
+# 500, 5,000 and 50,000 lines (DiagnosticSyntaxBench), opened from Files. Previews stop at
+# 128 KB, so the larger files colour their first 128 KB. Each open logs one line,
+# "syntax.complete utf16=... viewport=...ms total=...ms tokenize=...ms main=...ms maxBatch=...ms
+# layout=...ms batches=N", printed by the final logs step; reopening one file logs
+# "syntax.cached". Not part of the nightly feature map (outside scenarios/). Run:
+#   scripts/wonderctl --mini run apps/ios/control/benchmarks/source-syntax-timing.wctl
+launch --fixture read-preview --fixture send-preview --fixture files-preview --fixture project-files-conversation-preview --fixture workspace-viewer-preview --arg=-workspace-syntax-bench --arg=-diagnostics-syntax-layout-timing
+wait --id conversation-files-pill
+tap --id conversation-files-pill
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:bench-500.py --in workspace-file-list
+tap --id workspace-file-entry:bench-500.py --timeout 5
+wait --id annotation-selectable-text --timeout 15
+wait --contains "totals one leg" --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:bench-500.rs --in workspace-file-list
+tap --id workspace-file-entry:bench-500.rs --timeout 5
+wait --id annotation-selectable-text --timeout 15
+wait --contains "totals one leg" --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:bench-500.swift --in workspace-file-list
+tap --id workspace-file-entry:bench-500.swift --timeout 5
+wait --id annotation-selectable-text --timeout 15
+wait --contains "totals one leg" --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:bench-500.ts --in workspace-file-list
+tap --id workspace-file-entry:bench-500.ts --timeout 5
+wait --id annotation-selectable-text --timeout 15
+wait --contains "totals one leg" --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:bench-5000.py --in workspace-file-list
+tap --id workspace-file-entry:bench-5000.py --timeout 5
+wait --id annotation-selectable-text --timeout 15
+wait --contains "totals one leg" --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:bench-5000.rs --in workspace-file-list
+tap --id workspace-file-entry:bench-5000.rs --timeout 5
+wait --id annotation-selectable-text --timeout 15
+wait --contains "totals one leg" --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:bench-5000.swift --in workspace-file-list
+tap --id workspace-file-entry:bench-5000.swift --timeout 5
+wait --id annotation-selectable-text --timeout 15
+wait --contains "totals one leg" --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:bench-5000.ts --in workspace-file-list
+tap --id workspace-file-entry:bench-5000.ts --timeout 5
+wait --id annotation-selectable-text --timeout 15
+wait --contains "totals one leg" --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:bench-50000.py --in workspace-file-list
+tap --id workspace-file-entry:bench-50000.py --timeout 5
+wait --id annotation-selectable-text --timeout 15
+wait --contains "totals one leg" --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:bench-50000.rs --in workspace-file-list
+tap --id workspace-file-entry:bench-50000.rs --timeout 5
+wait --id annotation-selectable-text --timeout 15
+wait --contains "totals one leg" --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:bench-50000.swift --in workspace-file-list
+tap --id workspace-file-entry:bench-50000.swift --timeout 5
+wait --id annotation-selectable-text --timeout 15
+wait --contains "totals one leg" --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:bench-50000.ts --in workspace-file-list
+tap --id workspace-file-entry:bench-50000.ts --timeout 5
+wait --id annotation-selectable-text --timeout 15
+wait --contains "totals one leg" --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:bench-50000.swift --in workspace-file-list
+tap --id workspace-file-entry:bench-50000.swift --timeout 5
+wait --id annotation-selectable-text --timeout 15
+wait --contains "totals one leg" --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list
+logs --last 5m --lines 4000

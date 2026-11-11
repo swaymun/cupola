@@ -1,0 +1,17 @@
+# A Codex plan that reports only a weekly window (as a Pro plan does: primary is
+# 10080 minutes, no secondary) shows Weekly alone, never a session limit.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-weekly-only
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-composer-model --timeout 15
+wait --id context-usage-ring --gone --timeout 5
+sidebar open
+wait --id sidebar-usage --timeout 15
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-window:primary --timeout 15
+wait --label "Weekly"
+wait --label "Session limit" --gone
+shot codex-usage-weekly-only

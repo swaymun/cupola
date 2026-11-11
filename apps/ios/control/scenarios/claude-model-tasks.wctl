@@ -1,0 +1,14 @@
+# The next Claude message can change model without ending background tasks.
+# Native control acknowledgements and queued snapshots are runtime/HTTP tests.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture project-subagents --fixture open-project-thread --arg=-diagnostics-project-subagents-stale
+wait --id project-composer-model --contains "Sonnet fixture" --timeout 20
+wait --id project-subagent-status-pill --timeout 10
+wait --id settings-wait-notice --gone --timeout 2
+tap --id project-composer-model
+wait --id project-model:claude:haiku --timeout 10
+tap --id project-model:claude:haiku
+wait --id project-composer-model --contains "Haiku fixture" --timeout 10
+wait --id project-model:claude:haiku --gone --timeout 5
+tap --id project-subagent-status-pill
+wait --label "Scout, Running" --timeout 10
+shot claude-model-tasks

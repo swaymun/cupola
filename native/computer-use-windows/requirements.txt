@@ -1,0 +1,7 @@
+# x64 Python 3.12+ (runs under emulation on Windows on ARM; see the helper's docstring)
+aiortc==1.15.0
+av==17.1.0  # aiortc 1.15 requires av<18
+mss==10.2.0
+numpy==2.5.4
+windows-capture==2.0.1
+opencv-python==5.0.0.93  # windows-capture imports cv2

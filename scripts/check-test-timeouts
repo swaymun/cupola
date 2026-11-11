@@ -1,0 +1,394 @@
+#!/usr/bin/env python3
+"""Reject newly added test timeouts and hang guards shorter than 10 seconds.
+
+  scripts/check-test-timeouts [BASE]     # lines added in test files since BASE (default origin/main)
+  scripts/check-test-timeouts --all PATH...  # every such guard in those files (an audit, not a gate)
+
+On a shared Mac running workers, builds and landings, a 1-3 s guard fails on load,
+not on the change (the 2026-10-18 run lost about 19 landings to such guards). Only
+added lines in test files are checked, so existing guards are fixed on their own.
+A line counts when it names a timeout, deadline or hang guard and gives it a
+duration: Python/Swift seconds (`timeout=3`, `monotonic() + 3`), Rust
+`Duration::from_secs/from_millis`, and JavaScript milliseconds (`timeout: 1000`).
+Rust `#[cfg(test)]` items inside source files count as test code, and a
+duration on its own line still counts when the statement it continues names the
+guard (`tokio::time::timeout(` then `Duration::from_secs(3),`). Elapsed-time
+assertions (`elapsed() < Duration::from_millis(250)`) count too. Poll-loop
+sleeps and paused-clock `advance(...)` calls do not, but a poll loop bounded by
+its iteration count does: `for _ in 0..100 { ... break ... sleep(10 ms) }` (or
+Python `for _ in range(100):` with `time.sleep(0.01)`) gives up after 1 s.
+In Rust, a duration also counts when it becomes a deadline (`Instant::now() +`),
+when it is an argument to a function in the same file whose parameter feeds a
+timeout or deadline (`chat_run(&local, &args, Duration::from_secs(3), ..)` where
+`chat_run` computes `let deadline = now() + limit`), and when a `let`/`const`
+holding it is later used as such a guard in the same test.
+"""
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+MIN_SECONDS = 10
+FIX = (f"use a hang guard of at least {MIN_SECONDS} s, or drive the timing from a "
+       "fixture-controlled clock instead of the wall clock")
+LOOP_FIX = (f"raise the iteration count to a hang guard of at least {MIN_SECONDS} s (or wrap "
+            "the poll in a timeout that long), or synchronize on the event instead of polling")
+
+TEST_PATH = re.compile(r"(^|/)(tests?|__tests__|WonderTests|WonderUITests|WonderDiagnosticsTests)/"
+                       r"|(^|/)test[-_][^/]*$|_tests?\.rs$|\.test\.[mc]?[jt]sx?$|Tests\.swift$")
+GUARD = re.compile(r"timeout|deadline|hang|wait_for|within|elapsed|Instant::now\(\)\s*\+", re.I)
+SLEEP_ARG = re.compile(r"sleep\(\s*(?:(?:std|tokio)::time::)?(?:Duration::)?$")
+VIRTUAL = re.compile(r"\badvance\(")  # tokio's paused clock: the fix, not a guard
+CFG_TEST = re.compile(r"^\s*#\[cfg\((?![^\]]*not\(test\))[^\]]*\btest\b")  # also all(test, unix)
+MS_SUFFIXES = (".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx")
+NUMBER = r"(\d[\d_]*(?:\.\d+)?)"
+PATTERNS = [
+    (re.compile(r"from_secs(?:_f64|_f32)?\(\s*" + NUMBER), 1.0),
+    (re.compile(r"from_millis\(\s*" + NUMBER), 0.001),
+    (re.compile(r"\bms\(\s*" + NUMBER + r"\s*\)"), 0.001),
+    (re.compile(r"(?i)timeout(?:_?(?:secs|seconds|s))?\s*[=:]\s*" + NUMBER + r"\b(?!\s*\*)"), None),
+    (re.compile(r"(?i)timeout_?ms\s*[=:]\s*" + NUMBER), 0.001),
+    (re.compile(r"(?:monotonic|time)\(\)\s*\+\s*" + NUMBER + r"\b(?!\s*\*)"), 1.0),
+    (re.compile(r"setTimeout\([^,]+,\s*" + NUMBER + r"\s*\)"), 0.001),
+]
+
+
+RUST_LOOP = re.compile(r"^\s*for\s+\w+\s+in\s+0\.\.(=?)\s*" + NUMBER + r"\s*\{\s*$")
+PY_LOOP = re.compile(r"^(\s*)for\s+\w+\s+in\s+range\(\s*" + NUMBER + r"\s*\)\s*:")
+RUST_SLEEP = re.compile(r"sleep\(\s*(?:(?:std|tokio)::time::)?(?:Duration::)?"
+                        r"(?:from_(millis|secs(?:_f64)?)|(ms))\(\s*" + NUMBER + r"\s*\)")
+PY_SLEEP = re.compile(r"\bsleep\(\s*" + NUMBER + r"\s*\)")
+EXITS = re.compile(r"\b(?:break|return)\b")
+
+
+def poll_loops(path, lines, tested):
+    """(header line, body lines, header text, seconds) for each poll loop that gives up
+    after a fixed number of iterations whose literal sleeps add up to under MIN_SECONDS.
+    Loops that never exit early are fixed tick sequences, not waits, and are skipped."""
+    found = []
+    for index, line in enumerate(lines):
+        if tested is not None and index + 1 not in tested:
+            continue
+        rust = path.endswith(".rs") and RUST_LOOP.match(line)
+        python = path.endswith(".py") and PY_LOOP.match(line)
+        if not (rust or python):
+            continue
+        if rust:
+            count = int(rust.group(2).replace("_", "")) + (1 if rust.group(1) else 0)
+            depth, end = 0, index
+            for end in range(index, len(lines)):
+                code = re.sub(r'"(?:\\.|[^"\\])*"|//.*', "", lines[end])
+                depth += code.count("{") - code.count("}")
+                if depth <= 0:
+                    break
+        else:
+            count, indent = int(python.group(2).replace("_", "")), len(python.group(1))
+            end = index
+            while end + 1 < len(lines) and (not lines[end + 1].strip()
+                                            or len(lines[end + 1]) - len(lines[end + 1].lstrip()) > indent):
+                end += 1
+        body = lines[index + 1:end + 1]
+        if not any(EXITS.search(b) for b in body):
+            continue
+        slept, opaque = 0.0, False
+        for b in body:
+            if "sleep(" not in b:
+                continue
+            matches = list((RUST_SLEEP if rust else PY_SLEEP).finditer(b))
+            opaque = opaque or not matches
+            for m in matches:
+                if rust:
+                    value = float(m.group(3).replace("_", ""))
+                    slept += value * (1.0 if (m.group(1) or "").startswith("secs") else 0.001)
+                else:
+                    slept += float(m.group(1).replace("_", ""))
+        if slept and not opaque and count * slept < MIN_SECONDS:
+            found.append((index + 1, range(index + 1, end + 2), line.strip().rstrip("{:").strip(),
+                          count * slept))
+    return found
+
+
+def loop_error(path, header, text, seconds):
+    return f"{path}:{header}: `{text}` polls for only {seconds:g} s; {LOOP_FIX}"
+
+
+def blank(line):
+    """`line` with string contents and comments blanked, keeping columns."""
+    line = re.sub(r'"(?:\\.|[^"\\])*"', lambda m: '"' + " " * (len(m.group()) - 2) + '"', line)
+    cut = line.find("//")
+    return line if cut < 0 else line[:cut] + " " * (len(line) - cut)
+
+
+def enclosing_calls(lines, row, col):
+    """(callee, argument index) of each call around lines[row][col], innermost first,
+    stopping at the start of the statement or block that holds it."""
+    calls, parens, braces, commas = [], 0, 0, 0
+    text = blank(lines[row])[:col]
+    for r in range(row, max(row - 40, -1), -1):
+        if r != row:
+            text = blank(lines[r])
+        for i in range(len(text) - 1, -1, -1):
+            ch = text[i]
+            if ch in ")]":
+                parens += 1
+            elif ch in "([":
+                if parens:
+                    parens -= 1
+                    continue
+                name = re.search(r"(\w+)\s*(?:::<[^()]*>)?\s*!?\s*$", text[:i]) if ch == "(" else None
+                calls.append((name.group(1) if name else "", commas))
+                commas = 0
+            elif ch == "}":
+                braces += 1
+            elif ch == "{":
+                if not braces:
+                    return calls
+                braces -= 1
+            elif not parens and not braces and ch == ";":
+                return calls
+            elif not parens and not braces and ch == ",":
+                commas += 1
+    return calls
+
+
+FN_DEF = re.compile(r"\bfn\s+(\w+)\s*(?:<[^>{(]*>)?\s*\(")
+SELF_PARAM = re.compile(r"^&?\s*(?:'\w+\s+)?(?:mut\s+)?self$")
+
+
+def guard_params(lines):
+    """{fn name: argument positions that feed a timeout or deadline} for Rust fns in
+    these lines: a parameter named like a guard, used on a guard line in the body, or
+    passed on to another such parameter."""
+    text = "\n".join(blank(line) for line in lines)
+    starts = [0]
+    for line in lines:
+        starts.append(starts[-1] + len(line) + 1)
+    fns = []
+    for m in FN_DEF.finditer(text):
+        depth, i = 1, m.end()
+        while i < len(text) and depth:
+            depth += {"(": 1, ")": -1}.get(text[i], 0)
+            i += 1
+        params, depth, part = [], 0, ""
+        for ch in text[m.end():i - 1]:
+            depth += {"(": 1, "<": 1, "[": 1, ")": -1, ">": -1, "]": -1}.get(ch, 0)
+            if ch == "," and depth == 0:
+                params.append(part)
+                part = ""
+            else:
+                part += ch
+        params.append(part)
+        names = [p.split(":")[0].strip() for p in params if p.strip()]
+        names = [re.sub(r"^mut\s+", "", n) for n in names if not SELF_PARAM.match(n)]
+        body = text.find("{", i)
+        if body < 0 or ";" in text[i:body]:
+            continue
+        depth, end = 0, body
+        while end < len(text):
+            depth += {"{": 1, "}": -1}.get(text[end], 0)
+            end += 1
+            if depth == 0:
+                break
+        first = next(k for k in range(len(starts)) if starts[k + 1] > body)
+        last = next(k for k in range(len(starts)) if starts[k + 1] >= end)
+        fns.append((m.group(1), names, first, last))
+    found = {}
+    for _ in range(3):  # a guard parameter passed on through helpers
+        for name, names, first, last in fns:
+            for index, param in enumerate(names):
+                if index in found.get(name, set()):
+                    continue
+                use = re.compile(r"\b" + re.escape(param) + r"\b")
+                if GUARD.search(param) or any(
+                        guarded_use(lines, r, m.start(), found)
+                        for r in range(first, last + 1) for m in use.finditer(blank(lines[r]))):
+                    found.setdefault(name, set()).add(index)
+    return found
+
+
+def guarded_use(lines, row, col, params):
+    """Whether the value at lines[row][col] is used as a timeout or deadline."""
+    if GUARD.search(statement(lines, row)):
+        return True
+    return any(GUARD.search(callee) or index in params.get(callee, ())
+               for callee, index in enclosing_calls(lines, row, col))
+
+
+LET = re.compile(r"^(\s*)(?:let\s+(?:mut\s+)?|(?:pub(?:\([^)]*\))?\s+)?(?:const|static)\s+)(\w+)\b[^=]*=[^=]")
+
+
+def flows_to_guard(lines, row, col, params):
+    """Whether the duration at lines[row][col] is a guard through the call it is passed
+    to or the `let`/`const` it initializes and a later guard use in the same test."""
+    calls = enclosing_calls(lines, row, col)
+    if any(GUARD.search(callee) or index in params.get(callee, ()) for callee, index in calls):
+        return True
+    if calls:
+        return False
+    start = row
+    while start > 0 and row - start < 3 and not lines[start - 1].rstrip().endswith((";", "{", "}")) \
+            and lines[start - 1].strip():
+        start -= 1
+    let = LET.match(lines[start])
+    if not let:
+        return False
+    use, indent = re.compile(r"\b" + re.escape(let.group(2)) + r"\b"), len(let.group(1))
+    for r in range(row + 1, len(lines)):
+        line = blank(lines[r])
+        if line.strip() and len(line) - len(line.lstrip()) < indent:
+            break  # the end of the block that declared it
+        if r > row and re.match(r"\s*let\s+(?:mut\s+)?" + re.escape(let.group(2)) + r"\b", line):
+            break  # shadowed
+        if any(guarded_use(lines, r, m.start(), params) for m in use.finditer(line)):
+            return True
+    return False
+
+
+def is_test(path):
+    return bool(TEST_PATH.search(path))
+
+
+def cfg_test_lines(text):
+    """1-based line numbers of a Rust file's `#[cfg(test)]` items (modules, fns, statements)."""
+    lines, marked, i = text.splitlines(), set(), 0
+    while i < len(lines):
+        if not CFG_TEST.match(lines[i]):
+            i += 1
+            continue
+        start, depth, opened, j = i, 0, False, i + 1
+        while j < len(lines):
+            code = re.sub(r'"(?:\\.|[^"\\])*"|//.*', "", lines[j])
+            depth += code.count("{") - code.count("}")
+            opened = opened or "{" in code
+            if (opened and depth <= 0) or (not opened and code.rstrip().endswith(";")):
+                break
+            j += 1
+        marked.update(range(start + 1, j + 2))
+        i = j + 1
+    return marked
+
+
+def statement(lines, index):
+    """The line at `index` joined with the earlier lines of the statement it continues."""
+    parts, k = [lines[index]], index - 1
+    while k >= 0 and index - k <= 3 and not lines[k].rstrip().endswith((";", "{", "}")) and lines[k].strip():
+        parts.insert(0, lines[k])
+        k -= 1
+    return " ".join(parts)
+
+
+def short_guards(path, line, context=None, flows=None):
+    """Durations under MIN_SECONDS that this added line gives a timeout or hang guard.
+
+    `context` is the statement the line belongs to, when the file is known, and
+    `flows(column)` says whether a duration there reaches a guard another way."""
+    named = GUARD.search(context or line)
+    if not named and flows is None:
+        return []
+    found = []
+    for pattern, scale in PATTERNS:
+        for match in pattern.finditer(line):
+            if SLEEP_ARG.search(line[:match.start()]) or VIRTUAL.search(line[:match.start()]):
+                continue
+            value = float(match.group(1).replace("_", ""))
+            seconds = value * (scale if scale is not None else (0.001 if path.endswith(MS_SUFFIXES) else 1.0))
+            if seconds < MIN_SECONDS and (named or flows(match.start())):
+                found.append((match.group(0).strip(), seconds))
+    return found
+
+
+def file_view(path, read):
+    """(lines, test line numbers or None for a whole test file) for `path`, or None."""
+    text = read(path) if read else None
+    if text is None:
+        return None
+    lines = text.splitlines()
+    tested = None if is_test(path) else cfg_test_lines(text) if path.endswith(".rs") else set()
+    return lines, tested, (guard_params(lines) if path.endswith(".rs") else None)
+
+
+def guards_at(path, view, line_no, line):
+    if view is None:
+        return short_guards(path, line) if is_test(path) else []
+    lines, tested, params = view
+    if tested is not None and line_no not in tested:
+        return []
+    if not 0 < line_no <= len(lines):
+        return short_guards(path, line)
+    flows = None if params is None else lambda col: flows_to_guard(lines, line_no - 1, col, params)
+    return short_guards(path, line, statement(lines, line_no - 1), flows)
+
+
+def check(diff, read=None):
+    """Errors for a unified diff (`git diff -U0`). `read(path)` returns the new
+    file's text, which lets the check see `#[cfg(test)]` items and continued statements."""
+    errors, path, view, line_no, added = [], None, None, 0, set()
+
+    def finish():
+        if path and view and added:
+            for header, span, text, seconds in poll_loops(path, *view[:2]):
+                if added.intersection(span):
+                    errors.append(loop_error(path, header, text, seconds))
+
+    for raw in diff.splitlines():
+        if raw.startswith("+++ "):
+            finish()
+            target = raw[4:].strip()
+            path = target[2:] if target.startswith("b/") else None
+            view = file_view(path, read) if path else None
+            added = set()
+            continue
+        hunk = re.match(r"@@ -\d+(?:,\d+)? \+(\d+)", raw)
+        if hunk:
+            line_no = int(hunk.group(1))
+            continue
+        if path and raw.startswith("+") and not raw.startswith("+++"):
+            for text, seconds in guards_at(path, view, line_no, raw[1:]):
+                errors.append(f"{path}:{line_no}: `{text}` is a {seconds:g} s guard; {FIX}")
+            added.add(line_no)
+            line_no += 1
+    finish()
+    return errors
+
+
+def audit(paths):
+    """Every short guard in the test code of these files or directories."""
+    found = []
+    for root in map(Path, paths):
+        for file in sorted(root.rglob("*") if root.is_dir() else [root]):
+            if not file.is_file() or file.suffix not in (".rs", ".py", ".swift", *MS_SUFFIXES):
+                continue
+            view = file_view(str(file), lambda p: Path(p).read_text(errors="replace"))
+            for number, line in enumerate(view[0], 1):
+                for text, seconds in guards_at(str(file), view, number, line):
+                    found.append(f"{file}:{number}: `{text}` is a {seconds:g} s guard")
+            for header, _, text, seconds in poll_loops(str(file), *view[:2]):
+                found.append(loop_error(file, header, text, seconds).split("; ")[0])
+    return found
+
+
+def read_head(path):
+    shown = subprocess.run(["git", "show", f"HEAD:{path}"], capture_output=True)
+    return shown.stdout.decode(errors="replace") if shown.returncode == 0 else None
+
+
+def main(argv):
+    if argv[:1] == ["--all"]:
+        found = audit(argv[1:] or ["."])
+        print("\n".join(found) or f"no test timeouts under {MIN_SECONDS} s")
+        return
+    base = argv[0] if argv else "origin/main"
+    diff = subprocess.run(["git", "diff", "-U0", "--no-color", f"{base}...HEAD"],
+                          text=True, capture_output=True)
+    if diff.returncode:
+        sys.exit(f"git diff {base}...HEAD failed: {diff.stderr.strip()}")
+    errors = check(diff.stdout, read_head)
+    for error in errors:
+        print(error, file=sys.stderr)
+    if errors:
+        sys.exit(f"{len(errors)} new test timeout(s) under {MIN_SECONDS} s. Fix: {FIX}.")
+    print(f"no new test timeouts under {MIN_SECONDS} s")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

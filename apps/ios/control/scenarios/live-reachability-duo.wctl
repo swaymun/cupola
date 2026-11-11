@@ -1,0 +1,41 @@
+# devices: duo
+# Duo #387: semantic input, actual AX reads and native captures.
+hinge 0
+orient portrait
+# A failed auxiliary HTTP probe does not own the reachability of a live
+# authenticated current-route stream. The replay consumer settles it and
+# wakes the waiting outbox without foregrounding or Check connection.
+# Fixture HTTP and event frames only; no pairing, real host or model sends.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture queue-ux --fixture live-reachability --arg=-wonder.send.followUp --arg=queue
+wait --id open-sidebar --timeout 30
+open-thread fixture-parent-conversation
+assert --path fixtureReachability.streamOpen --equals true --timeout 20
+signal probe-fails
+assert --path fixtureReachability.connected --equals false --timeout 15
+type "Send once the probe recovers"
+tap --id send-message
+assert --path fixtureReachability.outboxCount --equals 1 --timeout 15
+assert --path fixtureSends.messages --equals 0
+signal stream-alive
+assert --path fixtureReachability.connected --equals true --timeout 15
+assert --path fixtureReachability.receivingUpdates --equals true
+assert --path fixtureReachability.advanced --equals true
+assert --path fixtureSends.messages --equals 0
+signal probe-back
+assert --path fixtureReachability.probeRecovered --equals true --timeout 20
+assert --path fixtureSends.bodies --equals '["Send once the probe recovers"]' --timeout 20
+assert --path fixtureReachability.outboxCount --equals 0 --timeout 15
+assert --path fixtureSends.duplicates --equals 0
+assert --path fixtureReachability.connected --equals true
+driver off
+wait --contains "The stream is still arriving" --timeout 15
+wait --id composer-mac-unreachable --gone --timeout 5
+shot live-reachability-duo-streaming
+driver on
+assert --path fixtureSends.duplicates --equals 0
+driver off
+wait --id composer-mac-unreachable --gone --timeout 5
+wait --contains "Send once the probe recovers" --timeout 15
+wait --contains "More live updates" --timeout 15
+shot live-reachability-duo-sent

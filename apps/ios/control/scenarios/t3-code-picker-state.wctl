@@ -1,0 +1,20 @@
+# The draft's resolved destination and model match the chip (driver state), on open
+# and after the owner turns T3 Code off. The picker flow itself is t3-code-picker.wctl.
+# devices: iphone ipad duo
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --fixture t3-code-picker --fixture t3-code-default-on --fixture several-computers
+wait --id composer-start-in-t3 --timeout 30
+assert --id new-chat-selection-note --gone
+assert --path newChat.destination --equals '"T3 Code"'
+assert --path newChat.chip --equals '"Sonnet fixture \u00b7 T3 Code"'
+activate
+wait --id composer-start-in-t3 --timeout 15
+assert --id new-chat-selection-note --gone
+assert --path newChat.destination --equals '"T3 Code"'
+tap --id composer-start-in-t3
+wait --id composer-start-in-t3 --gone --timeout 15
+assert --path newChat.destination --equals '"Cupola"'
+tap --id new-chat-attach
+tap --id new-chat-add-t3
+wait --id composer-start-in-t3 --timeout 15
+assert --id new-chat-selection-note --gone
+assert --path newChat.destination --equals '"T3 Code"'

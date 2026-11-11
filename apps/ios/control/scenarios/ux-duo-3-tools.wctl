@@ -1,0 +1,19 @@
+# devices: iphone ipad
+# UX-DUO-3: the Chats sidebar and the Simulators picker with the fixture's Studio offline (no retry rows). Offline fixtures; nothing is sent.
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-open --fixture several-computers --fixture offline-studio --fixture theme --arg cupola-light
+wait --id sidebar-settings --timeout 30
+shot ux-duo-3-phone-tools-chats-offline-light
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture companion-simulators --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --fixture simulator-startable --arg=-composerPills --arg terminal,computer,files,git --arg=-wonder.sidebar.hidden --arg NO --fixture offline-studio --fixture several-computers --fixture theme --arg cupola-light
+wait --id simulator-picker-list --timeout 30
+shot ux-duo-3-phone-tools-simulators-offline-light
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-open --fixture several-computers --fixture offline-studio --fixture theme --arg cupola-dark
+wait --id sidebar-settings --timeout 30
+shot ux-duo-3-phone-tools-chats-offline-dark
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture companion-simulators --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --fixture simulator-startable --arg=-composerPills --arg terminal,computer,files,git --arg=-wonder.sidebar.hidden --arg NO --fixture offline-studio --fixture several-computers --fixture theme --arg cupola-dark
+wait --id simulator-picker-list --timeout 30
+shot ux-duo-3-phone-tools-simulators-offline-dark
+

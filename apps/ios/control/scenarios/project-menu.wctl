@@ -1,0 +1,9 @@
+# nightly-ipad: a Project's long-press menu has no Outputs entry
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture no-project
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id project-row:scratch --timeout 20
+hold --id project-row:scratch
+wait --label "Edit Project" --timeout 10
+wait --label "Archived chats" --timeout 5
+shot project-menu

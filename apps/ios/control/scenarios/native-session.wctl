@@ -1,0 +1,18 @@
+# Native process work after a completed prompt; fixture only, no model work.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture current-step --fixture current-step-finished --fixture native-session
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --contains "Working" --timeout 15
+wait --id send-message --contains "Queue message" --timeout 10
+wait --contains "Stop reply" --gone --timeout 5
+shot native-session-working
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture current-step --fixture current-step-finished --fixture native-session --fixture native-session-idle
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --timeout 15
+wait --id send-message --contains "Send message" --timeout 10
+shot native-session-idle

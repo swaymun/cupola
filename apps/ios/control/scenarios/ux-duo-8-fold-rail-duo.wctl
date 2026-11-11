@@ -1,0 +1,284 @@
+# devices: duo
+# UX-DUO-8: the side rail and its Chats button survive repeated fold/unfold. Sixteen transitions with a chat open:
+# eight without the keyboard (one with the app sent Home and back between two postures), then eight with the software
+# keyboard up. Every step states the posture it just set (rail = vertical bar, folded or unfolded upright;
+# bar = the inner display turned landscape, a horizontal bar), so a stale bar axis fails rather than being inferred. After each:
+# open-sidebar is present, 44 pt (40 in the bar), inside the window, not under the keyboard, composer left of it
+# and above the keyboard, and the keyboard is still up (or still absent). A real tap on open-sidebar through the
+# rig then flips its label (Hide Chats <-> Show Chats; folded, the open sidebar covers the chat) and a second tap
+# flips it back, with the keyboard still where it was: hittable, not just in-frame. The keyboard run focuses the
+# composer after each transition (a fold or rotation drops the keyboard, measured) and then asserts it up.
+# A rotation sent in the same instant as a hinge change is dropped by the simulator, so each hinge change is
+# followed by a settle check (itself asserting the in-between posture) before the next orientation.
+orient portrait
+hinge 0
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture
+wait --id message-draft --timeout 30
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail,closed,no-keyboard --settle 10
+# transition 1: folded
+check-layout duo-rail --expect rail,no-keyboard --settle 8
+shot ux-duo-8-fold-plain-1-folded
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,toggled,covered,no-keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,no-keyboard --settle 6
+# transition 2: unfolded turned
+hinge 180
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail,no-keyboard --settle 8
+# the simulator drops a rotation sent within a few seconds of a hinge change
+pause 4
+orient landscape-right
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect bar,no-keyboard --settle 8
+shot ux-duo-8-fold-plain-2-turned --display primary-1
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect bar,toggled,no-keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect bar,no-keyboard --settle 6
+# transition 3: folded
+orient portrait
+check-layout duo-rail --expect rail,no-keyboard --settle 8
+hinge 0
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail,no-keyboard --settle 8
+check-layout duo-rail --expect rail,no-keyboard --settle 8
+shot ux-duo-8-fold-plain-3-folded
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,toggled,covered,no-keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,no-keyboard --settle 6
+# transition 4: unfolded upright
+hinge 180
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail,no-keyboard --settle 8
+check-layout duo-rail --expect rail,no-keyboard --settle 8
+shot ux-duo-8-fold-plain-4-upright --display primary-1
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,toggled,no-keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,no-keyboard --settle 6
+# transition 5: folded after Home
+# sent Home and back first: the scene returns in the posture it was left in
+button home
+activate
+hinge 0
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail,no-keyboard --settle 8
+check-layout duo-rail --expect rail,no-keyboard --settle 8
+shot ux-duo-8-fold-plain-5-folded
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,toggled,covered,no-keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,no-keyboard --settle 6
+# transition 6: unfolded turned
+hinge 180
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail,no-keyboard --settle 8
+# the simulator drops a rotation sent within a few seconds of a hinge change
+pause 4
+orient landscape-right
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect bar,no-keyboard --settle 8
+shot ux-duo-8-fold-plain-6-turned --display primary-1
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect bar,toggled,no-keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect bar,no-keyboard --settle 6
+# transition 7: unfolded upright again (turned back)
+orient portrait
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail,no-keyboard --settle 8
+shot ux-duo-8-fold-plain-7-upright --display primary-1
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,toggled,no-keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,no-keyboard --settle 6
+# transition 8: unfolded turned again
+# the simulator drops a rotation sent within a few seconds of a hinge change
+pause 4
+orient landscape-right
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect bar,no-keyboard --settle 8
+shot ux-duo-8-fold-plain-8-turned --display primary-1
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect bar,toggled,no-keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect bar,no-keyboard --settle 6
+# keyboard run: back to the folded start
+orient portrait
+hinge 0
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture no-hardware-keyboard --fixture composer-keyboard
+wait --id message-draft --timeout 30
+# the first software keyboard on a fresh simulator shows Apple's slide-to-type introduction; dismiss it
+tap --label Continue --optional --timeout 4
+wait --id message-draft --timeout 30
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail,closed,keyboard --settle 10
+# transition 1: folded
+check-layout duo-rail --expect rail --settle 8
+# the shell re-lays out on a fold or rotation and the keyboard goes with it (measured); a user taps the composer again
+tap --id message-draft --timeout 5
+check-layout duo-rail --expect rail,keyboard --settle 8
+shot ux-duo-8-fold-kb-1-folded
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,toggled,covered,keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,keyboard --settle 6
+# transition 2: unfolded turned
+hinge 180
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail --settle 8
+# the simulator drops a rotation sent within a few seconds of a hinge change
+pause 4
+orient landscape-right
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect bar --settle 8
+# the shell re-lays out on a fold or rotation and the keyboard goes with it (measured); a user taps the composer again
+tap --id message-draft --timeout 5
+check-layout duo-rail --expect bar,keyboard --settle 8
+shot ux-duo-8-fold-kb-2-turned --display primary-1
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect bar,toggled,keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect bar,keyboard --settle 6
+# transition 3: folded
+orient portrait
+check-layout duo-rail --expect rail --settle 8
+hinge 0
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail --settle 8
+check-layout duo-rail --expect rail --settle 8
+# the shell re-lays out on a fold or rotation and the keyboard goes with it (measured); a user taps the composer again
+tap --id message-draft --timeout 5
+check-layout duo-rail --expect rail,keyboard --settle 8
+shot ux-duo-8-fold-kb-3-folded
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,toggled,covered,keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,keyboard --settle 6
+# transition 4: unfolded upright
+hinge 180
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail --settle 8
+check-layout duo-rail --expect rail --settle 8
+# the shell re-lays out on a fold or rotation and the keyboard goes with it (measured); a user taps the composer again
+tap --id message-draft --timeout 5
+check-layout duo-rail --expect rail,keyboard --settle 8
+shot ux-duo-8-fold-kb-4-upright --display primary-1
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,toggled,keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,keyboard --settle 6
+# transition 5: folded after Home
+# sent Home and back first: the scene returns in the posture it was left in
+button home
+activate
+hinge 0
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail --settle 8
+check-layout duo-rail --expect rail --settle 8
+# the shell re-lays out on a fold or rotation and the keyboard goes with it (measured); a user taps the composer again
+tap --id message-draft --timeout 5
+check-layout duo-rail --expect rail,keyboard --settle 8
+shot ux-duo-8-fold-kb-5-folded
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,toggled,covered,keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,keyboard --settle 6
+# transition 6: unfolded turned
+hinge 180
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail --settle 8
+# the simulator drops a rotation sent within a few seconds of a hinge change
+pause 4
+orient landscape-right
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect bar --settle 8
+# the shell re-lays out on a fold or rotation and the keyboard goes with it (measured); a user taps the composer again
+tap --id message-draft --timeout 5
+check-layout duo-rail --expect bar,keyboard --settle 8
+shot ux-duo-8-fold-kb-6-turned --display primary-1
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect bar,toggled,keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect bar,keyboard --settle 6
+# transition 7: unfolded upright again (turned back)
+orient portrait
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail --settle 8
+# the shell re-lays out on a fold or rotation and the keyboard goes with it (measured); a user taps the composer again
+tap --id message-draft --timeout 5
+check-layout duo-rail --expect rail,keyboard --settle 8
+shot ux-duo-8-fold-kb-7-upright --display primary-1
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,toggled,keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect rail,keyboard --settle 6
+# transition 8: unfolded turned again
+# the simulator drops a rotation sent within a few seconds of a hinge change
+pause 4
+orient landscape-right
+wait --id message-draft --timeout 15
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect bar --settle 8
+# the shell re-lays out on a fold or rotation and the keyboard goes with it (measured); a user taps the composer again
+tap --id message-draft --timeout 5
+check-layout duo-rail --expect bar,keyboard --settle 8
+shot ux-duo-8-fold-kb-8-turned --display primary-1
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect bar,toggled,keyboard --settle 6
+tap --id open-sidebar --timeout 5
+wait --id open-sidebar --timeout 5
+check-layout duo-rail --expect bar,keyboard --settle 6
+orient portrait
+hinge 0

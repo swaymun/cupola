@@ -1,0 +1,74 @@
+# AXe checks native presentation here; HTMLArtifactWebViewTests and
+# control/capture-genui.py assert rendered WebKit content through XCTest.
+# Two real pages from a T3 Code thread, opened full screen: the Courtyard audit
+# (cards with screenshots, coloured cause/fix/proposal pills, an inline SVG
+# drawing, lists and tables) and a page of film stills with captions, in
+# Cupola Light and Cupola Dark. Offline: the page is a host test fixture
+# (apps/ios/SnapshotTests/Fixtures) published by the preview turn; nothing is sent.
+launch --fixture read-preview --fixture send-preview --fixture html-render-preview --arg=-html-render-page --arg=t3-courtyard-audit --arg=-diagnostics-theme --arg=cupola-light --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id html-render-page --timeout 30
+reveal down --id html-render-expand --in conversation-scroll
+tap --id html-render-expand
+wait --id expanded-message --timeout 10
+wait --id expanded-message --timeout 15
+shot courtyard-light-1
+swipe up --in expanded-message
+shot courtyard-light-2
+swipe up --in expanded-message
+shot courtyard-light-3
+swipe up --in expanded-message
+shot courtyard-light-4
+swipe up --in expanded-message
+shot courtyard-light-5
+# iOS 27.1 collapses the native navigation controls while scrolling down.
+# Scroll back to reveal the sheet's own dismissal before tapping it.
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10
+launch --fixture read-preview --fixture send-preview --fixture html-render-preview --arg=-html-render-page --arg=t3-courtyard-audit --arg=-diagnostics-theme --arg=cupola-dark --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id html-render-page --timeout 30
+reveal down --id html-render-expand --in conversation-scroll
+tap --id html-render-expand
+wait --id expanded-message --timeout 10
+wait --id expanded-message --timeout 15
+shot courtyard-dark-1
+swipe up --in expanded-message
+shot courtyard-dark-2
+swipe up --in expanded-message
+shot courtyard-dark-3
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10
+launch --fixture read-preview --fixture send-preview --fixture html-render-preview --arg=-html-render-page --arg=t3-film-stills --arg=-diagnostics-theme --arg=cupola-light --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id html-render-page --timeout 30
+reveal down --id html-render-expand --in conversation-scroll
+tap --id html-render-expand
+wait --id expanded-message --timeout 10
+wait --id expanded-message --timeout 15
+shot stills-light-1
+swipe up --in expanded-message
+shot stills-light-2
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10
+launch --fixture read-preview --fixture send-preview --fixture html-render-preview --arg=-html-render-page --arg=t3-film-stills --arg=-diagnostics-theme --arg=cupola-dark --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id html-render-page --timeout 30
+reveal down --id html-render-expand --in conversation-scroll
+tap --id html-render-expand
+wait --id expanded-message --timeout 10
+wait --id expanded-message --timeout 15
+shot stills-dark-1
+swipe up --in expanded-message
+shot stills-dark-2
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10
+# The Thailand timeline is built by its inline script in the visible offline
+# WebKit view; no model work, network or navigation is allowed.
+launch --fixture read-preview --fixture send-preview --fixture html-render-preview --arg=-html-render-page --arg=t3-thailand-trip --arg=-diagnostics-theme --arg=cupola-light --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id html-render-page --timeout 30
+reveal down --id html-render-expand --in conversation-scroll
+tap --id html-render-expand
+wait --id expanded-message --timeout 10
+wait --id expanded-message --timeout 15
+shot trip-light-1
+# The note under the budget bar starts with "+", which stays text, not a bullet.
+shot trip-light-end
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10

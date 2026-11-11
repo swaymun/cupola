@@ -1,0 +1,40 @@
+# devices: iphone ipad
+# Changed files names every file: its relative path, a language badge and +/- counts,
+# and the file's diff opens under a header row that names it again. The fixture's third
+# change arrives without a `path` field (only its patch header names the file), and the
+# Files pane shows the computer's home folder as ~ with its icons inset 16 pt.
+# visual-review: three named rows (one badge each), a diff header with path and counts, the ~ location row
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture theme --arg cupola-light
+reveal down --id "reply-changes:turn"
+tap --id "reply-changes:turn"
+wait --id reply-changes
+wait --id "reply-file:Docs/Release notes.md"
+wait --label "Docs/Release notes.md, Markdown, 4 added lines, 2 removed lines"
+wait --label "Sources/ChatView.swift, Swift, 2 added lines, 1 removed lines"
+wait --label "comic/index.html, HTML, 3 added lines, 0 removed lines"
+shot changed-files-light
+tap --id "reply-file:Docs/Release notes.md"
+wait --id diff-document
+wait --id reply-diff-header
+wait --contains "Ready for review"
+shot changed-files-diff-light
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture theme --arg cupola-dark
+reveal down --id "reply-changes:turn"
+tap --id "reply-changes:turn"
+wait --id reply-changes
+wait --id "reply-file:Docs/Release notes.md"
+shot changed-files-dark
+tap --id "reply-file:Docs/Release notes.md"
+wait --id reply-diff-header
+shot changed-files-diff-dark
+# Files: icons inset 16 pt from the leading edge, the folder shown as ~.
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-light
+tap --id conversation-files-pill
+wait --id workspace-file-list --timeout 20
+wait --id workspace-root-picker --contains "~/Projects/Atlas"
+shot files-home-light
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-dark
+tap --id conversation-files-pill
+wait --id workspace-file-list --timeout 20
+wait --id workspace-root-picker --contains "~/Projects/Atlas"
+shot files-home-dark

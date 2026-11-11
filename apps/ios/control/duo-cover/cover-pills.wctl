@@ -1,0 +1,18 @@
+# Folded Duo: the PR icon and open count live in the vertical system bar.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-pull-requests --arg=-diagnostics-pull-requests-attention
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --timeout 20
+wait --id composer-pill-row --gone --timeout 5
+shot cover-pills-bar
+tap --id conversation-title-menu
+wait --contains "Pull requests" --timeout 5
+tap --contains "Pull requests"
+wait --id pull-request-row:128 --timeout 10
+wait --id changes-scope --gone --timeout 2
+wait --label "Sheet Grabber" --gone --timeout 2
+shot cover-pills-pull-requests
+swipe down --from-sheet
+wait --id pull-request-row:128 --gone --timeout 10

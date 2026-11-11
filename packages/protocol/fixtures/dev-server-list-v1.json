@@ -1,0 +1,6 @@
+{
+  "servers": [
+    { "port": 3000, "processName": "node", "title": "Recipes · Next.js" },
+    { "port": 5173, "processName": "node", "title": null }
+  ]
+}

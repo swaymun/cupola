@@ -1,0 +1,44 @@
+# Visuals an agent showed with Cupola's own wonder_show_visual: the first
+# draft, which the agent replaced, reads "Updated below"; the page that
+# replaced it retains its HTML layout in the offline browser; structured
+# wonder-ui JSON still uses native stats, chart, callout and checklist.
+# Expand opens a visual whole. Cupola Light, then Cupola Dark.
+# Offline preview fixture; nothing is sent.
+launch --fixture read-preview --fixture send-preview --fixture visual-tool-preview --arg=-diagnostics-theme --arg=cupola-light --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id html-render-page --timeout 30
+wait --id html-visual-page --timeout 15
+reveal down --id html-render-updated --in conversation-scroll
+wait --contains "Updated below"
+shot visual-tool-light-top
+# The replaced draft opens from its notice in Files.
+tap --id html-render-updated
+wait --id html-file-visual --timeout 15
+shot visual-tool-light-previous-version
+tap --id conversation-files-back
+tap --id conversation-files-done
+wait --id html-render-updated --timeout 10
+reveal up --contains "Riverside or Hilltop" --in conversation-scroll
+shot visual-tool-light-page
+reveal up --contains "Winter hours" --in conversation-scroll
+wait --contains "At a glance"
+shot visual-tool-light-components
+reveal up --contains "Take the riverside walk" --in conversation-scroll
+shot visual-tool-light-end
+reveal down --contains "Riverside or Hilltop" --in conversation-scroll
+# html-render-expand matches both cards and a tap takes the first one; with that card's title at the
+# top its Expand sits under the status bar, where a tap only scrolls to the top. The notice just
+# above the card brings the whole card header into view.
+reveal down --id html-render-updated --in conversation-scroll
+tap --id html-render-expand
+wait --id expanded-message --timeout 10
+shot visual-tool-light-expanded
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10
+launch --fixture read-preview --fixture send-preview --fixture visual-tool-preview --arg=-diagnostics-theme --arg=cupola-dark --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id html-render-page --timeout 30
+reveal down --id html-render-updated --in conversation-scroll
+shot visual-tool-dark-top
+reveal up --contains "Riverside or Hilltop" --in conversation-scroll
+shot visual-tool-dark-page
+reveal up --contains "Winter hours" --in conversation-scroll
+shot visual-tool-dark-components

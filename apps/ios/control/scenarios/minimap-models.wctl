@@ -1,0 +1,19 @@
+# devices: ipad duo
+# nightly-ipad: uniform turn bars share drawing and hit geometry;
+# the same varied-length 24-turn chat must jump and restore without provider work.
+# On Duo, set hinge 180 and orient portrait before running. The tenth-band
+# controls exercise the production coordinate lookup and scroll action through
+# the Diagnostics driver; real touch delivery is owned by the iPad UI test.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-comparison --fixture minimap-visible --fixture minimap-held --fixture open-project-thread --fixture durable-store --fixture durable-store-reset --arg=-wonder.sidebar.hidden --arg=YES
+wait --label "Tap one tenth of the mini-map" --timeout 30
+tap --label "Tap one tenth of the mini-map"
+assert --path timeline.0.id --equals '"user-minimap-user-3"' --timeout 10
+shot minimap-uniform-jump
+driver off
+button home
+terminate
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-comparison --fixture minimap-visible --fixture minimap-held --fixture open-project-thread --fixture durable-store --arg=-wonder.sidebar.hidden --arg=YES
+assert --path timeline.0.id --equals '"user-minimap-user-3"' --timeout 30
+shot minimap-uniform-restored

@@ -1,0 +1,4 @@
+# Used only by the paired HTTP/WebSocket acceptance runner, never by the app.
+cryptography==46.0.3
+jsonschema==4.26.0
+websocket-client==1.9.2

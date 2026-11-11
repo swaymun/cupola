@@ -1,0 +1,30 @@
+# devices: iphone ipad
+# A model hidden on its provider page leaves New chat's model list and the
+# composer's, and shows again when switched back on. The fixture stands in for
+# the computer; nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture default-models --fixture fresh-agent-defaults
+wait --id project-agent-picker --timeout 30
+tap --id project-agent-picker
+wait --id new-chat-model:claude-fixture --timeout 10
+wait --id new-chat-model:claude-fixture-small --timeout 10
+shot hidden-models-before
+swipe down --from sheet-top
+wait --id new-chat-model:claude-fixture --gone --timeout 10
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-default-models --timeout 10
+tap --id settings-default-models
+wait --id provider-default-model:claude --timeout 15
+tap --id provider-default-model:claude
+wait --id model-shown:claude-fixture-small --contains "1" --timeout 15
+hold --id model-shown:claude-fixture-small --x-fraction 0.87 --seconds 0.15
+wait --id model-shown:claude-fixture-small --contains "0" --timeout 10
+back
+back
+back
+wait --id project-agent-picker --timeout 15
+tap --id project-agent-picker
+wait --id new-chat-model:claude-fixture --timeout 10
+wait --id new-chat-model:claude-fixture-small --gone --timeout 5
+shot hidden-models-new-chat

@@ -1,0 +1,7 @@
+# nightly-ipad: the computer's own "No project" Project is named so and drawn with a dashed folder
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture no-project
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id project-row:scratch --timeout 20
+wait --label "No project" --timeout 5
+shot no-project-row

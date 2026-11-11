@@ -1,0 +1,19 @@
+{
+  "hostName": "Studio",
+  "apiVersion": "v1",
+  "hostEpoch": "contract-epoch",
+  "hostInstallationId": "contract-installation",
+  "state": "ready",
+  "codexTransport": "stdio-jsonl",
+  "startedAt": "2026-10-20T10:00:00Z",
+  "publicOrigin": "https://studio.example.ts.net",
+  "platform": "macos",
+  "execution": { "ready": true, "detail": "Ready", "reason": "ready" },
+  "features": ["projects-v1"],
+  "routes": [
+    { "kind": "home", "origin": "https://192.168.1.20:3778" },
+    { "kind": "tailscale", "origin": "https://studio.example.ts.net" },
+    { "kind": "relay", "origin": "https://studio.relay.example" }
+  ],
+  "hostKeyPin": "u3Hc0Hc8QyUH3fK3xT0v6wq6Ue9xV1x2h3Q4m5N6o7A"
+}

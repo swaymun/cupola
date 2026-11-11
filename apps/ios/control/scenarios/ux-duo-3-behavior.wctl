@@ -1,0 +1,46 @@
+# devices: iphone
+# UX-DUO-3 behavior: one Home network row with an In use badge, long-press Copy on a route, masked Usage email
+# that reveals on tap and masks again after leaving, and the Cupola account row that opens a page with Sign out.
+# Synthetic routes, accounts and usage only; nothing is sent. Record with `run --record`.
+launch --fixture ux6-settings-fixture --fixture ux6-routes --fixture ux6-routes-duplicate --fixture ux6-routes-in-use --fixture theme --arg cupola-light
+wait --id connection-routes --timeout 30
+wait --id connection-in-use:home --timeout 10
+# A second home address is saved (the fixture), yet the page keeps one Home network row.
+shot ux-duo-3-behavior-routes-in-use
+clipboard --clear
+hold --id connection-reveal:home --seconds 1.2
+wait --label Copy --timeout 5
+shot ux-duo-3-behavior-routes-copy-menu
+tap --label Copy
+clipboard --contains 192.168.50.20 --timeout 5
+wait --id connection-reveal:home --contains Hidden --timeout 5
+shot ux-duo-3-behavior-routes-copied-still-hidden
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-live-reset --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-section --contains "o•••@example.org" --timeout 15
+shot ux-duo-3-behavior-usage-masked
+tap --id codex-usage-section
+wait --id codex-usage-section --contains "owner@example.org" --timeout 5
+shot ux-duo-3-behavior-usage-revealed
+back
+sidebar open
+wait --id sidebar-usage --timeout 15
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-section --contains "•••@example.org" --timeout 10
+shot ux-duo-3-behavior-usage-masked-again
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture settings-open --fixture account-fixture --fixture account-signed-in --fixture theme --arg cupola-light
+wait --id account-provider --timeout 30
+reveal down --id account-provider
+wait --id account-provider --contains "Signed in" --timeout 10
+shot ux-duo-3-behavior-account-row
+tap --id account-provider
+wait --id account-page --timeout 10
+wait --id account-sign-out --timeout 10
+shot ux-duo-3-behavior-account-page

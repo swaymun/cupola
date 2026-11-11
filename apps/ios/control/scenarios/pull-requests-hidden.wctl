@@ -1,0 +1,27 @@
+# With the GitHub CLI signed out on the Mac, and no repository or reply edits in
+# the thread, nothing applies: no Git pill (whose place the pull requests count
+# takes once the Mac lists any), while the composer's other pills stay. The pill
+# is judged only after the Mac has answered the pull request read, and stays
+# away for a while after: absent before that answer proves nothing.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-pull-requests --fixture project-pull-requests-signed-out
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-files-pill --timeout 15
+driver on
+assert --path "fixtureServed.GET /api/v1/project-conversations/fixture-parent-conversation/pull-requests" --equals true --timeout 15
+driver off
+shot code-changes-hidden
+# The chat menu still opens Pull requests with the computer's reason and Try
+# again, so "signed out" never reads as "no pull requests" (B-297).
+tap --id conversation-title-menu
+wait --contains "Pull requests" --timeout 5
+tap --contains "Pull requests"
+wait --id pull-requests-unavailable --contains "Sign in with the GitHub CLI" --timeout 10
+wait --id pull-requests-retry --timeout 5
+shot pull-requests-signed-out-reason
+swipe down --from-sheet
+wait --id pull-requests-unavailable --gone --timeout 5

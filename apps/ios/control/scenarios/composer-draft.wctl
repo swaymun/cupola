@@ -1,0 +1,60 @@
+# devices: iphone
+# Owned offline A/B chats, reset only at the start. Exact composer state proves
+# each draft survives navigation, foreground recovery and a process relaunch.
+# Native typing exercises the editor; no Send action or live model work.
+driver on
+launch --fixture chat-layout --fixture project-actions --fixture durable-store --fixture durable-store-reset --fixture open-project-thread
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+assert --path composer.text --equals '""'
+driver off
+wait --id message-draft --timeout 30
+tap --id message-draft
+type "Hello from wonderctl"
+wait --id message-draft --contains "Hello from wonderctl"
+wait --id send-message
+shot composer-draft-before-navigation
+driver on
+open-thread fixture-fork-conversation --host diagnostic-host
+assert --path selection.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path composer.text --equals '""'
+driver off
+wait --id message-draft --timeout 30
+tap --id message-draft
+type "Another unsent draft"
+driver on
+assert --path composer.text --equals '"Another unsent draft"'
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+assert --path composer.text --equals '"Hello from wonderctl"'
+driver off
+shot composer-draft-after-navigation
+tap --id message-draft
+keys e3:down,04,e3:up
+type "Hello from wonderctl after navigation"
+button home
+activate
+wait --id message-draft --contains "Hello from wonderctl after navigation" --timeout 30
+driver on
+assert --path applicationState --equals '"active"'
+assert --path composer.text --equals '"Hello from wonderctl after navigation"'
+driver off
+shot composer-draft-after-background
+tap --id message-draft
+keys e3:down,04,e3:up
+type "Hello from wonderctl after navigation before relaunch"
+button home
+terminate
+driver on
+launch --fixture chat-layout --fixture project-actions --fixture durable-store
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+assert --path composer.text --equals '"Hello from wonderctl after navigation before relaunch"' --timeout 20
+driver off
+wait --id message-draft --contains "Hello from wonderctl after navigation before relaunch" --timeout 30
+shot composer-draft-after-relaunch
+driver on
+open-thread fixture-fork-conversation --host diagnostic-host
+assert --path selection.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path composer.text --equals '"Another unsent draft"' --timeout 20
+driver off
+wait --id message-draft --contains "Another unsent draft" --timeout 30
+shot composer-draft-other-chat-after-relaunch

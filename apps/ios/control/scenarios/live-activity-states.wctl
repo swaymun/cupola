@@ -1,0 +1,23 @@
+# The push service merges every computer's chats into one state: counts of
+# working chats and those needing input. The shared presentation
+# omits zero parts; compact/minimal Island count what the phase icon means
+# (working, or waiting on you) and show the icon only once finished. This probe
+# reads ActivityKit's own content, not a simulated widget. APNs pushes are
+# covered by services/push/test/activity.test.ts and crates/wonderd/src/live_activity_tests.rs.
+launch --fixture live-activity-probe --fixture live-activity-fixture --arg running --arg 1
+wait --id live-activity-status --label "Live Activity: running 1 (active): 1 agent working; compact 1, rows: Fix login crash is running" --timeout 20
+launch --fixture live-activity-probe --fixture live-activity-fixture --arg needsApproval --arg 3
+wait --id live-activity-status --label "Live Activity: needsApproval 3 (active): 2 agents working · 1 needs input; compact 1, rows: Fix login crash is needsApproval, Refactor sync engine is running, Write release notes is running" --timeout 20
+launch --fixture live-activity-probe --fixture live-activity-fixture --arg needsInput --arg 1
+wait --id live-activity-status --label "Live Activity: needsInput 1 (active): 1 needs input; compact 1, rows: Fix login crash is needsInput" --timeout 20
+launch --fixture live-activity-probe --fixture live-activity-fixture --arg running --arg 1 --arg stale
+wait --id live-activity-status --label "Live Activity: running 1 (stale): Open Cupola for the latest; compact –" --timeout 20
+launch --fixture live-activity-probe --fixture live-activity-fixture --arg done --arg 0
+wait --id live-activity-status --label "Live Activity: done 0 (active): Agent work completed; compact icon only" --timeout 20
+launch --fixture live-activity-probe --fixture live-activity-fixture --arg stopped --arg 0
+wait --id live-activity-status --label "Live Activity: stopped 0 (active): Stopped; compact icon only" --timeout 20
+launch --fixture live-activity-probe --fixture live-activity-fixture --arg failed --arg 0
+wait --id live-activity-status --label "Live Activity: failed 0 (active): Agent work failed; compact icon only" --timeout 20
+# One activity lists every chat: the first four rows, then "+N more".
+launch --fixture live-activity-probe --fixture live-activity-fixture --arg running --arg 6
+wait --id live-activity-status --label "Live Activity: running 6 (active): 6 agents working; compact 6, rows: Fix login crash is running, Refactor sync engine is running, Write release notes is running, Review pull request 214 is running, +2 more" --timeout 20

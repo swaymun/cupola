@@ -1,0 +1,28 @@
+# The Mac refuses to fork (409): the plain-language notice shows and the thread
+# stays open. A thread that has not started offers no Fork at all.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-fork-conflict --fixture project-fork-held
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Reply 13. Continuing the project" --timeout 20
+tap --id conversation-title-menu
+wait --id fork-conversation --timeout 10
+tap --id fork-conversation
+wait --id fork-progress --timeout 5
+signal fork
+wait --contains "This chat is busy or hasn" --timeout 10
+shot fork-conflict-notice
+signal fork-notice
+wait --id chat-notice --gone --timeout 5
+wait --contains "Reply 13. Continuing the project" --timeout 10
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-composer-model --timeout 15
+tap --id conversation-title-menu
+wait --id copy-conversation-markdown --timeout 10
+wait --id fork-conversation --gone --timeout 3
+shot fork-hidden-unstarted

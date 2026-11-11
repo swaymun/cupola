@@ -1,0 +1,148 @@
+# Offline control-row contract; no paired host input or model calls.
+# The shared package tests own exact emitted keys; helper tests own native encoding.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-clipboard-off --fixture no-hardware-keyboard
+wait --id computer-session-take-control --timeout 30
+tap --id computer-session-more
+wait --id computer-session-share-clipboard
+shot computer-clipboard-menu-off
+tap --id computer-session-share-clipboard
+wait --id computer-session-clipboard-message --contains "unavailable in this preview"
+# The saved switch survives a view relaunch; turning it off must work as well.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture no-hardware-keyboard
+wait --id computer-session-take-control --timeout 30
+tap --id computer-session-more
+wait --id computer-session-share-clipboard
+shot computer-clipboard-menu-persisted
+tap --id computer-session-share-clipboard
+wait --id computer-session-clipboard-message --gone --timeout 10
+tap --id computer-session-take-control
+wait --id computer-session-control-active --timeout 15
+# The shortcut row is in the controls row: present without the keyboard, and it stays when the keyboard rises and falls.
+wait --id computer-session-shortcuts-row --timeout 10
+shot computer-platform-mac-rows-no-keyboard
+tap --id computer-session-keyboard
+wait --id computer-session-shortcuts-row --timeout 10
+shot computer-platform-mac-rows-keyboard
+wait --id computer-session-shortcut-all-windows
+wait --id computer-session-shortcut-app-windows
+wait --id computer-session-shortcut-next-window
+wait --id computer-session-shortcut-applications
+wait --id computer-session-shortcut-app-switcher --contains "Command Tab"
+wait --id computer-session-input-limitation --gone
+shot computer-platform-mac-control
+tap --id computer-session-shortcut-app-switcher
+wait --id computer-session-shortcut-app-switcher --contains "Open, Command held"
+swipe left --in computer-session-shortcuts-row
+tap --id computer-session-key-tab
+wait --id computer-session-shortcut-app-switcher --contains "Open, Command held"
+shot computer-platform-mac-switcher
+swipe right --in computer-session-shortcuts-row
+tap --id computer-session-key-escape
+wait --id computer-session-shortcut-app-switcher --contains Closed
+tap --id computer-session-shortcut-app-switcher
+tap --id computer-session-shortcut-app-switcher
+wait --id computer-session-shortcut-app-switcher --contains Closed
+tap --id computer-session-done
+wait --id computer-session-take-control --timeout 15
+
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-windows-host --fixture no-hardware-keyboard
+wait --id computer-session-take-control --timeout 30
+tap --id computer-session-take-control
+wait --id computer-session-control-active --timeout 15
+tap --id computer-session-keyboard
+wait --id computer-session-shortcuts-row --timeout 10
+wait --id computer-session-shortcut-win --contains Start
+wait --id computer-session-shortcut-ctrl
+wait --id computer-session-shortcut-alt
+wait --id computer-session-shortcut-task-view
+swipe left --in computer-session-shortcuts-row
+wait --id computer-session-shortcut-show-desktop
+wait --id computer-session-shortcut-right-click
+swipe right --in computer-session-shortcuts-row
+wait --id computer-session-shortcut-all-windows --gone
+wait --id computer-session-input-limitation --contains Ctrl-Alt-Del
+wait --id computer-session-input-limitation --contains UAC
+shot computer-platform-windows-control
+tap --id computer-session-shortcut-app-switcher
+wait --id computer-session-shortcut-app-switcher --contains "Open, Alt held"
+swipe left --in computer-session-shortcuts-row
+tap --id computer-session-key-tab
+wait --id computer-session-shortcut-app-switcher --contains "Open, Alt held"
+shot computer-platform-windows-switcher
+swipe right --in computer-session-shortcuts-row
+tap --id computer-session-key-escape
+wait --id computer-session-shortcut-app-switcher --contains Closed
+tap --id computer-session-shortcut-app-switcher
+tap --id computer-session-shortcut-app-switcher
+wait --id computer-session-shortcut-app-switcher --contains Closed
+tap --id computer-session-shortcut-win
+tap --id computer-session-shortcut-task-view
+swipe left --in computer-session-shortcuts-row
+tap --id computer-session-shortcut-show-desktop
+tap --id computer-session-shortcut-right-click
+tap --id computer-session-shortcut-ctrl
+wait --id computer-session-shortcut-ctrl --contains "Selected for next key"
+shot computer-platform-windows-modifier
+type c
+wait --id computer-session-shortcut-ctrl --contains "Selected for next key" --gone
+wait --id computer-session-shortcut-ctrl
+tap --id computer-session-shortcut-ctrl
+wait --id computer-session-shortcut-ctrl --contains "Selected for next key"
+tap --id computer-session-key-tab
+wait --id computer-session-shortcut-ctrl --contains "Selected for next key" --gone
+wait --id computer-session-shortcut-ctrl
+tap --id computer-session-shortcut-ctrl
+wait --id computer-session-shortcut-ctrl --contains "Selected for next key"
+swipe right --in computer-session-shortcuts-row
+tap --id computer-session-clipboard
+tap --id computer-session-copy-from-mac
+wait --id computer-session-shortcut-ctrl --contains "Selected for next key" --gone
+wait --id computer-session-shortcut-ctrl
+tap --id computer-session-shortcut-alt
+wait --id computer-session-shortcut-alt --contains "Selected for next key"
+tap --id computer-session-done
+wait --id computer-session-take-control --timeout 15
+tap --id computer-session-take-control
+wait --id computer-session-control-active --timeout 15
+tap --id computer-session-keyboard
+wait --id computer-session-shortcuts-row --timeout 10
+wait --id computer-session-shortcut-alt --contains "Selected for next key" --gone
+wait --id computer-session-shortcut-alt
+tap --id computer-session-done
+wait --id computer-session-take-control --timeout 15
+
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture linux-host --fixture no-hardware-keyboard
+wait --id computer-session-take-control --timeout 30
+tap --id computer-session-take-control
+wait --id computer-session-control-active --timeout 15
+tap --id computer-session-keyboard
+wait --id computer-session-shortcuts-row --timeout 10
+wait --id computer-session-shortcut-super
+wait --id computer-session-shortcut-ctrl
+wait --id computer-session-shortcut-alt
+wait --id computer-session-shortcut-activities
+wait --id computer-session-shortcut-all-windows --gone
+wait --id computer-session-input-limitation --gone
+shot computer-platform-linux-control
+tap --id computer-session-shortcut-app-switcher
+wait --id computer-session-shortcut-app-switcher --contains "Open, Alt held"
+swipe left --in computer-session-shortcuts-row
+tap --id computer-session-key-tab
+wait --id computer-session-shortcut-app-switcher --contains "Open, Alt held"
+shot computer-platform-linux-switcher
+swipe right --in computer-session-shortcuts-row
+tap --id computer-session-key-escape
+wait --id computer-session-shortcut-app-switcher --contains Closed
+tap --id computer-session-shortcut-activities
+swipe left --in computer-session-shortcuts-row
+tap --id computer-session-shortcut-right-click
+swipe right --in computer-session-shortcuts-row
+tap --id computer-session-shortcut-super
+wait --id computer-session-shortcut-super --contains "Selected for next key"
+swipe left --in computer-session-shortcuts-row
+tap --id computer-session-key-tab
+swipe right --in computer-session-shortcuts-row
+wait --id computer-session-shortcut-super --contains "Selected for next key" --gone
+wait --id computer-session-shortcut-super
+tap --id computer-session-done
+wait --id computer-session-take-control --timeout 15

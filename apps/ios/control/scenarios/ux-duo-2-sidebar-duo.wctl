@@ -1,0 +1,84 @@
+# devices: duo
+# UX-DUO-2 on the Duo, folded then unfolded (wide = vertical hinge, tall = horizontal hinge), light then dark.
+# Duo taps are gated (#387), so the selection toolbar, the bell list and Manage Projects open by launch flag; swipe-delete and the
+# menu are checked on iPhone/iPad in ux-duo-2-sidebar.wctl. Owned fixtures, no sends.
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --fixture sidebar-open --arg=-diagnostics-sidebar-selecting
+wait --id threads-select-all --timeout 30
+order --axis x --ids threads-selection-cancel,threads-selection-count,threads-select-all
+shot ux-duo-2-folded-cupola-light-selecting
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture theme --arg cupola-light --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+wait --id sidebar-needs-you --gone --timeout 5
+shot ux-duo-2-folded-cupola-light-bell-empty
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture theme --arg cupola-light --fixture sidebar-open --arg=-diagnostics-needs-attention-open
+wait --id needs-you-list --timeout 30
+order --axis y --ids needs-you-list,sidebar-search
+shot ux-duo-2-folded-cupola-light-bell-list
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --arg=-diagnostics-manage-projects-open
+wait --id project-include:diagnostic-host:read-project --timeout 30
+shot ux-duo-2-folded-cupola-light-manage
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --fixture sidebar-open --arg=-diagnostics-sidebar-selecting
+wait --id threads-select-all --timeout 30
+order --axis x --ids threads-selection-cancel,threads-selection-count,threads-select-all
+shot ux-duo-2-folded-cupola-dark-selecting
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture theme --arg cupola-dark --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+wait --id sidebar-needs-you --gone --timeout 5
+shot ux-duo-2-folded-cupola-dark-bell-empty
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture theme --arg cupola-dark --fixture sidebar-open --arg=-diagnostics-needs-attention-open
+wait --id needs-you-list --timeout 30
+order --axis y --ids needs-you-list,sidebar-search
+shot ux-duo-2-folded-cupola-dark-bell-list
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --arg=-diagnostics-manage-projects-open
+wait --id project-include:diagnostic-host:read-project --timeout 30
+shot ux-duo-2-folded-cupola-dark-manage
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --fixture sidebar-open --arg=-diagnostics-sidebar-selecting
+wait --id threads-select-all --timeout 30
+order --axis x --ids threads-selection-cancel,threads-selection-count,threads-select-all
+shot ux-duo-2-unfolded-wide-cupola-light-selecting --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture theme --arg cupola-light --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+wait --id sidebar-needs-you --gone --timeout 5
+shot ux-duo-2-unfolded-wide-cupola-light-bell-empty --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture theme --arg cupola-light --fixture sidebar-open --arg=-diagnostics-needs-attention-open
+wait --id needs-you-list --timeout 30
+order --axis y --ids needs-you-list,sidebar-search
+shot ux-duo-2-unfolded-wide-cupola-light-bell-list --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --arg=-diagnostics-manage-projects-open
+wait --id project-include:diagnostic-host:read-project --timeout 30
+shot ux-duo-2-unfolded-wide-cupola-light-manage --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --fixture sidebar-open --arg=-diagnostics-sidebar-selecting
+wait --id threads-select-all --timeout 30
+order --axis x --ids threads-selection-cancel,threads-selection-count,threads-select-all
+shot ux-duo-2-unfolded-wide-cupola-dark-selecting --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture theme --arg cupola-dark --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+wait --id sidebar-needs-you --gone --timeout 5
+shot ux-duo-2-unfolded-wide-cupola-dark-bell-empty --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture theme --arg cupola-dark --fixture sidebar-open --arg=-diagnostics-needs-attention-open
+wait --id needs-you-list --timeout 30
+order --axis y --ids needs-you-list,sidebar-search
+shot ux-duo-2-unfolded-wide-cupola-dark-bell-list --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-dark --arg=-diagnostics-manage-projects-open
+wait --id project-include:diagnostic-host:read-project --timeout 30
+shot ux-duo-2-unfolded-wide-cupola-dark-manage --display primary-1
+orient landscape-left
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --fixture sidebar-open --arg=-diagnostics-sidebar-selecting
+wait --id threads-select-all --timeout 30
+order --axis x --ids threads-selection-cancel,threads-selection-count,threads-select-all
+shot ux-duo-2-unfolded-tall-cupola-light-selecting --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture theme --arg cupola-light --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+wait --id sidebar-needs-you --gone --timeout 5
+shot ux-duo-2-unfolded-tall-cupola-light-bell-empty --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture theme --arg cupola-light --fixture sidebar-open --arg=-diagnostics-needs-attention-open
+wait --id needs-you-list --timeout 30
+order --axis y --ids needs-you-list,sidebar-search
+shot ux-duo-2-unfolded-tall-cupola-light-bell-list --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light --arg=-diagnostics-manage-projects-open
+wait --id project-include:diagnostic-host:read-project --timeout 30
+shot ux-duo-2-unfolded-tall-cupola-light-manage --display primary-1

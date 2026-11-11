@@ -1,0 +1,91 @@
+# nightly-ipad: a request replaces the conversation in the detail column and returns to it
+# A permission request arriving in an open conversation opens by itself in front of the
+# conversation (REQUESTS-OPEN-DIRECT), as Files does; its pill above the composer closes
+# it and returns to the conversation, and reopens it. Questions behave the same way.
+# Choices are one-tap rows without radios; Decline and stop reply is a separate red button
+# below them. The preview never sends, so its choices are dimmed: judge contrast on
+# opencode-approval-choices and question-dock-open's options.
+launch --fixture read-preview --fixture send-preview --fixture attention-arrives-preview --fixture phone-approval-preview --arg command --arg=-diagnostics-attention-arrival-held
+wait --id message-draft --timeout 20
+wait --id question-dock-open --gone
+wait --id approval-decline-fixture-command --gone
+signal attention-arrive
+wait --id approval-decline-fixture-command --timeout 10
+wait --contains "Permission"
+wait --id question-dock-open --timeout 5
+wait --id message-draft
+shot approval-opens-directly
+tap --id question-dock-open
+wait --id approval-decline-fixture-command --gone --timeout 5
+shot approval-dock-closed
+tap --id question-dock-open
+wait --id approval-decline-fixture-command --timeout 5
+launch --fixture read-preview --fixture send-preview --fixture question-preview
+wait --id question-dock-open --timeout 20
+wait --contains "Which day works best?" --timeout 5
+shot question-dock-open
+
+# A tool approval says what it will do in words, one line per argument, with
+# the exact input under Full details instead of raw JSON.
+launch --fixture read-preview --fixture send-preview --fixture phone-approval-preview --arg tool
+wait --id question-dock-open --timeout 20
+wait --id approval-title-fixture-tool --timeout 5
+wait --contains "Write a file"
+wait --contains "File: /Users/example/Movies/notes.md"
+wait --contains "Content: # Upscale notes (3 lines)"
+wait --id approval-input-fixture-tool
+shot approval-tool-plain
+# A reply sent but not confirmed names the choice it made and offers no other.
+# Fixture flags launch before --arg values, so the saved-reply flag goes ahead
+# of phone-approval-preview, whose next argument names the request.
+launch --fixture read-preview --fixture send-preview --fixture phone-approval-saved-preview --fixture phone-approval-preview --arg command
+wait --id question-dock-open --timeout 20
+wait --id approval-saved-fixture-command --timeout 5
+wait --contains "Allow once"
+wait --id approval-decline-fixture-command --gone
+shot approval-saved-choice
+
+# OpenCode owns remembered rules. The synthetic endpoint only accepts the exact
+# expected option ID/kind, so disappearance proves resolution, not just a tap.
+# Hold the compact footer on every device so remembered choices are reached
+# through the same native More choices menu as on the narrow Duo.
+launch --fixture subagent-fixture --fixture opencode-fixture --fixture opencode-approval --fixture theme --arg nord --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id question-dock-open --timeout 20
+wait --id approval-accept-fixture-opencode-approval --timeout 10
+wait --id approval-more-fixture-opencode-approval
+tap --id approval-more-fixture-opencode-approval
+wait --id approval-opencode:allow_always:fixture-always-allow-fixture-opencode-approval --timeout 5
+# Native menus expose the choice title/ID; their subtitle is not in iOS 26 AX.
+# The full always-only rows below still assert who remembers the rule.
+shot opencode-approval-choices
+tap --id approval-opencode:allow_always:fixture-always-allow-fixture-opencode-approval
+wait --id question-dock-open --gone --timeout 10
+wait --id approval-opencode:allow_always:fixture-always-allow-fixture-opencode-approval --gone
+shot opencode-approval-allow-resolved
+launch --fixture subagent-fixture --fixture opencode-fixture --fixture opencode-approval --fixture opencode-approval-always-only --fixture opencode-approval-decline --fixture theme --arg nord
+wait --id question-dock-open --timeout 20
+wait --id approval-opencode:reject_always:fixture-always-decline-fixture-opencode-approval --timeout 10
+wait --contains "OpenCode remembers this rule and declines"
+wait --id approval-accept-fixture-opencode-approval --gone
+wait --id approval-decline-fixture-opencode-approval --gone
+shot opencode-approval-always-only
+tap --id approval-opencode:reject_always:fixture-always-decline-fixture-opencode-approval
+wait --id question-dock-open --gone --timeout 10
+wait --id approval-opencode:reject_always:fixture-always-decline-fixture-opencode-approval --gone
+shot opencode-approval-decline-resolved
+
+# A file-change approval shows the proposed diff (added/removed lines, long ones collapsed);
+# one with no diff says the changes are not available.
+launch --fixture read-preview --fixture send-preview --fixture phone-approval-preview --arg file-diff
+wait --id approval-diff-fixture-file-diff --timeout 20
+wait --contains "Keep the original copy."
+shot approval-file-diff
+launch --fixture read-preview --fixture send-preview --fixture phone-approval-preview --arg file-long
+wait --id approval-diff-toggle-fixture-file-long --timeout 20
+reveal up --id approval-diff-toggle-fixture-file-long --in attention-review
+tap --id approval-diff-toggle-fixture-file-long
+wait --contains "Show less"
+shot approval-file-diff-expanded
+launch --fixture read-preview --fixture send-preview --fixture phone-approval-preview --arg file
+wait --id approval-changes-unavailable-fixture-file --timeout 20
+shot approval-file-no-diff

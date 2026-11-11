@@ -1,0 +1,81 @@
+# Duo only; outside the feature map until #387 closes. Offline transport only.
+# Contract (B-217 U2, R6-02): beside the Duo's side bar the computer's controls
+# are items in that bar, not a slab under the picture. While you control the
+# computer in the side pane the chat's other pills step aside, but Questions and
+# approvals (with its count) and the Computer pill stay; giving control back or
+# losing it brings the pills back. Close stays in the computer's header.
+# `-diagnostics-computer-control-active` starts control once the view is live
+# (Duo taps do not register, #387); `signal computer-control-lost` ends it the
+# way an interrupted connection does. The approval arrives 3 s after launch
+# (attention-arrives-preview), so it may land before control starts; the shots
+# must show it beside the controls either way.
+# `shot` captures the cover. While unfolded, the verifier must also capture
+# simctl io UDID screenshot --display=primary-1 FILE for every shot below and
+# check: the pane's and the chat's items both in the bar, in a stable order, with
+# none clipped at L and at AX5 (rerun with -UIPreferredContentSizeCategoryName
+# UICTContentSizeCategoryAccessibilityXXXL).
+
+# Order A: open Computer folded (its full-screen cover), then unfold; the cover
+# stays, so its bar holds only the computer's items and its header's Close.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture attention-arrives-preview --fixture phone-approval-preview --arg command --fixture computer-session-available-fixture --fixture computer-control-active --arg=-composerPills --arg=computer --arg=-wonder.companionPane.flipped --arg=NO --arg=-wonder.companionPane.fraction.portrait --arg=0.5 --arg=-wonder.companionPane.fraction.landscape --arg=0.5
+hinge 0
+orient portrait
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+driver off
+wait --id computer-session-control-active --timeout 20
+wait --id computer-session-done --timeout 5
+wait --id computer-session-windows-and-apps --timeout 5
+wait --id computer-session-shortcuts-row --gone --timeout 5
+wait --id computer-viewport-appearances --contains "top: false;" --timeout 10
+check-layout computer --controlling
+shot duo-u2-cover-controlling
+hinge 180
+orient portrait
+wait --id computer-session-control-active --timeout 15
+wait --id computer-session-done --timeout 5
+wait --id computer-viewport-appearances --contains "appearances: 1;" --timeout 5
+shot duo-u2-a-unfolded-controlling
+
+# Order B: unfold first, open Computer in the side pane, control, approval, release.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture attention-arrives-preview --fixture phone-approval-preview --arg command --fixture computer-session-available-fixture --fixture computer-control-active --arg=-composerPills --arg=computer --arg=-wonder.companionPane.flipped --arg=NO --arg=-wonder.companionPane.fraction.portrait --arg=0.5 --arg=-wonder.companionPane.fraction.landscape --arg=0.5
+hinge 180
+orient portrait
+wait --id computer-status-pill --timeout 30
+wait --id conversation-files-pill --timeout 10
+tap --id computer-status-pill
+driver off
+wait --id companion-pane --timeout 15
+wait --id computer-session-control-active --timeout 20
+wait --id computer-session-done --timeout 5
+wait --id computer-session-shortcuts-row --gone --timeout 5
+# Questions and approvals stays while controlling; Files steps aside.
+wait --id question-dock-open --timeout 10
+wait --id computer-status-pill --timeout 5
+wait --id conversation-files-pill --gone --timeout 5
+wait --id message-draft --timeout 5
+shot duo-u2-b-unfolded-controlling-approval
+# Expanded: the computer fills the window and keeps its bar controls.
+driver on
+tap --id companion-pane-expand
+driver off
+wait --id computer-session-done --timeout 10
+shot duo-u2-b-expanded-controlling
+driver on
+tap --id companion-pane-expand
+driver off
+wait --id message-draft --timeout 10
+# Control ends: Take control returns to the bar and the pills come back.
+signal computer-control-lost
+wait --id computer-session-take-control --timeout 10
+wait --id computer-session-control-message --contains "Control was released" --timeout 5
+wait --id conversation-files-pill --timeout 10
+wait --id question-dock-open --timeout 5
+shot duo-u2-b-released
+# Fold with the pane open: the cover takes over, with Take control in its bar.
+hinge 0
+orient portrait
+driver on
+wait --id computer-status-pill --timeout 15

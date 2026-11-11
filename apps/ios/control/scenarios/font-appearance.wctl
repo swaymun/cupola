@@ -1,0 +1,46 @@
+# Capture message and code fonts on a conversation with Markdown and a code block, the
+# composer with a draft, and Markdown Preview, Markdown Source and JSON in Files, under
+# a forced MESSAGE+CODE font. theme-sweep.sh --scenario font-appearance reruns this per
+# pair. Viewer modes are set explicitly and left as found. Nothing is sent.
+# sweep-default: serif+jetBrains
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture font --arg serif+jetBrains
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Continue the project at:" --timeout 20
+shot font-serif+jetBrains-chat
+launch --fixture read-preview --fixture send-preview --fixture files-preview --fixture project-files-conversation-preview --fixture workspace-viewer-preview --fixture font --arg serif+jetBrains
+wait --id conversation-files-pill --timeout 30
+shot font-serif+jetBrains-composer
+tap --id conversation-files-pill
+wait --id workspace-file-list
+tap --id workspace-file-entry:guide.md --timeout 5
+wait --id workspace-viewer-mode --timeout 10
+tap --label Preview --type RadioButton
+wait --id workspace-markdown-preview --timeout 10
+shot font-serif+jetBrains-markdown-preview
+tap --label Source --type RadioButton
+wait --id annotation-selectable-text --timeout 15
+shot font-serif+jetBrains-markdown-source
+tap --label Preview --type RadioButton
+wait --id workspace-markdown-preview --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list
+swipe up --in workspace-file-list
+wait --id workspace-file-entry:trip.json --timeout 5
+tap --id workspace-file-entry:trip.json --timeout 5
+wait --id workspace-viewer-mode --timeout 10
+tap --label Formatted --type RadioButton
+wait --id workspace-json-formatted --timeout 10
+shot font-serif+jetBrains-json
+tap --id workspace-preview-back
+wait --id workspace-file-list
+# The same conversation at an accessibility text size: every font scales with it.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture font --arg serif+jetBrains --arg=-UIPreferredContentSizeCategoryName --arg UICTContentSizeCategoryAccessibilityL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Continue the project at:" --timeout 20
+shot font-serif+jetBrains-chat-large-text

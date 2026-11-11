@@ -1,0 +1,30 @@
+{
+  "settings": {
+    "fixtures": [
+      "settings-open",
+      "account-fixture",
+      "account-signed-in",
+      "several-computers",
+      "offline-studio"
+    ],
+    "ready": "settings-add-computer"
+  },
+  "usage": {
+    "fixtures": [
+      "usage-open",
+      "usage-fixture",
+      "usage-live-reset",
+      "several-computers",
+      "offline-studio"
+    ],
+    "ready": "codex-usage-window:five-hours"
+  },
+  "connection-details": {
+    "fixtures": [
+      "ux6-settings-fixture",
+      "ux6-routes",
+      "ux6-routes-duplicate"
+    ],
+    "ready": "connection-routes"
+  }
+}

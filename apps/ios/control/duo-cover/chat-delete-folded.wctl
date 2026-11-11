@@ -1,0 +1,46 @@
+# devices: duo
+# Qualified native rig input; every action waits for its resulting menu/state.
+# visual-review: Delete sits beside Archive in the native title menu. Its native
+# confirmation plainly names removed and retained data. Cancel and a refused
+# deletion preserve the chat; confirmed deletion removes its saved view.
+# Owned transport only. No provider sends or production history deletion.
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture open-project-thread --fixture chat-notice-held --arg=-diagnostics-delete-fail-once
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+driver off
+wait --id conversation-title-menu --timeout 15
+tap --id conversation-title-menu
+wait --id archive-conversation --timeout 10
+wait --id delete-conversation --timeout 10
+shot chat-delete-folded-menu
+tap --id delete-conversation
+wait --id delete-conversation-confirm --timeout 10
+wait --contains "attachment records" --timeout 10
+wait --contains "Provider history" --timeout 10
+shot chat-delete-folded-confirmation
+tap --xy 10,400
+wait --id delete-conversation-confirm --gone --timeout 10
+wait --id conversation-title-menu --timeout 10
+# A cancelled action sends no DELETE: the first confirmed attempt still fails.
+tap --id conversation-title-menu
+wait --id delete-conversation --timeout 10
+tap --id delete-conversation
+wait --id delete-conversation-confirm --timeout 10
+tap --id delete-conversation-confirm
+wait --id chat-notice --contains "Nothing was removed" --timeout 15
+wait --id conversation-title-menu --timeout 10
+shot chat-delete-folded-failed
+signal chat-notice
+wait --id chat-notice --gone --timeout 10
+# Retry succeeds, removes the cache/selection and exposes the native way back.
+tap --id conversation-title-menu
+wait --id delete-conversation --timeout 10
+tap --id delete-conversation
+wait --id delete-conversation-confirm --timeout 10
+tap --id delete-conversation-confirm
+wait --id sidebar-cupola --timeout 15
+assert --id pinned-thread:codex:read-fixture --gone
+assert --id conversation-title-menu --gone
+shot chat-deleted-folded

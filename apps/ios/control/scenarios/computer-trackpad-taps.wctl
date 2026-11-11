@@ -1,0 +1,19 @@
+# devices: iphone
+# Taps on the separate trackpad reach the fixture host as clicks: each tap is
+# three accepted actions (move, press, release), so two taps in a row are six.
+# The Mac helper turns repeated clicks into double and triple clicks (word and
+# line selection); AXe cannot tap fast enough to make a double tap, so that part
+# is covered by ControlClickCounterTests and not by this run.
+# Offline fixture: no paired host input or model calls.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture no-hardware-keyboard --fixture computer-reconnect
+wait --id computer-session-take-control --timeout 30
+tap --id computer-session-take-control
+wait --id computer-session-control-active --timeout 15
+tap --id computer-session-trackpad-toggle
+wait --id computer-session-trackpad --timeout 10
+wait --id computer-viewport-appearances --contains "sent: 1;" --timeout 5
+tap --id computer-session-trackpad
+wait --id computer-viewport-appearances --contains "sent: 4;" --timeout 5
+tap --id computer-session-trackpad
+wait --id computer-viewport-appearances --contains "sent: 7;" --timeout 5
+shot computer-trackpad-taps

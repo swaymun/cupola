@@ -1,0 +1,82 @@
+# devices: duo
+# UX-DUO-8 captures: dictation growth beside the rail and the rail beside the keyboard, Cupola light and dark,
+# in the three inner postures that have a rail or bar: folded, unfolded upright, and unfolded turned (horizontal
+# bar). Software keyboard up, 30 dictated words. Run before and after a change and compare the shots (the
+# posture and rail assertions live in ux-duo-8-fold-rail-duo.wctl and ux-duo-8-dictation-duo.wctl).
+orient portrait
+hinge 0
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture dictation-stream --fixture no-hardware-keyboard --fixture composer-keyboard --fixture theme --arg cupola-light
+wait --id message-draft --timeout 30
+tap --label Continue --optional --timeout 4
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail --settle 10
+signal dictation-stream-1
+signal dictation-stream-2
+signal dictation-stream-3
+wait --contains word30 --timeout 10
+check-layout duo-rail --expect rail --settle 8
+shot ux-duo-8-folded-cupola-light
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture dictation-stream --fixture no-hardware-keyboard --fixture composer-keyboard --fixture theme --arg cupola-dark
+wait --id message-draft --timeout 30
+tap --label Continue --optional --timeout 4
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail --settle 10
+signal dictation-stream-1
+signal dictation-stream-2
+signal dictation-stream-3
+wait --contains word30 --timeout 10
+check-layout duo-rail --expect rail --settle 8
+shot ux-duo-8-folded-cupola-dark
+hinge 180
+pause 4
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture dictation-stream --fixture no-hardware-keyboard --fixture composer-keyboard --fixture theme --arg cupola-light
+wait --id message-draft --timeout 30
+tap --label Continue --optional --timeout 4
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail --settle 10
+signal dictation-stream-1
+signal dictation-stream-2
+signal dictation-stream-3
+wait --contains word30 --timeout 10
+check-layout duo-rail --expect rail --settle 8
+shot ux-duo-8-upright-cupola-light --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture dictation-stream --fixture no-hardware-keyboard --fixture composer-keyboard --fixture theme --arg cupola-dark
+wait --id message-draft --timeout 30
+tap --label Continue --optional --timeout 4
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect rail --settle 10
+signal dictation-stream-1
+signal dictation-stream-2
+signal dictation-stream-3
+wait --contains word30 --timeout 10
+check-layout duo-rail --expect rail --settle 8
+shot ux-duo-8-upright-cupola-dark --display primary-1
+pause 4
+orient landscape-right
+pause 4
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture dictation-stream --fixture no-hardware-keyboard --fixture composer-keyboard --fixture theme --arg cupola-light
+wait --id message-draft --timeout 30
+tap --label Continue --optional --timeout 4
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect bar --settle 10
+signal dictation-stream-1
+signal dictation-stream-2
+signal dictation-stream-3
+wait --contains word30 --timeout 10
+check-layout duo-rail --expect bar --settle 8
+shot ux-duo-8-turned-cupola-light --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture dictation-stream --fixture no-hardware-keyboard --fixture composer-keyboard --fixture theme --arg cupola-dark
+wait --id message-draft --timeout 30
+tap --label Continue --optional --timeout 4
+wait --id open-sidebar --timeout 10
+check-layout duo-rail --expect bar --settle 10
+signal dictation-stream-1
+signal dictation-stream-2
+signal dictation-stream-3
+wait --contains word30 --timeout 10
+check-layout duo-rail --expect bar --settle 8
+shot ux-duo-8-turned-cupola-dark --display primary-1
+orient portrait
+pause 4
+hinge 0

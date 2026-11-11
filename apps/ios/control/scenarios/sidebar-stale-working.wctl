@@ -1,0 +1,16 @@
+# Held synthetic catalog: two worker sessions run, then end; one worktree is removed.
+# Claude activity stays partial throughout. No provider work or owner conversations.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-stale-working --fixture sidebar-all-chats --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id chat-thread:claude:session-takeover --contains "Working" --timeout 20
+wait --id chat-thread:claude:computer-clipboard --contains "Working"
+shot stale-working-running
+signal workers-finished
+# No Retry and no refresh from the owner: the working watchdog re-reads rows that
+# still show work (every 10 s), so ended threads stop showing Working on their own.
+wait --id chat-thread:claude:session-takeover --contains "Working" --gone --timeout 25
+wait --id chat-thread:claude:computer-clipboard --contains "Working" --gone
+wait --id chat-thread:claude:session-takeover
+shot stale-working-ended
+tree --json

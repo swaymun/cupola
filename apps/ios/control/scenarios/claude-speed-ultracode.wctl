@@ -1,0 +1,16 @@
+# A Claude chat offers Speed (Standard/Fast) beside the model and the Ultracode
+# effort, like Codex's Speed. Nothing is sent; the daemon and bridge tests own
+# that the choice reaches the SDK query options.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture project-subagents --fixture open-project-thread --arg=-diagnostics-project-subagents-stale
+wait --id project-composer-model --contains "Sonnet fixture" --timeout 20
+tap --id project-composer-model
+wait --id project-speed:default --timeout 10
+swipe up
+wait --id project-speed:fast
+shot claude-speed-sheet
+tap --id project-speed:fast
+tap --label Done
+wait --id project-composer-effort --timeout 10
+tap --id project-composer-effort
+wait --contains "Ultracode" --timeout 10
+shot claude-ultracode-effort

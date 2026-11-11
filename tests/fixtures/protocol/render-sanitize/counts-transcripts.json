@@ -1,0 +1,206 @@
+{
+  "errors": {},
+  "groups": {
+    "raw/claude/assistant": {
+      "patterns": {
+        "escaped_pipe_in_table": 14,
+        "escaped_table_pipe": 15,
+        "html_entities": 4,
+        "indented_fence": 4,
+        "inline_base64": 1,
+        "internal_ids": 74,
+        "long_line": 600,
+        "nested_list": 1888,
+        "tables": 806,
+        "xml_tags": 45
+      },
+      "records": 27603,
+      "tags": {
+        "bash-input": 2,
+        "bash-stderr": 1,
+        "bash-stdout": 1,
+        "command-name": 3,
+        "local-command-stdout": 3,
+        "other_xml_tag": 27,
+        "pasted_content": 3,
+        "system-reminder": 9,
+        "task-notification": 3
+      },
+      "utf8_bytes": 17720717
+    },
+    "raw/claude/tool": {
+      "patterns": {
+        "adjacent_repeated_paragraph": 38,
+        "ansi_csi": 333,
+        "ansi_osc": 34,
+        "ansi_other": 36,
+        "escaped_pipe_in_table": 128,
+        "escaped_table_pipe": 434,
+        "html_entities": 338,
+        "indented_fence": 405,
+        "inline_base64": 106,
+        "internal_ids": 12097,
+        "long_line": 3491,
+        "memory_citation_trailer": 1,
+        "nested_list": 2180,
+        "tables": 1674,
+        "tool_json": 53,
+        "unclosed_fence_candidate": 201,
+        "xml_tags": 2354
+      },
+      "records": 130332,
+      "tags": {
+        "bash-input": 37,
+        "bash-stderr": 22,
+        "bash-stdout": 35,
+        "command-args": 23,
+        "command-message": 24,
+        "command-name": 42,
+        "local-command-stderr": 2,
+        "local-command-stdout": 21,
+        "oai-mem-citation": 8,
+        "other_xml_tag": 1493,
+        "pasted_content": 53,
+        "system-reminder": 779,
+        "task-notification": 118
+      },
+      "utf8_bytes": 312247662
+    },
+    "raw/claude/user": {
+      "patterns": {
+        "escaped_pipe_in_table": 1,
+        "escaped_table_pipe": 7,
+        "html_entities": 8,
+        "indented_fence": 1,
+        "internal_ids": 255,
+        "long_line": 1085,
+        "nested_list": 255,
+        "tables": 33,
+        "unclosed_fence_candidate": 2,
+        "xml_tags": 603
+      },
+      "records": 5867,
+      "tags": {
+        "bash-input": 27,
+        "bash-stderr": 27,
+        "bash-stdout": 27,
+        "command-args": 28,
+        "command-message": 28,
+        "command-name": 30,
+        "local-command-stdout": 22,
+        "other_xml_tag": 420,
+        "pasted_content": 22,
+        "system-reminder": 142,
+        "task-notification": 1
+      },
+      "utf8_bytes": 14885175
+    },
+    "raw/claude/user_metadata": {
+      "patterns": {
+        "adjacent_repeated_paragraph": 1,
+        "ansi_csi": 3,
+        "escaped_pipe_in_table": 3,
+        "escaped_table_pipe": 44,
+        "html_entities": 1161,
+        "indented_fence": 15,
+        "internal_ids": 3490,
+        "long_line": 91,
+        "nested_list": 311,
+        "tables": 127,
+        "unclosed_fence_candidate": 5,
+        "xml_tags": 3883
+      },
+      "records": 7147,
+      "tags": {
+        "other_xml_tag": 3872,
+        "system-reminder": 32,
+        "task-notification": 3763
+      },
+      "utf8_bytes": 6829556
+    },
+    "raw/codex/assistant": {
+      "patterns": {
+        "internal_ids": 116,
+        "long_line": 44,
+        "memory_citation_trailer": 187,
+        "nested_list": 11,
+        "tables": 33,
+        "xml_tags": 191
+      },
+      "records": 8026,
+      "tags": {
+        "oai-mem-citation": 190,
+        "other_xml_tag": 1
+      },
+      "utf8_bytes": 3674277
+    },
+    "raw/codex/tool": {
+      "patterns": {
+        "adjacent_repeated_paragraph": 4,
+        "ansi_csi": 2,
+        "ansi_other": 1,
+        "escaped_pipe_in_table": 2,
+        "escaped_table_pipe": 116,
+        "html_entities": 37,
+        "indented_fence": 60,
+        "inline_base64": 104,
+        "internal_ids": 1766,
+        "long_line": 16537,
+        "nested_list": 272,
+        "tables": 200,
+        "tool_json": 1,
+        "unclosed_fence_candidate": 28,
+        "xml_tags": 1018
+      },
+      "records": 36586,
+      "tags": {
+        "bash-input": 11,
+        "bash-stderr": 2,
+        "bash-stdout": 8,
+        "command-args": 4,
+        "command-message": 4,
+        "command-name": 14,
+        "local-command-stdout": 10,
+        "other_xml_tag": 989,
+        "pasted_content": 9,
+        "system-reminder": 6,
+        "task-notification": 29
+      },
+      "utf8_bytes": 247562596
+    },
+    "raw/codex/user": {
+      "patterns": {
+        "escaped_pipe_in_table": 1,
+        "escaped_table_pipe": 2,
+        "html_entities": 922,
+        "internal_ids": 16,
+        "long_line": 169,
+        "nested_list": 18,
+        "tables": 345,
+        "xml_tags": 81
+      },
+      "records": 2027,
+      "tags": {
+        "other_xml_tag": 81
+      },
+      "utf8_bytes": 23780175
+    }
+  },
+  "measured_at": "2026-11-03T03:07:59.954642+00:00",
+  "scope": {
+    "claude": {
+      "bytes_at_start": 6512691326,
+      "excluded_worker_files": 0,
+      "files": 2504,
+      "lines": 1034549
+    },
+    "codex": {
+      "bytes_at_start": 3742401548,
+      "excluded_worker_files": 1,
+      "files": 852,
+      "lines": 316312
+    }
+  },
+  "seconds": 106.13,
+  "source": "transcripts"
+}

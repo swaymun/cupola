@@ -1,0 +1,67 @@
+# devices: duo
+# Real AppShell launch-only selection captures, not Duo tap coverage (#387).
+# Files keeps the folded side bar visible; Computer's phone cover hides it.
+# Capture the final Computer pane on primary-1 explicitly after the run.
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture companion-files --arg=-composerPills --arg=terminal,computer,files,git --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-wonder.sidebar.hidden --arg=NO --arg=-wonder.companionPane.flipped --arg=NO --arg=-diagnostics-theme --arg=cupola-light --arg=-AppleInterfaceStyle --arg=Light --arg=-wonder.companionPane.fraction.portrait --arg=0.5 --arg=-wonder.companionPane.fraction.landscape --arg=0.5
+assert --path pane --equals null --timeout 20
+driver off
+wait --id workspace-file-list --timeout 20
+wait --id conversation-files-pill --contains "Open" --timeout 10
+wait --id computer-status-pill --contains "Closed" --timeout 10
+shot tool-selection-duo-files-folded
+tree --json
+hinge 180
+orient portrait
+driver on
+assert --path pane.tool --equals '"files"' --timeout 20
+assert --path sheets --equals '[]' --timeout 10
+assert --path presented --equals '[]' --timeout 10
+driver off
+wait --id conversation-files-pill --contains "Open" --timeout 10
+wait --id computer-status-pill --contains "Closed" --timeout 10
+
+# Open Computer through the same production action at launch, then migrate it.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture companion-computer --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture computer-simulator-fixture --arg=-composerPills --arg=terminal,computer,files,git --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-wonder.sidebar.hidden --arg=NO --arg=-wonder.companionPane.flipped --arg=NO --arg=-diagnostics-theme --arg=cupola-light --arg=-AppleInterfaceStyle --arg=Light --arg=-wonder.companionPane.fraction.portrait --arg=0.5 --arg=-wonder.companionPane.fraction.landscape --arg=0.5
+assert --path pane.tool --equals '"computer"' --timeout 20
+assert --path sheets --equals '[]' --timeout 10
+assert --path presented --equals '[]' --timeout 10
+driver off
+wait --id computer-status-pill --contains "Open" --timeout 10
+wait --id conversation-files-pill --contains "Closed" --timeout 10
+tree --json
+orient landscape-right
+driver on
+# The tall inner posture (stacked halves) opens tools as sheets, not a pane; the
+# selection survives the rotation (Computer stays the open tool).
+assert --path toolLayout --equals '"compact"' --timeout 20
+assert --path pane --equals null --timeout 10
+assert --path sheets --equals '["computer"]' --timeout 10
+# Back in the wide posture the same selection returns to the pane.
+orient portrait
+assert --path pane.tool --equals '"computer"' --timeout 20
+assert --path sheets --equals '[]' --timeout 10
+driver off
+tree --json
+hinge 0
+orient portrait
+driver on
+assert --path pane --equals null --timeout 20
+assert --path sheets --equals '["computer"]' --timeout 10
+driver off
+# On the cover the viewer's Close sits in the system bar (as the Computer pill), not in the viewer.
+wait --id computer-session-container --timeout 10
+shot tool-selection-duo-computer-folded
+hinge 180
+orient portrait
+driver on
+assert --path pane.tool --equals '"computer"' --timeout 20
+assert --path sheets --equals '[]' --timeout 10
+assert --path presented --equals '[]' --timeout 10
+driver off
+wait --id computer-status-pill --contains "Open" --timeout 10
+wait --id conversation-files-pill --contains "Closed" --timeout 10
+tree --json

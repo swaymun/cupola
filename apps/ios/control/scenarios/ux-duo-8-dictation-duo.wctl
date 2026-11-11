@@ -1,0 +1,127 @@
+# devices: duo
+# UX-DUO-8: dictated text streams into the real composer (fixture stream, no microphone) with the software
+# keyboard up, on the folded and the unfolded Duo, with a reply running (Stop beside Send). After every update
+# the composer is as tall as its text needs (a second reading one tree fetch later finds it unchanged: it grew by
+# the update, not later) and stays out of the rail's column; the keyboard is up and the rail present at launch.
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture dictation-stream --fixture no-hardware-keyboard --fixture composer-keyboard
+wait --id message-draft --timeout 30
+wait --id open-sidebar --timeout 10
+tree --json
+check-layout duo-rail --expect rail,keyboard --settle 10
+signal dictation-stream-1
+wait --contains word10 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+shot ux-duo-8-dictation-folded-1
+signal dictation-stream-2
+wait --contains word20 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+signal dictation-stream-3
+wait --contains word30 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+shot ux-duo-8-dictation-folded-3
+signal dictation-stream-4
+wait --contains word40 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+signal dictation-stream-5
+wait --contains word50 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+signal dictation-stream-6
+wait --contains word60 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+shot ux-duo-8-dictation-folded-6
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture dictation-stream --fixture no-hardware-keyboard --fixture composer-keyboard
+wait --id message-draft --timeout 30
+wait --id open-sidebar --timeout 10
+tree --json
+check-layout duo-rail --expect rail,keyboard --settle 10
+signal dictation-stream-1
+wait --contains word10 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+shot ux-duo-8-dictation-unfolded-1 --display primary-1
+signal dictation-stream-2
+wait --contains word20 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+signal dictation-stream-3
+wait --contains word30 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+shot ux-duo-8-dictation-unfolded-3 --display primary-1
+signal dictation-stream-4
+wait --contains word40 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+signal dictation-stream-5
+wait --contains word50 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+signal dictation-stream-6
+wait --contains word60 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+shot ux-duo-8-dictation-unfolded-6 --display primary-1
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture dictation-stream --fixture no-hardware-keyboard --fixture composer-keyboard --fixture send-states --fixture send-running
+wait --id message-draft --timeout 30
+wait --id open-sidebar --timeout 10
+tree --json
+check-layout duo-rail --expect rail,keyboard --settle 10
+signal dictation-stream-1
+wait --contains word10 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+shot ux-duo-8-dictation-folded-running-1
+signal dictation-stream-2
+wait --contains word20 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+signal dictation-stream-3
+wait --contains word30 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+shot ux-duo-8-dictation-folded-running-3
+signal dictation-stream-4
+wait --contains word40 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+signal dictation-stream-5
+wait --contains word50 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+signal dictation-stream-6
+wait --contains word60 --timeout 10
+tree --json
+check-layout duo-dictation
+check-layout duo-dictation --expect settled
+shot ux-duo-8-dictation-folded-running-6
+hinge 0
+orient portrait

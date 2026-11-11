@@ -1,0 +1,41 @@
+# While the fixture chat is open, "Weekend plans" finishes a reply (2 s), the
+# open chat finishes one of its own (3 s) and "Release checklist" asks for
+# permission (4.5 s), as live events. The other two each show as an in-app
+# banner (never a system banner), counted as "2 updates"; the open chat stays
+# quiet: no banner carries its reply, which shows in the conversation instead.
+# Tapping the request's banner opens that chat with the request in front; the
+# other chat's banner stays. The first two runs hold banners for 60 s so taps
+# never race the auto-hide; the last checks it.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture in-app-banner --fixture in-app-banner-seconds --arg 60
+wait --id message-draft --timeout 30
+wait --id in-app-banner --contains "The open chat's own reply" --never 7
+wait --id in-app-banner-count --label "2 updates" --timeout 15
+wait --id in-app-banner --contains "Release checklist. Codex needs permission: Run swift test"
+wait --contains "The open chat's own reply stays in the conversation." --timeout 10
+shot in-app-banner-stack
+# "2 updates" expands the stack: the newest first, then the finished reply.
+tap --id in-app-banner-count
+wait --id in-app-banner --contains "Weekend plans. Codex: Saturday is planned" --timeout 5
+wait --id in-app-banner --contains "Release checklist. Codex needs permission" --timeout 5
+wait --id in-app-banner --contains "The open chat's own reply" --gone --timeout 2
+order --ids in-app-banner-collapse,in-app-banner
+shot in-app-banner-expanded
+tap --id in-app-banner-collapse
+wait --id in-app-banner-clear --gone --timeout 5
+tap --id in-app-banner
+wait --id approval-decline-fixture-banner-approval --timeout 10
+wait --contains "Release checklist. Codex" --gone
+wait --contains "Weekend plans. Codex: Saturday is planned"
+shot in-app-banner-opened
+# Clear all empties the expanded stack.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture in-app-banner --fixture in-app-banner-seconds --arg 60
+wait --id in-app-banner-count --timeout 30
+tap --id in-app-banner-count
+tap --id in-app-banner-clear
+wait --id in-app-banner --gone --timeout 5
+# Swipes (up or sideways) are not driven here: `swipe --in` drags only 60% of
+# the 57 pt card, too short to read as a swipe. They were checked with axe swipe.
+# Every banner, the request's too, hides by itself after a few seconds.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture in-app-banner
+wait --contains "Codex needs permission" --timeout 30
+wait --id in-app-banner --gone --timeout 12

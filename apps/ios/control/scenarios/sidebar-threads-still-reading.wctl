@@ -1,0 +1,37 @@
+# Held synthetic catalog: no provider work or owner conversations.
+# A busy computer answers a thread list before Codex finishes reading it: no
+# rows yet, a cursor and `loading`. Measured 2026-10-21 (owner recording, 12 s):
+# a refresh blanked All Chats to Automations and Show more. The fixture answers
+# that way twice per launch, then with the rows. The list waits instead of
+# showing a bare Show more, reads again by itself, and after a relaunch keeps
+# the saved rows while the computer is still reading.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture sidebar-all-chats --fixture project-threads-still-reading
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id chats-more:diagnostic-host --never 6
+wait --id chat-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --timeout 15
+shot sidebar-still-reading-filled
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture sidebar-all-chats --fixture project-threads-still-reading
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id chat-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --timeout 10
+wait --id chats-more:diagnostic-host --never 6
+wait --id chat-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --timeout 5
+wait --id chat-thread:claude:7d1c9e42-5b3a-4f60-8e21-0a9b8c7d6e54 --timeout 5
+shot sidebar-still-reading-kept
+# A Project still waiting for its first rows (newly found, or one the computer
+# keeps answering "still reading"; measured 2026-10-22 on the owner's Mac)
+# never hides the other Projects' chats: they show, with a spinner after them,
+# and its rows arrive in place.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture sidebar-all-chats --fixture project-threads-slow-project
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id chats-loading:diagnostic-host --timeout 15
+shot sidebar-slow-project-waiting
+wait --id chat-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --timeout 5
+order --ids chat-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80,chats-loading:diagnostic-host
+signal slow-project-rows
+wait --id chat-thread:codex:slow-plan --timeout 15
+wait --id chats-loading:diagnostic-host --gone --timeout 5
+order --ids chat-thread:codex:slow-plan,chat-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80
+shot sidebar-slow-project-filled

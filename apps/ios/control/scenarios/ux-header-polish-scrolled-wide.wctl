@@ -1,0 +1,18 @@
+# devices: ipad
+# UX-HEADER-POLISH: on a wide screen the short chat-layout thread fits without scrolling, so its "scrolled"
+# capture equals its resting one. This long thread (the mini-map fixture) is scrolled until rows sit under
+# the header's scroll edge. Offline fixtures; nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture minimap --fixture theme --arg cupola-light
+wait --id message-draft --timeout 30
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+swipe down --in conversation-scroll
+wait --id conversation-minimap --gone --timeout 15
+shot header-polish-wide-light-scrolled
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture minimap --fixture theme --arg cupola-dark
+wait --id message-draft --timeout 30
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+swipe down --in conversation-scroll
+wait --id conversation-minimap --gone --timeout 15
+shot header-polish-wide-dark-scrolled

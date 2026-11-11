@@ -1,0 +1,30 @@
+# A message sent while the Mac is unreachable never looks sent: it waits
+# below the conversation as "Waiting for your computer" (the composer's
+# unreachable line steps aside so the state shows once), and goes out once the
+# Mac answers again (here on returning to the foreground). No real Mac,
+# pairing or model work: the synthetic Mac stops answering between signals.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture mac-offline
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 15
+signal mac-gone
+button home
+activate
+wait --id composer-mac-unreachable --timeout 20
+wait --contains "Cupola on your computer isn’t reachable. Messages you send wait here." --timeout 10
+tap --id message-draft --type TextArea
+type "Sent while the Mac was away"
+tap --id send-message
+wait --contains "Waiting for your computer" --timeout 10
+wait --id composer-mac-unreachable --gone --timeout 10
+wait --contains "Sent while the Mac was away" --timeout 5
+shot offline-outbox-waiting
+signal mac-back
+button home
+activate
+wait --contains "Waiting for your computer" --gone --timeout 30
+wait --id composer-mac-unreachable --gone --timeout 10
+wait --contains "Sent while the Mac was away" --timeout 10
+shot offline-outbox-sent

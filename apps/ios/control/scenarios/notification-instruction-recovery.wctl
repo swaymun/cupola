@@ -1,0 +1,7 @@
+# A rejected empty instruction uses the native recovery alert. No provider or APNs request.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-notification-instruction-failure
+wait --contains "Enter a short instruction, or choose Deny without one." --timeout 20
+shot notification-instruction-invalid
+tap --label "OK"
+wait --contains "Enter a short instruction, or choose Deny without one." --gone --timeout 5
+shot notification-instruction-recovered

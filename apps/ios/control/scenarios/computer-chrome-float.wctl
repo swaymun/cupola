@@ -1,0 +1,29 @@
+# devices: iphone ipad
+# The remote display fills the pane. Two rows of chrome: the header (Close on
+# the leading side, the computer picker centred, More and the window size on
+# the trailing side) and one control row under the picture. Nothing fades:
+# the header buttons are still there, and take a first tap, after an idle wait.
+# Synthetic transport. `check-layout computer` runs check-computer-layout.py on
+# the live tree at each state, on every device the scenario covers: the picture
+# fills the pane, one control row, the picker centred between Close and More,
+# nothing clipped.
+launch --fixture read-preview --fixture send-preview --fixture computer-session-available-fixture
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+wait --id computer-session-take-control --timeout 20
+wait --id computer-session-window-buttons --timeout 5
+check-layout computer
+shot computer-header-watching
+pause 6
+assert --id computer-session-window-buttons
+assert --id computer-session-more
+assert --id computer-session-connection-picker
+check-layout computer
+shot computer-header-after-idle
+tap --id computer-session-take-control
+wait --id computer-session-done --label "Give control back" --timeout 15
+assert --id computer-session-window-buttons
+check-layout computer --controlling
+shot computer-header-controlling
+tap --id computer-session-done
+wait --id computer-session-take-control --timeout 10

@@ -1,0 +1,31 @@
+# devices: iphone iphone-27 ipad
+# visual-review: attachment menu contains media only; header groups chat actions.
+# Owned fixtures only; no send or live provider call.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture open-project-thread
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+driver off
+wait --id composer-actions --timeout 20
+tap --id composer-actions
+wait --id composer-add-sketch --timeout 10
+wait --label "Camera"
+wait --label "Add media"
+wait --label "Attach file"
+assert --contains "Plan" --gone
+assert --label "Start in T3 Code" --gone
+shot menu-attachments-only
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture open-project-thread
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+driver off
+tap --id project-composer-access
+wait --contains "Plan" --timeout 10
+shot menu-permissions-plan
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture open-project-thread
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+driver off
+tap --id conversation-title-menu
+wait --label "Copy as Markdown" --timeout 10
+assert --label "Connected apps" --gone
+shot menu-chat-actions

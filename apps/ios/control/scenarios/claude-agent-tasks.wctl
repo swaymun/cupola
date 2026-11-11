@@ -1,0 +1,46 @@
+# Claude agent tasks list running work first, grouped Running / Completed (failed
+# included), with a status glyph instead of an avatar and "N running" on the pill.
+# Tasks are what Claude's Background tasks counts: agents, background commands
+# and monitors; foreground Bash runs and linked sessions are not tasks. A
+# finished task says how long it ran. Stop asks first, then the task moves to
+# Completed as Stopped. The fixture stands
+# in for the Mac and lists the tasks deliberately out of order.
+# The Project thread opens at launch, so this runs the same with the sidebar
+# as a drawer (iPhone, folded Duo) or always shown (unfolded Duo).
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture open-project-thread --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id project-subagent-status-pill --timeout 30
+wait --label "3 agent tasks running" --timeout 10
+shot claude-agent-tasks-pill
+tap --id project-subagent-status-pill
+wait --id project-subagent-section:running --timeout 10
+wait --id project-subagent-section:completed --timeout 5
+order --ids project-subagent-section:running,project-subagent-roster:fixture-child-thread,project-subagent-roster:fixture-third-child-thread,project-subagent-section:completed,project-subagent-roster:fixture-second-child-thread,project-subagent-roster:fixture-failed-child-thread
+wait --label "Check the lockfile, general-purpose, Failed" --timeout 5
+order --ids project-subagent-section:completed,project-subagent-roster:fixture-second-child-thread,project-subagent-roster:fixture-finished-command,project-subagent-roster:fixture-failed-child-thread
+wait --label "Build the app, Background command, Completed, ran for 4 minutes 54 seconds" --timeout 5
+wait --id project-subagent-stop:fixture-third-child-thread --timeout 5
+order --ids project-subagent-roster:fixture-third-child-thread,project-subagent-roster:fixture-monitor-task,project-subagent-section:completed
+wait --label "Watch the build log, Monitor, Running" --timeout 5
+wait --id project-subagent-stop:fixture-monitor-task --timeout 5
+shot claude-agent-tasks-grouped
+tap --id project-subagent-stop:fixture-third-child-thread
+wait --id project-subagent-stop-confirm --timeout 5
+shot claude-agent-tasks-stop-confirm
+tap --id project-subagent-stop-confirm --nth 0
+wait --label "Audit the release checklist, general-purpose, Stopped" --timeout 10
+wait --id project-subagent-stop:fixture-third-child-thread --gone --timeout 5
+order --ids project-subagent-section:running,project-subagent-roster:fixture-child-thread,project-subagent-section:completed,project-subagent-roster:fixture-third-child-thread,project-subagent-roster:fixture-second-child-thread
+shot claude-agent-tasks-stopped
+
+# Open the same roster at launch so the Duo can verify its anchor without HID
+# input. The regular lanes also prove this hook presents the actual roster.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture open-project-thread --fixture task-roster-open --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id project-subagent-roster-list --timeout 20
+wait --label "Audit the release checklist, general-purpose, Running" --timeout 5
+shot claude-agent-tasks-open-at-launch
+tap --xy 350,200
+wait --id project-subagent-roster-list --gone --timeout 5
+wait --id project-subagent-status-pill --contains "Collapsed" --timeout 5
+tap --id project-subagent-status-pill
+wait --id project-subagent-roster-list --timeout 10
+shot claude-agent-tasks-reopened

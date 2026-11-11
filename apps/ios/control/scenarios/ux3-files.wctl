@@ -1,0 +1,32 @@
+# devices: iphone ipad
+# Owned offline file data. Native gestures prove controls do not overlap scrolled
+# Markdown; expanded and inline share the trailing mode button and centered title.
+launch --fixture read-preview --fixture send-preview --fixture files-preview --fixture project-files-conversation-preview --fixture workspace-viewer-preview --fixture ux3-markdown
+wait --id conversation-files-pill --timeout 20
+tap --id conversation-files-pill
+wait --id workspace-markdown-preview --timeout 20
+shot ux3-markdown-top
+swipe up --in workspace-markdown-preview
+shot ux3-markdown-scrolled
+tap --label Source --type RadioButton
+wait --id annotation-selectable-text --timeout 15
+shot ux3-markdown-source
+tap --id workspace-preview-expand
+wait --id workspace-preview-collapse --timeout 10
+wait --id workspace-preview-expanded-title --contains guide.md --timeout 10
+wait --id annotation-selectable-text --timeout 15
+shot ux3-expanded-source
+tap --id workspace-preview-collapse
+wait --id workspace-preview-title --contains guide.md --timeout 10
+wait --id workspace-preview-collapse --gone --timeout 10
+wait --id annotation-selectable-text --timeout 15
+shot ux3-restored-preview
+tap --id workspace-preview-back
+wait --id workspace-file-list --timeout 10
+tap --id workspace-root-picker
+wait --contains /preview --timeout 10
+shot ux3-full-folder-path
+tap --id workspace-root:workspace
+wait --id workspace-file-list --timeout 10
+wait --id workspace-file-entry:README.md --timeout 10
+shot ux3-same-folder-keeps-files

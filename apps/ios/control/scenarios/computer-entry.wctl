@@ -1,0 +1,51 @@
+# nightly-ipad: Computer starts at the whole display even with dialogs pending.
+# devices: iphone ipad
+# Owned synthetic host. Native taps own entry and the dialog chip;
+# driver state asserts the resulting capture source, never just a successful tap.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-picture --fixture computer-menu-fixture --fixture open-project-thread --fixture rail-fixture --arg=-wonder.sidebar.hidden --arg=YES
+signal computer-retry-ready
+driver off
+wait --id computer-status-pill --timeout 30
+signal mac-waiting
+wait --id computer-status-pill --contains "2 dialogs waiting" --timeout 15
+shot computer-entry-pending-badge
+tap --id computer-status-pill
+wait --id computer-session-header --contains "display" --timeout 15
+wait --id computer-session-dialogs --contains "2 dialogs waiting"
+driver on
+assert --path computer.hasPicture --equals true --timeout 15
+assert --path computer.sourceKind --equals '"display"' --timeout 10
+assert --path computer.hasPicture --equals true --timeout 10
+assert --path computer.controlling --equals false
+driver off
+shot computer-entry-whole-screen
+tap --id computer-session-dialogs
+wait --id computer-session-header --contains "Mac dialog" --timeout 15
+driver on
+assert --path computer.sourceKind --equals '"window"' --timeout 10
+assert --path computer.hasPicture --equals true --timeout 10
+assert --path computer.sourceID --equals '"app:UserNotificationCenter#31507"'
+assert --path computer.hasPicture --equals true --timeout 15
+driver off
+wait --id computer-session-dialogs --contains "2 dialogs waiting"
+shot computer-entry-dialog-chip
+driver on
+dismiss
+driver off
+wait --id computer-status-pill --contains "2 dialogs waiting" --timeout 10
+tap --id computer-status-pill
+wait --id computer-session-header --contains "display" --timeout 15
+driver on
+assert --path computer.hasPicture --equals true --timeout 15
+assert --path computer.sourceKind --equals '"display"' --timeout 10
+assert --path computer.hasPicture --equals true --timeout 10
+driver off
+shot computer-entry-reopened-whole-screen
+driver on
+dismiss
+driver off
+signal mac-permission-closed
+wait --id computer-status-pill --contains "dialog" --gone --timeout 10
+shot computer-entry-no-badge
+# New chat no longer carries a View computer pill (UX-DUO-3); the rail and the conversation entry above own it.

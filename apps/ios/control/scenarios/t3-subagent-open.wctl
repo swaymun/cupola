@@ -1,0 +1,39 @@
+# A thread T3 Code holds lists its delegate children beside a background command.
+# Each child has a chevron and opens read-only: the brief it was given and its
+# result (completed), or its messages so far (running). A child T3 Code cannot
+# read opens to the host's plain reason with Try again. The fixture stands in
+# for the Mac; no model work.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-t3-tasks --fixture open-project-thread
+wait --id project-subagent-status-pill --timeout 30
+tap --id project-subagent-status-pill
+wait --id project-subagent-roster:t3-child-duo-videos --timeout 10
+wait --id project-subagent-roster:t3-command-watch --timeout 5
+wait --contains "Duo feedback videos: transcribe, find issues, visualize" --timeout 5
+wait --contains "subagent, Completed" --timeout 5
+wait --label "Check the release notes, subagent, Running on your computer" --timeout 5
+shot t3-subagent-open-listed
+tap --id project-subagent-roster:t3-child-duo-videos
+wait --id project-subagent-transcript --timeout 10
+wait --contains "Transcribe the Duo feedback videos" --timeout 10
+wait --contains "Found 4 issues across the 3 videos" --timeout 10
+shot t3-subagent-open-completed
+
+# A running child shows what it has said so far.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-t3-tasks --fixture open-project-thread
+wait --id project-subagent-status-pill --timeout 30
+tap --id project-subagent-status-pill
+wait --id project-subagent-roster:t3-child-running --timeout 10
+tap --id project-subagent-roster:t3-child-running
+wait --id project-subagent-transcript --timeout 10
+wait --contains "Reading the release notes now." --timeout 10
+shot t3-subagent-open-running
+
+# A child T3 Code cannot read says why instead of staying shut.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-t3-tasks --fixture open-project-thread
+wait --id project-subagent-status-pill --timeout 30
+tap --id project-subagent-status-pill
+wait --id project-subagent-roster:t3-child-unreadable --timeout 10
+tap --id project-subagent-roster:t3-child-unreadable
+wait --contains "T3 Code did not answer" --timeout 10
+wait --id project-subagent-retry --timeout 5
+shot t3-subagent-open-unreadable

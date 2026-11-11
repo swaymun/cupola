@@ -1,0 +1,48 @@
+# devices: iphone ipad duo
+# nightly-ipad: the real composer stages the same small owned video and restores its poster.
+# A two-second generated clip; no model sends or real pairing.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture open-project-thread --arg=-diagnostics-video --arg=-diagnostics-video-upload
+driver off
+wait --id composer-actions --timeout 30
+shot media-before-attachment
+tap --id composer-actions
+tap --id fixture-attach-video
+wait --contains "0:02" --timeout 30
+shot media-video-poster
+tap --id composer-actions
+tap --id fixture-reload-video-draft
+wait --contains "0:02" --timeout 30
+shot media-restored-video
+# A signal-held synthetic HTTP peer receives real chunks without sending a message.
+tap --id composer-actions
+tap --id fixture-upload-video
+wait --id composer-upload-progress --timeout 30
+wait --contains "4 KB" --timeout 30
+shot media-upload-progress
+tap --id composer-upload-cancel
+wait --id composer-upload-retry --timeout 30
+shot media-upload-cancelled
+tap --id composer-upload-retry
+wait --id composer-upload-progress --timeout 30
+signal video-upload
+wait --id composer-upload-progress --gone --timeout 30
+wait --id composer-upload-retry --gone --timeout 30
+shot media-upload-complete
+# New chat uses its durable file descriptors and the same poster worker.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture fresh-agent-defaults --fixture send-states --arg=-diagnostics-video
+driver off
+wait --id new-chat-attach --timeout 30
+tap --id new-chat-attach
+wait --label "Add media" --timeout 10
+shot media-new-chat-menu
+tap --id fixture-new-chat-video
+wait --contains "0:02" --timeout 30
+shot media-new-chat-video
+
+# A fresh process must decode the extensionless saved body without a warm poster cache.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --arg=-diagnostics-video
+wait --id new-chat-attach --timeout 30
+wait --contains "0:02" --timeout 30
+shot media-new-chat-restored-video

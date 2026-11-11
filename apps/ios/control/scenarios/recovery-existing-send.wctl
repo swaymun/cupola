@@ -1,0 +1,140 @@
+# Only the owned synthetic host receives messages. Draft/file are seeded once per launch.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --arg=-diagnostics-recovery-case --arg=signed-out
+wait --id new-chat-draft --timeout 30
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path composer.attachmentCount --equals 1 --timeout 30
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+send
+assert --path composer.recovery --equals '"Claude is signed out. Sign in to Claude on Synthetic fixture, then try again."' --timeout 15
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path fixtureSends.uploads --equals 0
+assert --path fixtureSends.messages --equals 0
+shot recovery-after-existing-signed-out
+signal recovery-resolved
+send
+assert --path fixtureSends.bodies --equals '["Keep my recovery draft"]' --timeout 30
+assert --path fixtureSends.uploadedHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path fixtureSends.attachments --equals 1
+assert --path fixtureSends.duplicates --equals 0
+assert --path composer.text --equals '""'
+shot recovery-recovered-existing-signed-out
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --arg=-diagnostics-recovery-case --arg=model
+wait --id new-chat-draft --timeout 30
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path composer.attachmentCount --equals 1 --timeout 30
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+send
+assert --path composer.recovery --equals '"This model is no longer available on Synthetic fixture. Choose another model."' --timeout 15
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path fixtureSends.uploads --equals 0
+assert --path fixtureSends.messages --equals 0
+shot recovery-after-existing-model
+driver off
+tap --id project-composer-model
+tap --id project-model:claude:haiku
+wait --id project-model:claude:haiku --gone --timeout 5
+wait --id message-draft --timeout 15
+driver on
+send
+assert --path fixtureSends.bodies --equals '["Keep my recovery draft"]' --timeout 30
+assert --path fixtureSends.uploadedHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path fixtureSends.attachments --equals 1
+assert --path fixtureSends.duplicates --equals 0
+assert --path composer.text --equals '""'
+shot recovery-recovered-existing-model
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --arg=-diagnostics-recovery-case --arg=expired --fixture send-held-by-app --fixture t3-code --fixture t3-code-expired
+wait --id new-chat-draft --timeout 30
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path composer.attachmentCount --equals 1 --timeout 30
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+wait --id open-elsewhere --contains "sign-in to T3 Code ended" --timeout 15
+shot recovery-after-existing-expired
+send
+assert --path fixtureSends.queued --equals 1 --timeout 20
+assert --path fixtureSends.attachments --equals 1
+assert --path fixtureSends.uploadedHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+shot recovery-queued-existing-expired
+driver off
+sidebar open
+tap --id sidebar-settings
+reveal up --id settings-computer:diagnostic-host --max-drags 2
+tap --id settings-computer:diagnostic-host
+wait --id connection-state --timeout 30
+wait --id computer-new-chat-default-loading --gone --timeout 15
+reveal up --id connection-connected-apps --max-drags 6
+tap --id connection-connected-apps
+driver on
+tap --id t3code-connect
+wait --id t3code-status --contains "Connected" --timeout 15
+driver off
+back
+back
+back
+wait --id message-draft --timeout 15
+driver on
+assert --path fixtureSends.queued --equals 0 --timeout 20
+assert --path fixtureSends.bodies --equals '["Keep my recovery draft"]'
+assert --path fixtureSends.duplicates --equals 0
+shot recovery-recovered-existing-expired
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --arg=-diagnostics-recovery-case --arg=unreachable --fixture send-held-by-app --fixture t3-code --fixture t3-code-unreachable
+wait --id new-chat-draft --timeout 30
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path composer.attachmentCount --equals 1 --timeout 30
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+wait --id open-elsewhere --contains "isn’t answering" --timeout 15
+shot recovery-after-existing-unreachable
+send
+assert --path fixtureSends.queued --equals 1 --timeout 20
+assert --path fixtureSends.attachments --equals 1
+assert --path fixtureSends.uploadedHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+shot recovery-queued-existing-unreachable
+signal recovery-resolved
+assert --path fixtureSends.queued --equals 0 --timeout 20
+assert --path fixtureSends.bodies --equals '["Keep my recovery draft"]'
+assert --path fixtureSends.duplicates --equals 0
+shot recovery-recovered-existing-unreachable
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --arg=-diagnostics-recovery-case --arg=offline --fixture mac-offline
+wait --id new-chat-draft --timeout 30
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path composer.attachmentCount --equals 1 --timeout 30
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+signal mac-gone
+driver off
+button home
+activate
+wait --id composer-mac-unreachable --timeout 30
+driver on
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+shot recovery-after-existing-offline
+send
+assert --path composer.outbox.0.text --equals '"Keep my recovery draft"' --timeout 15
+assert --path composer.outbox.0.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path fixtureSends.messages --equals 0
+shot recovery-queued-existing-offline
+signal mac-back
+driver off
+tap --id composer-reconnect
+wait --contains "Waiting for your computer" --gone --timeout 30
+driver on
+assert --path fixtureSends.bodies --equals '["Keep my recovery draft"]' --timeout 20
+assert --path fixtureSends.uploadedHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path fixtureSends.attachments --equals 1
+assert --path fixtureSends.duplicates --equals 0
+shot recovery-recovered-existing-offline

@@ -1,0 +1,24 @@
+# A Claude thread writing a reply on the Mac (spinner) stops on a permission
+# prompt there. The host's native_status event makes the sidebar read its rows
+# at once: the row shows the accent needs-you dot, labelled as waiting on the
+# Mac. The 5 s check is well inside the 30 s periodic refresh. Opened, the
+# thread says so above the composer, and View computer shows the computer's
+# screen to answer there (a sheet on iPhone, the pane beside the chat on iPad).
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture computer-session-fixture --fixture computer-session-available-fixture
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id project-thread:claude:9c4f2e17-3b8a-4d5c-a6e1-7f0b2c3d4e5f --timeout 20
+wait --label "Working" --timeout 10
+shot mac-waiting-before
+signal mac-waiting
+wait --label "Waiting for you on your computer" --timeout 5
+shot mac-waiting-after
+tap --id project-thread:claude:9c4f2e17-3b8a-4d5c-a6e1-7f0b2c3d4e5f
+# The row opens its own chat (it once attached as the read fixture's thread).
+wait --id conversation-title-menu --contains "Apply the database migration" --timeout 15
+wait --id computer-waiting-view --timeout 15
+wait --id computer-waiting-unavailable --gone
+shot mac-waiting-thread
+tap --id computer-waiting-view
+wait --id computer-session-header --timeout 10
+shot mac-waiting-computer

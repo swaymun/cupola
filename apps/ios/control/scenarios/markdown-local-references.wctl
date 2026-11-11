@@ -1,0 +1,25 @@
+# A project README in a folder shows its relative image from the workspace, says
+# in place when an image is missing or points outside the project, and opens a
+# relative .md link in the viewer. Nothing is sent.
+launch --fixture read-preview --fixture send-preview --fixture files-preview --fixture project-files-conversation-preview --fixture workspace-viewer-preview
+wait --id conversation-files-pill
+tap --id conversation-files-pill
+wait --id workspace-file-list
+# The Duo's Files panel is short; tag-mails is at the end of the list.
+swipe up --in workspace-file-list
+tap --id workspace-directory-entry:tag-mails --timeout 5
+tap --id workspace-file-entry:tag-mails/README.md --timeout 10
+# Preview may not be the remembered choice on this simulator.
+wait --label Preview --timeout 10
+tap --label Preview --type RadioButton
+wait --id workspace-markdown-preview --timeout 10
+wait --label "Inbox with tags" --timeout 15
+wait --contains "Image not found in the project" --timeout 15
+wait --contains "Image outside this project isn’t shown" --timeout 5
+shot markdown-local-references
+swipe up --in workspace-markdown-preview
+wait --label "usage guide" --timeout 5
+wait --id workspace-markdown-image --timeout 5
+tap --label "usage guide"
+wait --contains "tagmails sync" --timeout 15
+shot markdown-local-link-opened

@@ -1,0 +1,36 @@
+# New Chat and an existing Project thread show the host's default model and,
+# as its own button, its resolved effort; and the Speed picker lists every tier and keeps a
+# non-default choice. Nothing is sent.
+# Clear this synthetic host's saved draft before checking defaults.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults
+wait --id project-agent-picker --timeout 30
+wait --contains "Fixture model" --timeout 20
+wait --id new-chat-effort --timeout 10
+wait --contains "High"
+shot agent-defaults-new-chat
+tap --id project-agent-picker
+wait --id new-chat-speed:default --timeout 10
+swipe up
+wait --id new-chat-speed:fast
+tap --id new-chat-speed:fast
+shot agent-defaults-new-chat-speed
+# The sheet's Done stays reachable while it is scrolled (short screens such as the Duo).
+tap --label Done
+wait --contains "Fixture model, Fast" --timeout 10
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-composer-model --timeout 15
+wait --id project-composer-effort --timeout 10
+wait --contains "High"
+shot agent-defaults-thread-composer
+tap --id project-composer-model
+wait --id project-speed:default --timeout 10
+swipe up
+wait --id project-speed:fast
+shot agent-defaults-thread-speed
+tap --id project-speed:fast
+tap --label Done
+wait --id project-composer-model --timeout 10
+wait --contains "Fixture model, Fast" --timeout 10
+shot agent-defaults-thread-speed-saved

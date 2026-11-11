@@ -1,0 +1,52 @@
+{
+  "apiVersion": "v1",
+  "pushConfiguration": {
+    "endpoint": "https://push.example.test",
+    "topic": "com.example.wonder",
+    "environment": "production",
+    "previewVersion": 1
+  },
+  "pushRoute": {
+    "conversationId": "parent-conversation"
+  },
+  "pushRegistration": {
+    "id": "9f24d8ab-fde5-4a9e-9bcc-f7b398cd0d28",
+    "senderSecret": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "actionNonce": "fixture-nonce",
+    "issuedAtMs": 1789840000000,
+    "signature": "fixture-signature",
+    "previewKey": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
+  },
+  "pushPresence": {
+    "state": "foreground",
+    "conversationId": "parent-conversation",
+    "actionNonce": "fixture-nonce",
+    "issuedAtMs": 1789840000000,
+    "signature": "fixture-signature"
+  },
+  "pushLiveActivity": {
+    "kind": "update",
+    "token": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "actionNonce": "fixture-nonce",
+    "issuedAtMs": 1789840000000,
+    "signature": "fixture-signature"
+  },
+  "pushLiveActivityReply": {
+    "registered": true,
+    "state": {
+      "phase": "needsApproval",
+      "running": 2,
+      "needsInput": 1,
+      "threads": [
+        {
+          "title": "Fix login crash",
+          "project": "Cupola",
+          "status": "needsApproval",
+          "startedAt": 1789839900,
+          "routeId": "5b0c9a3e-2f7d-4e61-9a8b-0c1d2e3f4a5b",
+          "registrationId": "11111111-1111-4111-8111-111111111111"
+        }
+      ]
+    }
+  }
+}

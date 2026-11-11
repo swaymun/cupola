@@ -1,0 +1,5 @@
+# nightly-ipad: the computer view's themed background at iPad size
+# The computer view uses the active theme background (not black), like its Take control area. Default nord; reruns per theme by sed. Nothing is sent.
+launch --fixture computer-session-fixture --fixture theme --arg nord
+wait --id computer-session-container --timeout 30
+shot theme-nord-computer

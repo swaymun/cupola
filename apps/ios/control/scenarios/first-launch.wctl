@@ -1,0 +1,32 @@
+# First launch with no computer paired: New Chat explains that Cupola connects to agents
+# on the person's own computer, offers Add computer and the computer setup download, and no Settings sheet
+# covers it, and says to pair on the same Wi-Fi. Add computer opens pairing; the empty Chats list offers Add computer too.
+# The fixture empties the saved computers without reading the Keychain; nothing is sent.
+launch --fixture unpaired
+wait --id welcome-add-computer --timeout 30
+wait --contains "Claude and Codex" --timeout 5
+wait --contains "through the cupola command there" --timeout 5
+wait --id welcome-mac-download --timeout 5
+wait --contains "on the same Wi-Fi" --timeout 5
+wait --id settings-done --gone --timeout 5
+shot first-launch-welcome
+tap --id welcome-add-computer
+wait --id pairing-entry-mode --timeout 10
+wait --contains "On your computer, run cupola pair." --timeout 5
+shot first-launch-pairing
+tap --label Cancel --type Button
+wait --id pairing-entry-mode --gone --timeout 10
+wait --id welcome-add-computer --timeout 10
+sidebar open
+wait --id sidebar-add-computer --timeout 10
+wait --contains "Run cupola pair on your computer" --timeout 5
+shot first-launch-chats-empty
+tap --id sidebar-add-computer
+wait --id pairing-entry-mode --timeout 10
+tap --label Cancel --type Button
+wait --id pairing-entry-mode --gone --timeout 10
+# Dark themes tint with their light text colour; the filled Add computer keeps a
+# readable label (check the shot).
+launch --fixture unpaired --fixture diagnostics-theme --arg dracula
+wait --id welcome-add-computer --timeout 30
+shot first-launch-dracula

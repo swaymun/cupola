@@ -1,0 +1,32 @@
+# Provider-declared actions, held while active; no provider or model is started.
+# Active turns open their activity by default. Do not toggle it closed.
+launch --fixture read-preview --fixture send-preview --fixture tool-actions-preview --fixture activity-running-preview
+wait --label "Searching for isWorking"
+shot tool-actions-running
+# Finished commands fold into one "Ran 2 commands" row; opening it lists each.
+wait --id command-run:actions-turn/read-one --contains "Ran 2 commands" --timeout 10
+wait --id command-run:actions-turn/read-one --contains "Collapsed"
+tap --id command-run:actions-turn/read-one
+wait --id command-run:actions-turn/read-one --contains "Expanded" --timeout 5
+wait --contains "Read AppShell.swift"
+wait --contains "Couldn’t edit Settings.swift"
+wait --contains "Edited Settings.swift" --gone
+shot tool-actions-details
+# The row's label centre does not toggle in the rig; its chevron does.
+tap --xy 380,333
+wait --contains "struct AppShell {}"
+shot tool-actions-command
+# Read output opens the whole output as one accessible page; Copy All copies it.
+tap --id tool-output-read --nth 0
+wait --id tool-output-reader-text --timeout 10
+wait --contains "struct AppShell {}"
+clipboard --clear
+tap --id tool-output-reader-copy
+wait --id tool-output-reader-copy --contains "Copied"
+clipboard --contains "struct AppShell {}"
+shot tool-actions-output-reader
+tap --id tool-output-reader-done
+wait --id tool-output-reader-text --gone --timeout 5
+launch --fixture read-preview --fixture send-preview --fixture tool-actions-preview
+wait --contains "Read 1 file · Edited 2 files · Searched files · 1 action failed"
+shot tool-actions-completed

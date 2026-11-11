@@ -1,0 +1,39 @@
+# devices: duo
+# K2's native laptop setup: warm the inner display before the 90-degree pose.
+# The horizontal band remains a Diagnostics fixture; no native hinge-gap claim.
+driver on
+hinge 180
+orient portrait
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture no-hardware-keyboard
+assert --path computer.hasPicture --equals true --timeout 30
+hinge 90
+orient landscape-left
+
+# The laptop pose's pad is permanent. Its segment chooses it without changing
+# the optional trackpad preference used by flat layouts.
+driver on
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-dock --fixture computer-fold --fixture computer-control-active --fixture no-hardware-keyboard
+assert --path computer.hasPicture --equals true --timeout 30
+assert --path computer.controlling --equals true --timeout 15
+assert --path computer.optionalTrackpad --equals false
+driver off
+wait --id computer-viewport-appearances --contains "laptop: true;" --timeout 10
+wait --id computer-session-trackpad-toggle --contains "Trackpad" --timeout 10
+wait --id computer-session-trackpad --timeout 10
+signal computer-dock-keyboard
+driver on
+assert --path computer.keyboardPresented --equals true --timeout 10
+driver off
+wait --id computer-session-trackpad-toggle --contains "Use trackpad" --timeout 10
+# Keyboard up: the trackpad toggle stays reachable beside Hide keyboard.
+wait --id computer-session-keyboard --contains "Hide keyboard" --timeout 10
+shot computer-dock-half-folded-keyboard-up --display primary-1
+signal computer-dock-persistent-trackpad
+driver on
+assert --path computer.keyboardPresented --equals false --timeout 10
+assert --path computer.optionalTrackpad --equals false
+assert --path computer.hasPicture --equals true
+driver off
+wait --id computer-session-trackpad-toggle --contains "Trackpad" --timeout 10
+wait --id computer-session-trackpad --timeout 10
+shot computer-dock-persistent-trackpad --display primary-1

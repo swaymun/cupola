@@ -1,0 +1,109 @@
+# Own the theme: previous demo runs must not change this scenario’s geometry.
+# nightly-ipad: Settings is a sheet with its own navigation stack on iPad.
+# Settings → Voice: whose OpenAI key voice uses (kept on this phone; each
+# fixture launch starts with no choice, which shows the first computer with a
+# key), removing a key and adding one to a connected computer, then what voice asks before doing
+# (this phone's choice: each fixture launch starts with every action asking),
+# and the chosen computer's limits and transcripts.
+# Host response fixture only: three fixture computers, Laptop without a key;
+# nothing is minted, spoken or sent, and no key reaches OpenAI. Turning
+# Stopping replies off is kept when Voice is left and reopened; VoiceToolTests
+# own what each Ask before toggle does; VoiceKeySourceTests own which computer
+# mints; wonderd voice:: tests own the limits, budget and storage.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --arg=-diagnostics-theme --arg=light-classic
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-voice
+tap --id settings-voice
+wait --id voice-key-computer --contains "Synthetic fixture" --timeout 15
+# Hands-free unless chosen; every fixture launch clears the saved choice.
+wait --id voice-talk-mode --contains "Hands-free" --timeout 5
+shot voice-settings
+# The Talking section pushes the limits below the fold on a phone.
+reveal up --id voice-limits-header
+wait --id voice-limits-header --contains "Limits" --timeout 10
+# The chosen computer's limits follow the picker.
+reveal down --label "Voice computer" --in voice-settings-list
+tap --id voice-key-computer
+tap --label "Studio" --type Button --timeout 5
+wait --id voice-key-computer --contains "Studio" --timeout 5
+reveal up --id voice-limits-header
+wait --id voice-limits-header --contains "Limits" --timeout 10
+reveal down --label "Voice computer" --in voice-settings-list
+# Removing the chosen key moves voice to the next computer with one; adding a
+# key (only to a connected computer: the fixture's others are not) makes it the
+# one voice uses again.
+tap --id voice-key-computer
+tap --label "Synthetic fixture" --type Button --timeout 5
+wait --id voice-key-computer --contains "Synthetic fixture" --timeout 5
+tap --id voice-key-remove
+tap --label "Remove key" --timeout 5
+wait --id voice-key-message --contains "Key removed from Synthetic fixture" --timeout 10
+wait --id voice-key-computer --contains "Studio" --timeout 5
+tap --id voice-key-add
+wait --id voice-key-field --timeout 10
+# Select the write target explicitly: Studio may also be connected.
+tap --id voice-key-entry-computer
+tap --label "Synthetic fixture" --type Button --timeout 10
+wait --id voice-key-entry-computer --contains "Synthetic fixture"
+tap --id voice-key-field
+type "sk-fixture-0123456789abcdefghij"
+tap --id voice-key-save
+wait --id voice-key-message --contains "Key saved on Synthetic fixture" --timeout 10
+wait --id voice-key-computer --contains "Synthetic fixture" --timeout 5
+shot voice-settings-key-added
+reveal up --id voice-ask-send
+# A switch reads its label then 1 (on) or 0 (off).
+wait --id voice-ask-send --contains "1"
+wait --id voice-ask-start-thread --contains "1"
+reveal up --id voice-ask-create-project
+wait --id voice-ask-stop --contains "1"
+wait --id voice-ask-approval --contains "1"
+wait --id voice-ask-create-project --contains "1"
+wait --contains "Sending includes Send now"
+# Press the row's trailing switch (a tap on the row's centre does not toggle it).
+hold --id voice-ask-stop --x-fraction 0.9 --seconds 0.15
+wait --id voice-ask-stop --contains "0" --timeout 5
+wait --id voice-ask-send --contains "1"
+# Leaving Voice and opening it again reads the saved choice.
+back
+wait --id settings-voice --timeout 10
+tap --id settings-voice
+wait --id voice-key-computer --contains "Synthetic fixture" --timeout 15
+reveal up --id voice-ask-create-project
+wait --id voice-ask-stop --contains "0" --timeout 5
+wait --id voice-ask-approval --contains "1"
+shot voice-settings-ask-before-kept
+hold --id voice-ask-stop --x-fraction 0.9 --seconds 0.15
+wait --id voice-ask-stop --contains "1" --timeout 5
+# Announcements are on until turned off, and the choice is kept.
+reveal up --id voice-announce
+wait --id voice-announce --contains "1"
+hold --id voice-announce --x-fraction 0.9 --seconds 0.15
+wait --id voice-announce --contains "0" --timeout 5
+back
+wait --id settings-voice --timeout 10
+tap --id settings-voice
+wait --id voice-key-computer --contains "Synthetic fixture" --timeout 15
+reveal up --id voice-announce
+wait --id voice-announce --contains "0" --timeout 5
+shot voice-settings-announcements-off
+hold --id voice-announce --x-fraction 0.9 --seconds 0.15
+wait --id voice-announce --contains "1" --timeout 5
+reveal up --id voice-session-limit
+wait --id voice-session-limit --contains "15 min" --timeout 10
+wait --id voice-daily-minutes --contains "No limit"
+reveal up --id voice-used-today
+wait --id voice-used-today --contains "5 min"
+shot voice-settings-limits
+reveal up --id voice-delete-transcripts
+wait --id voice-keep-transcripts --timeout 5
+wait --contains "No audio is kept"
+tap --id voice-delete-transcripts
+wait --label "Delete transcripts" --timeout 5
+tap --label "Delete transcripts"
+reveal up --id voice-options-message
+wait --id voice-options-message --contains "Saved transcripts deleted" --timeout 10
+shot voice-settings-transcripts-deleted

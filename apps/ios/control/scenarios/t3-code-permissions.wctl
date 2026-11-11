@@ -1,0 +1,40 @@
+# nightly-ipad: T3 permission location and mode must fit both a phone sheet and the iPad details pane.
+# devices: iphone ipad duo
+# Fixture responses only: T3's MCP tools cannot answer permission requests.
+# The same chat keeps Needs you until its computer-only request is answered.
+# Duo runs this on its folded cover; capture-t3-permissions.py covers both postures.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-running --fixture t3-code-permission --fixture open-project-thread
+wait --id message-draft --timeout 30
+assert --path fixtureSends.bodies --equals '[]'
+driver off
+wait --id project-conversation-header --contains "Waiting for a permission on your Mac" --timeout 15
+wait --id computer-waiting --timeout 15
+wait --contains "Approve in T3 Code on Synthetic fixture" --timeout 10
+wait --id project-composer-access --contains "Auto-accept edits in T3 Code" --timeout 10
+shot t3-permission-on-computer
+# This signal is an answer in the fixture's T3 app, not an approval sent by the phone.
+signal t3-permission-answered
+wait --contains "Approve in T3 Code on Synthetic fixture" --gone --timeout 30
+wait --id project-conversation-header --contains "Waiting for a permission on your Mac" --gone --timeout 10
+# The header stays compact; permissions remain in the shield and Chat details.
+shot t3-permission-answered-on-computer
+# Select details through the normal production tool route, including on Duo (#387).
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-running --fixture t3-code-permission --fixture open-project-thread --arg=-diagnostics-companion-details
+driver off
+wait --id thread-permission-mode --contains "Auto-accept edits · T3 Code" --timeout 20
+wait --id thread-permission-description --contains "Edits files in its working folder without asking." --timeout 10
+wait --id thread-approval-location --contains "Approve permission requests in T3 Code on Synthetic fixture." --timeout 10
+shot t3-permission-details
+# Accessibility text keeps the computer name and View computer readable.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-running --fixture t3-code-permission --fixture open-project-thread --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+driver off
+wait --contains "Approve in T3 Code on Synthetic fixture" --timeout 30
+shot t3-permission-large-chat
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-running --fixture t3-code-permission --fixture open-project-thread --arg=-diagnostics-companion-details --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+driver off
+wait --id thread-permission-mode --timeout 30
+shot t3-permission-large-details

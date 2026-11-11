@@ -1,0 +1,34 @@
+# Duo only; outside the feature map until #387 closes. Offline transport only.
+# Contract: opening Computer on the cover, then moving to the real inner display,
+# keeps the viewer usable without terminating the app, in its cover or pane.
+# Diagnostics driver invokes the same Computer pill action; AXe taps on the
+# Duo can report success without opening it (#387). Viewer checks still use AXe.
+# Launch first so hinge 0 never closes over Home (which can sleep the cover).
+# `shot` captures the cover. While unfolded, the verifier must also capture
+# simctl io UDID screenshot --display=primary-1 FILE and retain the launch PID.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture computer-simulator-fixture --arg=-composerPills --arg=computer --arg=-wonder.companionPane.flipped --arg=NO --arg=-wonder.companionPane.fraction.portrait --arg=0.5 --arg=-wonder.companionPane.fraction.landscape --arg=0.5
+hinge 0
+orient portrait
+wait --id computer-status-pill --timeout 30
+shot duo-a-folded-chat
+tap --id computer-status-pill
+driver off
+wait --id computer-session-connection-picker --timeout 15
+wait --id computer-session-preview --contains "Live" --timeout 15
+wait --id companion-pane --gone --timeout 5
+shot duo-a-folded-computer
+hinge 180
+orient portrait
+wait --id computer-session-connection-picker --timeout 15
+wait --id computer-session-preview --contains "Live" --timeout 15
+shot duo-a-unfolded-computer
+# Relaunch closes the cover after the survival assertions, like the window-menu
+# scenario; no unqualified unfolded tap is needed for cleanup.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture computer-simulator-fixture --arg=-composerPills --arg=computer --arg=-wonder.companionPane.flipped --arg=NO --arg=-wonder.companionPane.fraction.portrait --arg=0.5 --arg=-wonder.companionPane.fraction.landscape --arg=0.5
+# Return to a known posture with Cupola still in front.
+hinge 0
+orient portrait
+driver on
+wait --id computer-status-pill --timeout 15

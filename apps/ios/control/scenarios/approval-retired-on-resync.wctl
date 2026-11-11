@@ -1,0 +1,17 @@
+# devices: iphone ipad
+# An approval the Mac retired while the phone was cut off (no event for it) disappears within seconds of the
+# phone reconnecting and resyncing. Owned offline fixture; the host ends the stream on `signal resync`.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture approval-resync --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-needs-you --timeout 20
+tap --id sidebar-needs-you
+wait --id needs-you:diagnostic-host:fixture-opencode-approval
+shot approval-retired-before
+# The Mac retires the request; the phone has no event and no reconnect yet, so the card is still there.
+signal approval-retire
+wait --id needs-you:diagnostic-host:fixture-opencode-approval
+# The stream ends as after a host restart: the phone resnapshots and re-reads pending requests.
+signal resync
+wait --id needs-you:diagnostic-host:fixture-opencode-approval --gone --timeout 10
+shot approval-retired-after

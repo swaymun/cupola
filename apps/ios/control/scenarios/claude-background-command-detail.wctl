@@ -1,0 +1,31 @@
+# A background command's details wrap the command and its output instead of
+# scrolling sideways; a long command shows its start and opens fully on
+# "Show all". The finished command is listed under Completed. The fixture
+# stands in for the Mac.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-subagent-status-pill --timeout 15
+tap --id project-subagent-status-pill
+wait --id project-subagent-section:completed --timeout 10
+wait --label "Build the app, Background command, Completed, ran for 4 minutes 54 seconds" --timeout 5
+# The finished command sits below the popover's fold; scroll the list, not the screen.
+swipe up --in project-subagent-roster-list
+swipe up --in project-subagent-roster-list
+tap --id project-subagent-roster:fixture-finished-command
+wait --id project-subagent-transcript --timeout 15
+wait --contains "gcloud compute instances create" --timeout 10
+wait --contains "rc=0 CREATED acr-win-t4" --timeout 5
+wait --id code-block-show-all --timeout 5
+shot claude-background-command-wrapped
+# The bubble combines its children for VoiceOver (Show all is its action), so the
+# second match is the button itself.
+tap --id code-block-show-all --nth 1
+wait --contains "--maintenance-policy TERMINATE" --timeout 5
+shot claude-background-command-expanded
+# The whole command and its output follow, wrapped, with Show less after it.
+swipe up --in project-subagent-transcript
+wait --label "Show less" --timeout 5
+shot claude-background-command-expanded-end

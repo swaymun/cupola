@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+"""Attach evidence to a pull request: images on the pr-evidence branch, sticky comments.
+
+  scripts/pr-evidence upload --pr 42 --label before before.png   # prints Markdown images
+  scripts/pr-evidence comment --pr 42 --key scenarios-iphone --body-file report.md
+
+Images are downscaled to JPEG and committed to the orphan `pr-evidence` branch (never
+checked out), then embedded by commit URL, which GitHub renders for repo members.
+`comment` creates or replaces one comment per --key, so reruns update in place.
+"""
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+BRANCH = "pr-evidence"
+IMAGE = re.compile(r"\.(png|jpe?g|gif|heic)$", re.I)
+
+
+def git(*args, env=None, capture=True):
+    result = subprocess.run(["git", "-C", str(ROOT), *args], text=True, capture_output=capture,
+                            env={**os.environ, **(env or {})})
+    if result.returncode != 0:
+        raise SystemExit(f"git {' '.join(args)} failed: {(result.stderr or '').strip()[-500:]}")
+    return result.stdout.strip() if capture else ""
+
+
+def repo():
+    if os.environ.get("GITHUB_REPOSITORY"):
+        return os.environ["GITHUB_REPOSITORY"]
+    url = git("remote", "get-url", "origin")
+    match = re.search(r"github\.com[:/-]+(?:[^:/]*:)?([^/]+/[^/]+?)(?:\.git)?$", url)
+    if not match:
+        raise SystemExit(f"cannot tell the GitHub repository from {url}")
+    return match.group(1)
+
+
+def prepared(path, scratch):
+    """Downscale screenshots so evidence stays small; other files go up unchanged."""
+    if not IMAGE.search(path.name) or path.suffix.lower() == ".gif":
+        return path
+    out = Path(scratch) / (path.stem + ".jpg")
+    subprocess.run(["sips", "-Z", "900", "-s", "format", "jpeg", "-s", "formatOptions", "70",
+                    str(path), "--out", str(out)], capture_output=True, check=True)
+    return out
+
+
+def upload(pr, label, files):
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    safe = re.sub(r"[^A-Za-z0-9._-]+", "-", label).strip("-") or "evidence"
+    prefix = f"pr/{pr}/{stamp}-{safe}"
+    with tempfile.TemporaryDirectory() as scratch:
+        blobs = []
+        for name in files:
+            path = prepared(Path(name), scratch)
+            blobs.append((f"{prefix}/{path.name}", git("hash-object", "-w", str(path))))
+        for _ in range(4):
+            parent = subprocess.run(["git", "-C", str(ROOT), "fetch", "-q", "origin", BRANCH],
+                                    capture_output=True).returncode == 0 and git("rev-parse", "FETCH_HEAD")
+            env = {"GIT_INDEX_FILE": str(Path(scratch) / "index")}
+            if parent:
+                git("read-tree", parent, env=env)
+            else:
+                git("read-tree", "--empty", env=env)
+            for path, blob in blobs:
+                git("update-index", "--add", "--cacheinfo", f"100644,{blob},{path}", env=env)
+            tree = git("write-tree", env=env)
+            commit = git("commit-tree", tree, *(["-p", parent] if parent else []),
+                         "-m", f"Evidence for #{pr}: {safe}")
+            pushed = subprocess.run(["git", "-C", str(ROOT), "push", "-q", "origin",
+                                     f"{commit}:refs/heads/{BRANCH}"], capture_output=True)
+            if pushed.returncode == 0:
+                break
+        else:
+            raise SystemExit(f"could not push {BRANCH}: {pushed.stderr.decode()[-300:]}")
+    base = f"https://github.com/{repo()}/blob/{commit}"
+    return {path: f"{base}/{path}?raw=true" for path, _ in blobs}
+
+
+def gh_json(*args):
+    result = subprocess.run(["gh", "api", *args], text=True, capture_output=True)
+    if result.returncode != 0:
+        raise SystemExit(f"gh api {' '.join(args[:3])} failed: {result.stderr.strip()[-300:]}")
+    return json.loads(result.stdout or "null")
+
+
+def comment(pr, key, body):
+    marker = f"<!-- wonder:{key} -->"
+    body = f"{marker}\n{body}"
+    comments = gh_json("--paginate", f"repos/{repo()}/issues/{pr}/comments")
+    existing = next((c for c in comments if c["body"].startswith(marker)), None)
+    if existing:
+        gh_json("-X", "PATCH", f"repos/{repo()}/issues/comments/{existing['id']}", "-f", f"body={body}")
+    else:
+        gh_json("-X", "POST", f"repos/{repo()}/issues/{pr}/comments", "-f", f"body={body}")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = parser.add_subparsers(dest="command", required=True)
+    up = sub.add_parser("upload", help="upload files and print Markdown for them")
+    up.add_argument("--pr", required=True, type=int)
+    up.add_argument("--label", default="evidence")
+    up.add_argument("files", nargs="+")
+    note = sub.add_parser("comment", help="create or update the PR comment for --key")
+    note.add_argument("--pr", required=True, type=int)
+    note.add_argument("--key", required=True)
+    note.add_argument("--body-file", required=True)
+    args = parser.parse_args()
+    if args.command == "upload":
+        for path, url in upload(args.pr, args.label, args.files).items():
+            name = Path(path).name
+            print(f"![{name}]({url})" if IMAGE.search(name) else f"[{name}]({url})")
+    else:
+        comment(args.pr, args.key, Path(args.body_file).read_text())
+
+
+if __name__ == "__main__":
+    main()

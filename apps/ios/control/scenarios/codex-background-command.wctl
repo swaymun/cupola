@@ -1,0 +1,20 @@
+# A command Codex left running (a dev server) is listed among the chat's agent
+# tasks by its command line, beside the named helpers. It has no history to
+# open; Stop asks first, naming Codex and the command, then the command leaves
+# the list. The fixture stands in for the Mac; no model work.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-codex-commands --fixture open-project-thread
+wait --id project-subagent-status-pill --timeout 30
+tap --id project-subagent-status-pill
+wait --id project-subagent-roster:command:4242 --timeout 10
+wait --label "npm run dev, Background command, Running" --timeout 5
+wait --id project-subagent-stop:command:4242 --timeout 5
+wait --id project-subagent-roster:fixture-child-thread --timeout 5
+shot codex-background-command-listed
+tap --id project-subagent-stop:command:4242
+wait --id project-subagent-stop-confirm --timeout 5
+wait --contains "Codex will stop" --timeout 5
+shot codex-background-command-stop-confirm
+tap --id project-subagent-stop-confirm --nth 0
+wait --id project-subagent-roster:command:4242 --gone --timeout 10
+wait --id project-subagent-roster:fixture-child-thread --timeout 5
+shot codex-background-command-stopped

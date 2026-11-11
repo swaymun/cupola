@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+"""Flag iOS screens that bypass the theme. Exits nonzero with one line per problem.
+
+  scripts/check-theme
+
+WonderTheme (apps/ios/Wonder/WonderTheme.swift) owns every colour that changes with
+the theme. Elsewhere in the app:
+
+1. No hard-coded system page, surface or text colours (`Color(uiColor: .systemBackground)`,
+   `.secondarySystemBackground`, `UIColor.label`, `.separator`...). Use a theme token:
+   `theme.page`, `theme.surface`, `theme.chip`, `theme.text` / `theme.textUIColor`,
+   `theme.rule`. Translucent fills and materials adapt by themselves and are allowed.
+2. Grouped screens use `WonderList` or `WonderForm`; a row background applied to
+   the outside of a native `List` or `Form` does not reach its rows.
+3. A type that opens a `NavigationStack` (a sheet or cover) applies `.wonderPage()` or
+   `WonderList` / `WonderForm`, so the sheet takes the theme's page and photo.
+4. No `.borderedProminent`: it labels in white over the theme's tint, which is
+   the near-white text colour on dark themes. Use `.buttonStyle(.wonderProminent)`.
+5. A switch (a `Toggle` that is not a menu item) applies `.systemSwitch()`, the app's
+   one switch style. Without it the theme's tint draws an on switch in the text colour.
+
+A line that must keep a system colour or needs no theming says why with a
+`// theme-exempt: <reason>` comment on that line (for 2 and 3, on the List, Form or
+NavigationStack line).
+"""
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+APP = ROOT / "apps/ios/Wonder"
+# The owner itself, and files that are not themed screens: fixtures and the camera,
+# which is always dark.
+SKIP = {"WonderTheme.swift", "DiagnosticScenarios.swift", "CameraCapture.swift"}
+
+COLOUR = re.compile(
+    r"Color\(uiColor: \.(?:(?:secondary|tertiary)?System(?:Grouped)?Background|systemBackground|systemGroupedBackground"
+    r"|label|secondaryLabel|separator)\)"
+    r"|Color\(\.(?:(?:secondary|tertiary)?[sS]ystem(?:Grouped)?Background|label|separator)\)"
+    r"|UIColor\.(?:(?:secondary|tertiary)?[sS]ystem(?:Grouped)?Background|systemBackground|label|secondaryLabel|separator)\b"
+    # UIKit colours written as implicit members: `view.textColor = .label`, `base: .label`.
+    r"|(?:[cC]olor|base)\s*[:=]\s*\.(?:(?:secondary|tertiary)?[sS]ystem(?:Grouped)?Background|systemBackground|label|secondaryLabel|separator)\b"
+)
+TYPE = re.compile(r"^(?:@MainActor )?(?:private |fileprivate )?(?:final )?(?:struct|class|enum|extension) (\w+)")
+GROUPED = re.compile(r"\b(?:List|Form)\s*(?:\{|\()")
+PROMINENT = re.compile(r"\.borderedProminent\b")
+NAV = re.compile(r"\bNavigationStack\s*(?:\{|\()")
+TOGGLE = re.compile(r"\bToggle\s*\(")
+SWITCH_STYLE = ".systemSwitch()"
+# An enclosing block opened by one of these makes a Toggle a menu item (a checkmark).
+MENU = re.compile(r"\b(?:Menu|contextMenu)\b[^{]*$")
+STRING = re.compile(r'"(?:\\.|[^"\\])*"')
+EXEMPT = "theme-exempt:"
+
+
+def blocks(lines):
+    """Top-level declarations: (name, first line number, lines)."""
+    current, start, body = None, 0, []
+    for number, line in enumerate(lines, 1):
+        match = TYPE.match(line)
+        if match:
+            if current:
+                yield current, start, body
+            current, start, body = match.group(1), number, []
+        if current:
+            body.append((number, line))
+    if current:
+        yield current, start, body
+
+
+def in_menu(lines, index, column):
+    """Whether the Toggle at lines[index][column] sits inside a Menu's braces."""
+    depth = 0
+    for number in range(index, -1, -1):
+        code = STRING.sub('""', lines[number].split("//", 1)[0])
+        if number == index:
+            code = code[:column]
+        for position in range(len(code) - 1, -1, -1):
+            if code[position] == "}":
+                depth += 1
+            elif code[position] == "{":
+                if depth == 0:
+                    if MENU.search(code[:position]):
+                        return True
+                    if TYPE.match(lines[number]):
+                        return False
+                else:
+                    depth -= 1
+    return False
+
+
+def unstyled_switches(lines):
+    """Line numbers of switches whose modifiers, before the next Toggle, lack the style."""
+    for index, line in enumerate(lines):
+        code = STRING.sub('""', line.split("//", 1)[0])
+        match = TOGGLE.search(code)
+        if not match or EXEMPT in line or in_menu(lines, index, match.start()):
+            continue
+        following = []
+        for later in lines[index:index + 16]:
+            if later is not line and TOGGLE.search(later.split("//", 1)[0]):
+                break
+            following.append(later)
+        if SWITCH_STYLE not in "\n".join(following):
+            yield index + 1
+
+
+def check(path):
+    problems = []
+    lines = path.read_text().splitlines()
+    rel = path.relative_to(ROOT)
+    for number, line in enumerate(lines, 1):
+        code = line.split("//", 1)[0]
+        if COLOUR.search(code) and EXEMPT not in line:
+            problems.append(f"{rel}:{number}: hard-coded system colour; use a WonderTheme token "
+                            f"(theme.page, theme.surface, theme.chip, theme.text, theme.textUIColor, theme.rule)")
+        if PROMINENT.search(code) and EXEMPT not in line:
+            problems.append(f"{rel}:{number}: .borderedProminent hides its label on dark themes; "
+                            f"use .buttonStyle(.wonderProminent)")
+    for number in unstyled_switches(lines):
+        problems.append(f"{rel}:{number}: switch without the app's switch style; apply .systemSwitch() "
+                        f"(or mark the line '// {EXEMPT} <reason>')")
+    for name, start, body in blocks(lines):
+        text = "\n".join(line for _, line in body)
+        for n, line in body:
+            if GROUPED.search(line.split("//", 1)[0]) and EXEMPT not in line:
+                problems.append(f"{rel}:{n}: native grouped rows bypass the theme; use WonderList or WonderForm "
+                                f"(or mark the line '// {EXEMPT} <reason>')")
+        for pattern, needs, fix in (
+            (NAV, ("WonderList", "WonderForm", "wonderPage"), ".wonderPage() or WonderList / WonderForm"),
+        ):
+            hits = [(n, l) for n, l in body if pattern.search(l.split("//", 1)[0]) and EXEMPT not in l]
+            if hits and not any(token in text for token in needs):
+                n, _ = hits[0]
+                problems.append(f"{rel}:{n}: {name} is not themed; apply {fix} inside it "
+                                f"(or mark the line '// {EXEMPT} <reason>')")
+    return problems
+
+
+def main():
+    problems = [p for path in sorted(APP.glob("*.swift")) if path.name not in SKIP for p in check(path)]
+    for problem in problems:
+        print(problem)
+    if problems:
+        print(f"\n{len(problems)} theme problem(s). See the docstring of scripts/check-theme.", file=sys.stderr)
+        return 1
+    print("theme check passed")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

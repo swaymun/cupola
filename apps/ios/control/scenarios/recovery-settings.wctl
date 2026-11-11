@@ -1,0 +1,116 @@
+# Native Settings routes and actions; owned host responses only.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --arg=-diagnostics-recovery-case --arg=unreachable
+wait --id new-chat-t3-note --contains "isn’t reachable" --timeout 30
+driver off
+sidebar open
+tap --id sidebar-settings
+reveal up --id settings-computer:diagnostic-host --max-drags 2
+tap --id settings-computer:diagnostic-host
+wait --id connection-state --timeout 30
+wait --id computer-new-chat-default-loading --gone --timeout 15
+reveal up --id connection-connected-apps --max-drags 6
+tap --id connection-connected-apps
+wait --id t3code-status --contains "T3 Code not reachable" --timeout 15
+shot recovery-after-settings-unreachable
+signal recovery-resolved
+tap --id t3code-retry
+wait --id t3code-status --contains "Connected" --timeout 15
+shot recovery-recovered-settings-unreachable
+back
+back
+back
+wait --id new-chat-draft --timeout 15
+driver on
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+wait --id new-chat-t3-note --contains "words only" --timeout 15
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --arg=-diagnostics-recovery-case --arg=signed-out
+wait --id new-chat-provider-recovery --contains "signed out" --timeout 30
+driver off
+sidebar open
+tap --id sidebar-settings
+reveal up --id settings-computer:diagnostic-host --max-drags 2
+tap --id settings-computer:diagnostic-host
+wait --id connection-state --timeout 30
+reveal up --id settings-provider:claude --max-drags 6
+tap --id settings-provider:claude
+wait --contains "Sign in to Claude on Synthetic fixture" --timeout 15
+shot recovery-after-settings-signed-out
+signal recovery-resolved
+tap --id provider-action:claude
+wait --contains "Signed in with Claude Max" --timeout 15
+shot recovery-recovered-settings-signed-out
+back
+back
+back
+wait --id new-chat-draft --timeout 15
+driver on
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+wait --id new-chat-provider-recovery --gone --timeout 15
+assert --path composer.canSend --equals true --timeout 15
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --arg=-diagnostics-recovery-case --arg=model
+wait --id new-chat-provider-recovery --contains "no longer available" --timeout 30
+driver off
+sidebar open
+tap --id sidebar-settings
+tap --id settings-default-models
+tap --id provider-default-model:claude
+wait --id default-model-unavailable --contains "Choose another model" --timeout 15
+shot recovery-after-settings-model
+tap --id default-model-claude
+tap --label "Haiku fixture"
+wait --id default-model-unavailable --gone --timeout 15
+back
+tap --id provider-default-model:claude
+wait --id default-model-claude --contains "Haiku fixture" --timeout 15
+wait --id default-model-unavailable --gone
+shot recovery-recovered-settings-model
+back
+back
+back
+wait --id new-chat-draft --timeout 15
+driver on
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --arg=-diagnostics-recovery-case --arg=offline --fixture mac-offline
+assert --path composer.attachmentCount --equals 1 --timeout 30
+assert --path "fixtureServed.GET /api/v1/settings/default-models" --equals true --timeout 15
+signal mac-gone
+driver off
+button home
+activate
+wait --id new-chat-offline --timeout 30
+wait --contains "Messages you send wait here and go out" --never 4
+shot recovery-after-new-offline
+driver on
+send
+assert --path composer.outbox.0.text --equals '"Keep my recovery draft"' --timeout 15
+assert --path composer.outbox.0.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path fixtureSends.messages --equals 0
+shot recovery-queued-new-offline
+driver off
+sidebar open
+tap --id sidebar-settings
+reveal up --id settings-computer:diagnostic-host --max-drags 2
+tap --id settings-computer:diagnostic-host
+wait --id connection-state --timeout 30
+wait --id connection-status --timeout 15
+shot recovery-after-settings-offline
+tap --label "Check connection" --type Button
+wait --id connection-status --timeout 15
+signal mac-back
+tap --label "Check connection" --type Button
+wait --id connection-state --contains "Connected" --timeout 30
+shot recovery-recovered-settings-offline
+back
+back
+wait --id new-chat-draft --timeout 15
+driver on
+assert --path fixtureSends.bodies --equals '["Keep my recovery draft"]' --timeout 30
+assert --path fixtureSends.uploadedHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'
+assert --path fixtureSends.attachments --equals 1
+assert --path fixtureSends.duplicates --equals 0
+assert --path composer.outbox --equals '[]' --timeout 15
+shot recovery-recovered-new-offline

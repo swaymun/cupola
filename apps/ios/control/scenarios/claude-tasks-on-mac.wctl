@@ -1,0 +1,10 @@
+# Claude on the Mac finished its reply but still runs agent tasks in its own
+# process: the chat is not shown as working (Send, not Queue) and the composer
+# adds no line about the Mac; VoiceOver hears that sending stops those tasks as
+# Send's hint (Wonder ends that process to continue the chat, so two processes
+# never write it).
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture project-tasks-on-mac-preview
+wait --id send-message --timeout 30
+wait --label "Send message" --timeout 5
+wait --contains "on your Mac" --never 2
+shot claude-tasks-on-mac

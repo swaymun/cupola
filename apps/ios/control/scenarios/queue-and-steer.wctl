@@ -1,0 +1,122 @@
+# devices: iphone
+# Owned synthetic computer only. Default Steer, an explicit Queue choice,
+# alternate Send on hold, one quiet queue row, and revision-safe Edit/Remove.
+# iPhone uses native input for the Send buttons and menus; driver state
+# checks the request the fixture actually received (no provider/model work).
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture queue-ux
+open-thread fixture-parent-conversation
+assert --path composer.placeholder --equals '"Message"' --timeout 15
+assert --path composer.steers --equals true
+driver off
+wait --id message-draft --timeout 15
+shot queue-and-steer-default
+tap --id message-draft --type TextArea
+type "Use the new API instead"
+wait --label "Send message" --timeout 10
+hold --id send-message
+wait --label "Queue" --timeout 5
+wait --label "Send now" --gone --timeout 5
+shot queue-and-steer-alternative
+# Pick Queue from the Steer button's hold menu.
+tap --label "Queue"
+wait --contains "Queued message: Use the new API instead" --timeout 15
+wait --label "Queued message actions" --timeout 15
+shot queue-and-steer-row
+tap --label "Queued message actions"
+wait --label "Send now" --timeout 5
+wait --label "Edit" --timeout 5
+wait --label "Remove" --timeout 5
+shot queue-and-steer-row-menu
+tap --label "Edit"
+wait --id queued-message-draft --timeout 10
+tap --id queued-message-draft
+type " and keep the dates"
+tap --label "Save"
+wait --id queued-message-draft --gone --timeout 15
+wait --contains "and keep the dates" --timeout 15
+driver on
+assert --path fixtureSends.bodies --equals '["Use the new API instead and keep the dates"]' --timeout 10
+driver off
+tap --label "Queued message actions"
+tap --label "Remove"
+wait --contains "Queued message:" --gone --timeout 15
+# An ordinary Send with Steer selected must reach the steer route once.
+tap --id message-draft --type TextArea
+type "Keep the change small"
+tap --id send-message
+driver on
+assert --path composer.text --equals '""' --timeout 15
+assert --path fixtureSends.steered --equals 1 --timeout 15
+assert --path fixtureSends.duplicates --equals 0
+driver off
+wait --contains "Queued message: Keep the change small" --gone --timeout 5
+shot queue-and-steer-sent
+# Explicit Queue choice: placeholder, tap and hold all agree.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --arg=-wonder.send.followUp --arg=queue --fixture queue-ux
+open-thread fixture-parent-conversation
+assert --path composer.placeholder --equals '"Queue a message"' --timeout 15
+assert --path composer.steers --equals false
+driver off
+shot queue-and-steer-queue-choice
+tap --id message-draft --type TextArea
+type "Then update the changelog"
+wait --label "Queue message" --timeout 10
+hold --id send-message
+wait --label "Send now" --timeout 5
+shot queue-and-steer-queue-alternative
+# Escape closes the native menu without choosing an action.
+keys 0x29
+wait --label "Send now" --gone --timeout 5
+tap --id send-message
+wait --contains "Queued message: Then update the changelog" --timeout 15
+wait --label "Queued message actions" --timeout 15
+driver on
+assert --path fixtureSends.queued --equals 1 --timeout 10
+assert --path fixtureSends.steered --equals 0
+assert --path fixtureSends.duplicates --equals 0
+driver off
+shot queue-and-steer-queued
+# The queue menu's Send now must actually take it out of the queue.
+tap --label "Queued message actions"
+tap --label "Send now"
+wait --contains "Queued message: Then update the changelog" --gone --timeout 15
+driver on
+assert --path fixtureSends.queued --equals 0 --timeout 10
+assert --path fixtureSends.duplicates --equals 0
+driver off
+shot queue-and-steer-queue-sent-now
+# A held thread and a failed connection would previously stack two notices.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-open-on-mac-preview --fixture disconnected-preview --fixture queue-ux
+driver off
+wait --id composer-mac-unreachable --timeout 15
+wait --id open-elsewhere --gone --timeout 5
+shot queue-and-steer-offline-status
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-open-on-mac-preview --fixture queue-ux
+driver off
+wait --id open-elsewhere --timeout 15
+wait --id composer-mac-unreachable --gone --timeout 5
+shot queue-and-steer-held-status
+# Steer remains selected, but an unconnected T3 Code thread cannot take it.
+# Its existing plain explanation is the only notice; sending queues once.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-running --fixture queue-ux
+open-thread fixture-parent-conversation
+assert --path composer.steers --equals false --timeout 15
+assert --path composer.placeholder --equals '"Queue a message"'
+driver off
+wait --id open-elsewhere --contains "Connect T3 Code in Settings" --timeout 15
+wait --id composer-mac-unreachable --gone --timeout 5
+shot queue-and-steer-t3-unavailable
+driver on
+type "Please verify the tests"
+tap --id send-message
+assert --path composer.text --equals '""' --timeout 15
+assert --path fixtureSends.queued --equals 1 --timeout 15
+assert --path fixtureSends.steered --equals 0
+driver off
+wait --contains "Queued message: Please verify the tests" --timeout 15
+shot queue-and-steer-t3-queued

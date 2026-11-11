@@ -1,0 +1,39 @@
+# A message the Mac refuses after its receipt never looks sent: its bubble
+# says "Not sent" with the Mac's reason, the one error (no second line under
+# the thread), and Retry sends the same message again (no duplicate), after
+# which the reason is gone. The draft stays empty and exactly one of the owner's
+# bubbles holds the words throughout.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-held --fixture send-refused
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 15
+tap --id message-draft --type TextArea
+type "What"
+tap --id send-message
+signal receipt
+wait --label "Sending message" --gone --timeout 10
+signal dispatch
+wait --id undelivered-reason --timeout 20
+wait --id undelivered-reason --contains "Not sent. " --timeout 5
+wait --id undelivered-reason --contains "still running background tasks" --timeout 5
+wait --id last-request-issue --never 3
+driver on
+assert --path composer.text --equals '""' --timeout 5
+assert --path userMessageCounts.What --equals 1 --timeout 5
+driver off
+shot send-refused
+tap --id undelivered-retry
+wait --id undelivered-reason --gone --timeout 20
+driver on
+assert --path composer.text --equals '""' --timeout 5
+assert --path userMessageCounts.What --equals 1 --timeout 5
+# Retry resent that same message: still one message on the computer, retried once.
+assert --path fixtureSends.bodies --equals '["What"]' --timeout 5
+assert --path fixtureSends.retried --equals 1 --timeout 5
+assert --path fixtureSends.duplicates --equals 0
+driver off
+shot send-refused-retried

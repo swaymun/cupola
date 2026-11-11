@@ -1,0 +1,13 @@
+# Held SDK-shaped task progress, with an underlying tool action. No provider calls.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture claude-task-progress --fixture open-project-thread
+wait --id project-subagent-status-pill --timeout 30
+tap --id project-subagent-status-pill
+wait --id project-subagent-roster:fixture-third-child-thread --contains "Comparing release requirements" --timeout 15
+wait --contains "Reading AppShell.swift" --gone --timeout 5
+shot claude-task-progress-running
+tap --id project-subagent-stop:fixture-third-child-thread
+wait --id project-subagent-stop-confirm --timeout 5
+tap --id project-subagent-stop-confirm --nth 0
+wait --label "Audit the release checklist, general-purpose, Stopped" --timeout 10
+wait --contains "Comparing release requirements" --gone --timeout 5
+shot claude-task-progress-stopped

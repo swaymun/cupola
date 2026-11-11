@@ -1,0 +1,69 @@
+# nightly-ipad: New chat, its Model sheet and the Files viewers under a theme
+# visual-review: New chat, the model sheet and the Files viewers use the theme's surfaces
+# Capture the screens that open from a conversation or the Chats list under a forced
+# theme: New Chat and its model sheet, the Files browser, Markdown Preview and Source,
+# JSON Formatted and Raw, JSON Lines records and a
+# file's plain source. theme-sweep.sh reruns
+# this for each catalog id with --scenario; the default here is nord. Files and model
+# rows must use the palette surface (check the shots). Nothing is sent.
+# Viewer modes are remembered, so each viewer is set explicitly and left as found.
+# Reset this synthetic host's saved provider/model draft before opening Model.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults --fixture theme --arg nord
+wait --id project-agent-picker --timeout 30
+shot theme-nord-new-chat
+tap --id project-agent-picker
+wait --id new-chat-speed:default --timeout 10
+shot theme-nord-new-chat-model
+tap --label Done
+launch --fixture read-preview --fixture send-preview --fixture files-preview --fixture project-files-conversation-preview --fixture workspace-viewer-preview --fixture theme --arg nord
+wait --id conversation-files-pill --timeout 30
+tap --id conversation-files-pill
+wait --id workspace-file-list
+shot theme-nord-files
+tap --id workspace-file-entry:guide.md --timeout 5
+wait --id workspace-viewer-mode --timeout 10
+tap --label Preview --type RadioButton
+wait --id workspace-markdown-preview --timeout 10
+shot theme-nord-markdown-preview
+tap --label Source --type RadioButton
+wait --id annotation-selectable-text --timeout 15
+shot theme-nord-markdown-source
+tap --label Preview --type RadioButton
+wait --id workspace-markdown-preview --timeout 10
+tap --id workspace-preview-expand
+wait --id workspace-preview-collapse --timeout 10
+shot theme-nord-markdown-expanded
+tap --id workspace-preview-collapse
+wait --id workspace-preview-back --timeout 10
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:trip.json --in workspace-file-list
+wait --id workspace-file-entry:trip.json --timeout 5
+tap --id workspace-file-entry:trip.json --timeout 5
+wait --id workspace-viewer-mode --timeout 10
+tap --label Formatted --type RadioButton
+wait --id workspace-json-formatted --timeout 10
+shot theme-nord-json-formatted
+tap --label Raw --type RadioButton
+wait --contains "\"zebra\":true" --timeout 5
+shot theme-nord-json-raw
+tap --label Formatted --type RadioButton
+wait --id workspace-json-formatted --timeout 5
+tap --id workspace-preview-back
+wait --id workspace-file-list
+tap --id workspace-file-entry:events.jsonl --timeout 5
+wait --id workspace-jsonl-records --timeout 10
+shot theme-nord-jsonl
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal down --id workspace-directory-entry:Projects --in workspace-file-list
+tap --id workspace-directory-entry:Projects --timeout 5
+wait --id workspace-file-entry:Projects/Plan.md --timeout 10
+tap --id workspace-file-entry:Projects/Plan.md --timeout 5
+wait --id workspace-viewer-mode --timeout 10
+tap --label Source --type RadioButton
+wait --id annotation-selectable-text --timeout 15
+shot theme-nord-text-file
+# Leave Markdown on Preview, the default other scenarios expect.
+tap --label Preview --type RadioButton
+wait --id workspace-markdown-preview --timeout 10

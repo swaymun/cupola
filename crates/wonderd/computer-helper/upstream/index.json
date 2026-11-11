@@ -1,0 +1,8 @@
+{
+  "libwebrtc@0.3.52": {
+    "file": "libwebrtc-0.3.52-LICENSE.txt",
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "revision": "49b3ebe9ab1c574114b164868ad226cc26a9b1be",
+    "url": "https://raw.githubusercontent.com/livekit/rust-sdks/49b3ebe9ab1c574114b164868ad226cc26a9b1be/LICENSE"
+  }
+}

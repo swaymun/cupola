@@ -1,0 +1,23 @@
+# Cupola
+
+> A messenger for your Mac's agent conversations. The Cupola app runs on your Mac; you pair your iPhone or iPad with it on the same Wi-Fi.
+
+To set up Cupola on a Mac and reach pairing (for AI agents acting for a person), read and follow:
+
+- [SETUP.md](SETUP.md): step-by-step setup (a Linux section leads with the one-line installer) for a Mac with Apple silicon on macOS 14 or later. Do every step in order, and treat a step as done only when its check passes:
+  1. Start with the checks in step 0: ask the person about their phone (the Cupola app on iOS/iPadOS 26 or later, on the same Wi-Fi as the Mac), and whether they also want Tailscale for away from home (optional). Never invent a download URL.
+  2. Install Cupola.app from the GitHub release (https://github.com/swaymun/cupola/releases/latest) or with Homebrew, checking its SHA-256, signature and notarization first.
+  3. Initialize (same Wi-Fi connections are on by default; check with `cupola lan status`), run `cupola doctor --json`, and start the host.
+  4. Pair on the same Wi-Fi: the person must read the verification text from their phone before `pair --approve <deviceId> --code <text>`; never use `pair --yes` or copy the host's text as their answer.
+  5. Finish with the final check in step 6 (`status`, `lan status` and `devices`). Do not report success before it passes.
+
+On Linux (x86_64 only; aarch64 has no verified artifact yet; glibc 2.35 or newer, Python 3.10 or newer), run `curl -fsSL https://getcupola.app/install.sh | sh` (fallback: `curl -fsSL https://github.com/swaymun/cupola/releases/latest/download/install.sh | sh`), then `cupola init`, `cupola service install` and `cupola pair`; see the Linux section of SETUP.md. The person approves the pairing on their phone.
+
+Tailscale and the ChatGPT desktop app are optional. Without the ChatGPT app, agents use Cua Driver to work in the Mac's apps. Codex works with the Codex CLI (npm or Homebrew) or the ChatGPT desktop app.
+
+Other documents:
+
+- [INSTALL.md](INSTALL.md): the Mac app and its requirements
+- [TRIAGE.md](TRIAGE.md): when Cupola isn't working (host not running, phone can't connect, screen sharing, provider sign-in), have the person run `cupola triage` and follow this playbook with the redacted facts file it writes
+- [crates/wonderd/RPC.md](crates/wonderd/RPC.md): JSON-RPC over stdio
+- [Security](https://getcupola.app/security)

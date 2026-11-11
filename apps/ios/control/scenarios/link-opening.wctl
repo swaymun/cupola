@@ -1,0 +1,56 @@
+# devices: iphone iphone-27 ipad
+# Duo has a system rail close control: link-opening-duo.wctl
+# A web link in a message opens in Cupola's own link viewer over the chat
+# (Settings > Open links: In Cupola, the default) and its ✕ returns to the conversation.
+# Settings offers In Cupola, In Safari and In default browser (under Chats, near
+# the top of Settings). LinkOpeningTests owns where each choice sends a
+# link; this checks the wiring and the screens.
+# The launch argument selects In Cupola so no earlier run's choice matters.
+# The viewer is Cupola's own screen (WebKit), so the driver's browser state and its
+# ✕ (link-viewer-close) are reachable; the page itself is drawn by WebKit, so AXe
+# cannot read it. The scenario checks the viewer is shown while the app stays in the
+# foreground (browser.kind, openedLinks, applicationState; the shot shows the page)
+# and that ✕ returns to the chat.
+# The scroll fixture's replies end with "[link](https://example.com)"; the
+# newest one is on screen when the conversation opens. If the simulator's
+# accessibility tree doesn't expose the link inside the bubble, tap it by
+# position from the shot (it is the bubble's second paragraph).
+# No messages are sent; the browser loads example.com only.
+driver on
+launch --fixture read-preview --fixture scroll-performance-preview --arg=-wonder.links.open --arg=inApp
+driver off
+wait --contains "Message 300" --timeout 20
+shot link-opening-message
+# The newest visible link is last on every window size; earlier replies may
+# be above the screen. Select it without assuming how many replies fit.
+tap --label "link" --nth -1
+# The app handed exactly that link to the in-app viewer, which now covers the
+# chat while the app stays in the foreground (Safari would send it to the background).
+driver on
+assert --path browser.kind --equals '"link"' --timeout 10
+assert --path applicationState --equals '"active"'
+assert --path openedLinks.0.url --equals '"https://example.com"'
+assert --path openedLinks.0.opening --equals '"inApp"'
+driver off
+shot link-opening-in-app-browser
+# The viewer's ✕, top right, is a native control. Tapped only once the viewer is
+# shown, and the viewer must be gone afterwards.
+wait --id link-viewer-close --timeout 10
+tap --id link-viewer-close
+driver on
+assert --path browser --equals null --timeout 10
+assert --path applicationState --equals '"active"'
+driver off
+wait --contains "Message 300" --timeout 10
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-wonder.links.open --arg=inApp
+wait --id open-sidebar --timeout 30
+sidebar open
+tap --id sidebar-settings
+reveal up --id settings-open-links --max 6
+wait --id settings-open-links --contains "In Cupola" --timeout 10
+tap --id settings-open-links
+wait --label "In Safari" --timeout 5
+wait --label "In default browser" --timeout 5
+shot link-opening-settings
+tap --label "In Cupola"
+wait --id settings-open-links --contains "In Cupola" --timeout 5

@@ -1,0 +1,118 @@
+# nightly-ipad: Settings navigation and long Acknowledgements at iPad width
+# Settings > Appearance > Font: choose a message font and a code font, read a bundled
+# font's license from its long-press menu, find every license under Settings >
+# Acknowledgements (and the Git logo's CC BY notice), read the WebRTC and Linux/Windows
+# sharing notices as ordered chunks, copy each full sharing notice, and find both
+# font choices kept after a relaunch. Ends back on the defaults.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-UIPreferredContentSizeCategoryName --arg UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-follow-up --timeout 10
+# Appearance sits below Chats and Confirmations; on a phone it starts off screen.
+swipe up
+swipe up
+wait --id settings-font --timeout 10
+tap --id settings-font
+wait --id message-font:atkinson --timeout 10
+tap --id message-font:atkinson
+shot font-picker
+# Code fonts sit below the fold on a phone.
+swipe up --in font-picker
+wait --id code-font:plex --timeout 5
+tap --id code-font:plex
+hold --id code-font:plex
+wait --id font-license --timeout 10
+shot font-license-menu
+tap --id font-license
+wait --id license-text --timeout 10
+wait --contains "SIL OPEN FONT LICENSE" --timeout 10
+wait --contains "Plex" --timeout 5
+shot font-license
+tap --id font-license-done
+wait --id font-picker --timeout 10
+back
+wait --id settings-font --contains "Atkinson Hyperlegible, IBM Plex Mono" --timeout 10
+swipe up
+wait --id settings-acknowledgements --timeout 10
+tap --id settings-acknowledgements
+wait --id acknowledgement:Inter --timeout 10
+wait --id acknowledgement:WebRTC --timeout 5
+shot acknowledgements
+tap --id acknowledgement:Inter
+wait --contains "SIL OPEN FONT LICENSE" --timeout 10
+back
+wait --id acknowledgements --timeout 10
+swipe up --in acknowledgements
+tap --id "acknowledgement:Git logo"
+wait --contains "The Git logo by Jason Long" --timeout 10
+wait --contains "creativecommons.org/licenses/by/3.0" --timeout 5
+shot license-short
+back
+wait --id acknowledgements --timeout 10
+
+# Long licenses render as bounded Text rows; review the captures for readable pixels.
+swipe down --in acknowledgements
+wait --id acknowledgement:WebRTC --timeout 10
+tap --id acknowledgement:WebRTC
+wait --id license-chunk:0 --timeout 10
+order --ids license-chunk:0,license-chunk:1
+shot license-webrtc-top
+swipe up --in license-text
+shot license-webrtc-scrolled
+back
+wait --id acknowledgements --timeout 10
+
+# The computer-sharing integration owns the bundled, unmodified Linux/Windows
+# notices. Their roughly 5,000 lines must be real, bounded Text rows. Accessibility
+# assertions alone cannot establish readable pixels: review both platform captures.
+swipe up --in acknowledgements
+wait --id "acknowledgement:Linux computer sharing" --timeout 10
+tap --id "acknowledgement:Linux computer sharing"
+wait --id license-chunk:0 --timeout 10
+order --ids license-chunk:0,license-chunk:1
+shot license-linux-top
+tap --id copy-license
+wait --id copy-license --contains Copied
+clipboard --contains "# Linux computer sharing" --contains "Yoshua Wuyts" --contains "DEALINGS IN THE SOFTWARE."
+swipe up --in license-text
+swipe up --in license-text
+shot license-linux-scrolled
+back
+wait --id acknowledgements --timeout 10
+tap --id "acknowledgement:Windows computer sharing"
+wait --id license-chunk:0 --timeout 10
+order --ids license-chunk:0,license-chunk:1
+shot license-windows-top
+tap --id copy-license
+wait --id copy-license --contains Copied
+clipboard --contains "# Windows computer sharing" --contains "DEALINGS IN THE SOFTWARE."
+swipe up --in license-text
+swipe up --in license-text
+shot license-windows-scrolled
+back
+wait --id acknowledgements --timeout 10
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-UIPreferredContentSizeCategoryName --arg UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Continue the project at:" --timeout 20
+shot font-picker-chat-after-relaunch
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-follow-up --timeout 10
+swipe up
+swipe up
+wait --id settings-font --contains "Atkinson Hyperlegible, IBM Plex Mono" --timeout 10
+tap --id settings-font
+wait --id message-font:system --timeout 10
+tap --id message-font:system
+swipe up --in font-picker
+wait --id code-font:system --timeout 5
+tap --id code-font:system
+back
+wait --id settings-font --contains "Default" --timeout 10

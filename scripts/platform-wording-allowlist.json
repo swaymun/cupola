@@ -1,0 +1,192 @@
+[
+  {
+    "path": "apps/ios/Wonder/ComputerSessionView.swift",
+    "literal": "\"Mac dialog\"",
+    "reason": "Native macOS dialog source; this route observes macOS system dialogs only."
+  },
+  {
+    "path": "apps/ios/Wonder/ComputerSessionView.swift",
+    "literal": "\"The dialog couldn’t be brought forward. Run cupola permissions grant on your Mac to allow Accessibility, then try again.\"",
+    "reason": "Recovery for the macOS Accessibility permission used to raise a native dialog."
+  },
+  {
+    "path": "apps/native/Sources/WonderPairing/ComputerSession.swift",
+    "literal": "\"On your Mac, allow Cupola in System Settings → Privacy & Security → Screen & System Audio Recording.\"",
+    "reason": "Names the macOS Screen & System Audio Recording permission and its Settings location."
+  },
+  {
+    "path": "apps/native/Sources/WonderPairing/Projects.swift",
+    "literal": "\"Waiting for a permission on your Mac\"",
+    "reason": "Only used for the macOS system-dialog permission flag waitingOnMacPermission."
+  },
+  {
+    "path": "crates/wonderd/src/computer_sessions.rs",
+    "literal": "\"Give control back before choosing a Mac window. Show the whole screen to control the Mac.\"",
+    "reason": "Only the macOS helper blocks control while switching to an application window."
+  },
+  {
+    "path": "crates/wonderd/src/computer_sessions.rs",
+    "literal": "\"Mac dialog\"",
+    "reason": "A native macOS system-dialog window, not a general paired-computer label."
+  },
+  {
+    "path": "crates/wonderd/src/computer_sessions.rs",
+    "literal": "\"On your Mac, allow Cupola in System Settings → Privacy & Security → Accessibility, then reopen this view.\"",
+    "reason": "Names the macOS Accessibility permission and exact System Settings location."
+  },
+  {
+    "path": "crates/wonderd/src/computer_sessions.rs",
+    "literal": "\"The dialog could not be brought forward. Run cupola permissions grant on your Mac to allow Accessibility, then try again.\"",
+    "reason": "Recovery for the macOS Accessibility permission needed to raise a dialog."
+  },
+  {
+    "path": "crates/wonderd/src/computer_sessions.rs",
+    "literal": "\"This window is view only. Show the whole screen to control the Mac.\"",
+    "reason": "Selected-window input is disabled specifically for the unverified macOS helper."
+  },
+  {
+    "path": "crates/wonderd/src/headless/cli.rs",
+    "literal": "\"\\\nThe download is checked against its published SHA-256 before anything changes.\nIf agents are working, Cupola asks before restarting the host; their work pauses\nand continues after the restart. Without a terminal to ask in (or with --json),\nit defers restarting while agents work unless --yes. Computer sharing and an\nin-flight message send always defer the restart. A failed readiness check on\nmacOS or Windows restores the previous release.\n\nReleases come from WONDER_UPDATE_URL (a folder holding `stable.json`,\n`nightly.json` and `versions/<X>.json`).\"",
+    "reason": "Update rollback is supported on macOS and Windows; this describes platform-specific behavior."
+  },
+  {
+    "path": "crates/wonderd/src/lib.rs",
+    "literal": "\"Mac\"",
+    "reason": "Fallback only after the macOS computer-name lookup; other platforms return their own fallback."
+  },
+  {
+    "path": "crates/wonderd/src/voice.rs",
+    "literal": "\"The Mac Keychain could not be read.\"",
+    "reason": "Failure of the macOS Keychain API; non-macOS hosts use private files."
+  },
+  {
+    "path": "crates/wonderd/src/voice.rs",
+    "literal": "\"The Mac Keychain could not save the key.\"",
+    "reason": "Failure of the macOS Keychain API; non-macOS hosts use private files."
+  },
+  {
+    "path": "apps/ios/Wonder/ComputerInput.swift",
+    "literal": "\"Allow Cupola in Mac System Settings → Privacy & Security → Paste from Other Apps.\"",
+    "reason": "Copy from Mac needs macOS's Paste from Other Apps permission; the setting exists only on macOS."
+  },
+  {
+    "path": "apps/ios/Wonder/ComputerSessionView.swift",
+    "literal": "\"Share Mac clipboard\"",
+    "reason": "Clipboard sharing is implemented only by the macOS computer helper."
+  },
+  {
+    "path": "apps/ios/Wonder/ComputerSessionView.swift",
+    "literal": "\"Mac clipboard sharing unavailable\"",
+    "reason": "Clipboard sharing is implemented only by the macOS computer helper."
+  },
+  {
+    "path": "apps/ios/Wonder/ComputerSessionView.swift",
+    "literal": "\"Clipboard sharing requires a Mac.\"",
+    "reason": "Clipboard sharing is implemented only by the macOS computer helper."
+  },
+  {
+    "path": "crates/wonderd/src/computer_sessions.rs",
+    "literal": "\"Your Mac blocked clipboard access. In System Settings → Privacy & Security → Paste from Other Apps, allow Cupola, then copy again.\"",
+    "reason": "macOS clipboard-permission and macOS-only clipboard sharing outcomes."
+  },
+  {
+    "path": "crates/wonderd/src/computer_sessions.rs",
+    "literal": "\"Your Mac is asking whether Cupola may paste. Choose Allow Paste on the Mac, then tap Copy again.\"",
+    "reason": "macOS clipboard-permission and macOS-only clipboard sharing outcomes."
+  },
+  {
+    "path": "crates/wonderd/src/computer_sessions.rs",
+    "literal": "\"That copy is marked private, such as a password, so it stays on the Mac.\"",
+    "reason": "macOS clipboard-permission and macOS-only clipboard sharing outcomes."
+  },
+  {
+    "path": "crates/wonderd/src/headless/main.rs",
+    "literal": "\"Cupola could not read the macOS firewall settings: {reason}\"",
+    "reason": "cupola doctor reports the macOS application firewall (socketfilterfw), a macOS-only check."
+  },
+  {
+    "path": "crates/wonderd/src/headless/main.rs",
+    "literal": "\"The macOS firewall is off\"",
+    "reason": "cupola doctor reports the macOS application firewall (socketfilterfw), a macOS-only check."
+  },
+  {
+    "path": "crates/wonderd/src/headless/main.rs",
+    "literal": "\"The macOS firewall is on; it matters only for home network connections\"",
+    "reason": "cupola doctor reports the macOS application firewall (socketfilterfw), a macOS-only check."
+  },
+  {
+    "path": "crates/wonderd/src/headless/main.rs",
+    "literal": "\"The macOS firewall blocks all incoming connections, so iPhones cannot connect on the home network\"",
+    "reason": "cupola doctor reports the macOS application firewall (socketfilterfw), a macOS-only check."
+  },
+  {
+    "path": "crates/wonderd/src/headless/main.rs",
+    "literal": "\"The macOS firewall is on and allows the Cupola host\"",
+    "reason": "cupola doctor reports the macOS application firewall (socketfilterfw), a macOS-only check."
+  },
+  {
+    "path": "crates/wonderd/src/headless/main.rs",
+    "literal": "\"The macOS firewall blocks the Cupola host, so iPhones cannot connect on the home network\"",
+    "reason": "cupola doctor reports the macOS application firewall (socketfilterfw), a macOS-only check."
+  },
+  {
+    "path": "crates/wonderd/src/headless/main.rs",
+    "literal": "\"The macOS firewall is on and allows signed apps such as the Cupola host\"",
+    "reason": "cupola doctor reports the macOS application firewall (socketfilterfw), a macOS-only check."
+  },
+  {
+    "path": "crates/wonderd/src/headless/main.rs",
+    "literal": "\"The macOS firewall is on and has no rule for the Cupola host; it may block home network connections\"",
+    "reason": "cupola doctor reports the macOS application firewall (socketfilterfw), a macOS-only check."
+  },
+  {
+    "path": "crates/wonderd/src/headless/main.rs",
+    "literal": "\"The macOS firewall is on; Cupola could not find its host program to check its rule\"",
+    "reason": "cupola doctor reports the macOS application firewall (socketfilterfw), a macOS-only check."
+  },
+  {
+    "path": "crates/wonderd/src/computer_apps.rs",
+    "literal": "\"app launching is only on Mac\"",
+    "reason": "Installed-app launching reads macOS Applications folders and uses open -b; other hosts have no launcher."
+  },
+  {
+    "path": "crates/wonderd/src/computer_sessions.rs",
+    "literal": "\"Opening apps from your phone works with a Mac.\"",
+    "reason": "The app launcher is macOS-only (Applications folder scan, open -b)."
+  },
+  {
+    "path": "apps/ios/Wonder/PushNotifications.swift",
+    "literal": "\"Permission request on your Mac\"",
+    "reason": "Names a macOS system dialog the Mac's dialog watcher reported; only macOS hosts report these."
+  },
+  {
+    "path": "apps/ios/Wonder/PushNotifications.swift",
+    "literal": "\"Dialog on your Mac\"",
+    "reason": "Names a macOS system dialog the Mac's dialog watcher reported; only macOS hosts report these."
+  },
+  {
+    "path": "crates/wonderd/src/simulators.rs",
+    "literal": "\"Simulators work on a Mac with Xcode.\"",
+    "reason": "iOS simulators need Xcode, which runs only on macOS; shown by Linux and Windows hosts."
+  },
+  {
+    "path": "apps/ios/Wonder/SubagentDock.swift",
+    "literal": "\"Mac dialog waiting\"",
+    "reason": "Owner-selected shortcut for the native macOS system-dialog source; it is shown only for a Mac dialog notice."
+  },
+  {
+    "path": "apps/ios/Wonder/SettingsSearch.swift",
+    "literal": "\"Share pages to your phone\"",
+    "reason": "Search preserves the exact existing computer-owned Cupola skill title from wonder_skills::SKILLS so it can be found by its displayed name."
+  },
+  {
+    "path": "apps/ios/Wonder/SettingsSearch.swift",
+    "literal": "\"Phone-friendly replies\"",
+    "reason": "Search preserves the exact existing computer-owned Cupola skill title from wonder_skills::SKILLS so it can be found by its displayed name."
+  },
+  {
+    "path": "crates/wonderd/src/headless/triage.rs",
+    "literal": "\"macOS {}\"",
+    "reason": "Names the operating system in the troubleshooting facts; macOS is a distinct system there, as Ubuntu is on Linux."
+  }
+]

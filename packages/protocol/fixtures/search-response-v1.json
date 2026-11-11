@@ -1,0 +1,40 @@
+{
+  "results": [
+    {
+      "kind": "thread",
+      "id": "c0000000-0004",
+      "title": "Rename the walrus module",
+      "snippet": "found the <mark>walrus</mark> rename",
+      "conversationId": null,
+      "updatedAt": "1700000001000",
+      "deepLink": "#/chats",
+      "projectId": "project-1",
+      "reference": "codex:c0000000-0004",
+      "family": "codex"
+    },
+    {
+      "kind": "native_message",
+      "id": "u-b0000000-0001:msg_01:1",
+      "title": "Walrus notes",
+      "snippet": "the <mark>walrus</mark> reply",
+      "conversationId": "chat-2",
+      "updatedAt": "1700000000500",
+      "deepLink": "#/chats/chat-2",
+      "projectId": "project-1",
+      "reference": "claude:b0000000-0001",
+      "family": "claude",
+      "itemId": "u-b0000000-0001:msg_01:1"
+    },
+    {
+      "kind": "message",
+      "id": "message-1",
+      "title": "Project chat",
+      "snippet": "A <mark>walrus</mark> question",
+      "conversationId": "chat-1",
+      "updatedAt": "1000",
+      "deepLink": "#/chats/chat-1?focus=message-1&kind=message"
+    }
+  ],
+  "nextCursor": "opaque",
+  "partial": true
+}

@@ -1,0 +1,59 @@
+# Owned response fixture: command failure reaches the phone without opening a
+# browser. Try again connects through the command. After another failure only
+# the explicit Open approval choice enters browser waiting and then connects.
+# No real T3 state, browser or messages; Rust tests own the OAuth/CLI contract.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture t3-code --fixture t3-code-pairing-failure --fixture computer-use
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+tap --id settings-computer:diagnostic-host
+reveal up --id connection-connected-apps --max 5
+wait --id connection-connected-apps --timeout 10
+tap --id connection-connected-apps
+wait --id t3code-status --contains "Not connected" --timeout 10
+wait --contains "without stopping them." --timeout 5
+shot t3-connect-before
+tap --id t3code-connect
+wait --id t3code-failure-reason --contains "took too long" --timeout 5
+wait --id t3code-failure-retry --contains "Try again" --timeout 5
+wait --id t3code-failure-open --contains "Open approval on" --timeout 5
+shot t3-connect-failure
+# Retrying uses command approval, with no browser-waiting state.
+tap --id t3code-failure-retry
+wait --id t3code-status --contains "Connected" --timeout 15
+wait --id t3code-disconnect --timeout 5
+wait --id t3code-message --gone --timeout 2
+shot t3-connect-connected
+tap --id t3code-disconnect
+wait --id t3code-status --contains "Not connected" --timeout 10
+wait --id t3code-connect --timeout 5
+shot t3-connect-disconnected
+# An unreadable reply offers browser approval again, and keeps the reason after
+# dismissing the sheet. Reopening approval remains an explicit owner action.
+tap --id t3code-connect
+wait --id t3code-failure-reason --contains "unreadable approval reply" --timeout 5
+shot t3-connect-failure-again
+# Exercise the sheet's dismissal binding; native swipe/VoiceOver Escape own
+# the gesture. No redundant Done button is needed beside those affordances.
+driver on
+dismiss
+driver off
+wait --id t3code-message --contains "unreadable approval reply" --timeout 5
+wait --id t3code-connect --contains "Try again" --timeout 5
+wait --id t3code-open-approval --contains "Open approval on" --timeout 5
+shot t3-connect-failure-dismissed
+# Retry from Settings can return to the sheet; choose its browser action.
+tap --id t3code-connect
+wait --id t3code-failure-open --timeout 5
+tap --id t3code-failure-open
+wait --id t3code-status --contains "Approve Cupola in your browser on" --timeout 5
+wait --id t3code-cancel --timeout 5
+shot t3-connect-explicit-browser
+signal t3-browser-approve
+wait --id t3code-status --contains "Connected" --timeout 15
+wait --id t3code-disconnect --timeout 5
+wait --id t3code-message --gone --timeout 2
+shot t3-connect-browser-connected

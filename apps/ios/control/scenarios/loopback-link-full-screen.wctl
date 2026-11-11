@@ -1,0 +1,43 @@
+# devices: iphone iphone-27
+# visual-review: native localhost link, page menu, desktop site, full-screen Done
+# iPad uses loopback-link-full-screen-ipad.wctl; these phone coordinates must
+# not be reused there. Native hit targets on the iPhone 17 Pro's 402 pt layout. The reply combines
+# both links in one AX element; 214,329 is localhost:5173 in the captured reply.
+# All other taps use the actual app's accessibility identifiers/labels.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture dev-server-preview --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-composerPills --arg=computer,files,preview
+driver off
+wait --id preview-pages-menu --timeout 20
+wait --contains "The planner is at" --timeout 10
+shot browser-native-reply
+tap --xy 214,329
+wait --id browser-preview-page-probe --contains "Recipes · " --timeout 15
+driver on
+assert --path browser.fullScreen --equals true
+assert --path browser.url --equals '"wonder-preview://port-5173/?view=plan"'
+assert --path openedLinks.0.opening --equals '"computer"'
+driver off
+shot browser-native-localhost
+tap --id browser-share
+wait --label "Request desktop site" --timeout 5
+tap --label "Request desktop site"
+wait --id browser-preview-page-probe --label "Recipes · 1280 px wide" --timeout 15
+shot browser-native-desktop
+tap --id browser-share
+wait --label "Request mobile site" --timeout 5
+tap --label "Request mobile site"
+wait --id browser-preview-page-probe --label "Recipes · 1280 px wide" --gone --timeout 15
+tap --id browser-done
+wait --id message-draft --timeout 10
+driver on
+assert --path browser --equals null
+assert --path presented --equals '[]' --timeout 10
+assert --path composer.text --equals '"Keep the evening free too."'
+driver off
+# The globe opens only the small native page menu, including its refresh action.
+tap --id preview-pages-menu
+wait --label "Check for pages" --timeout 5
+shot browser-native-page-menu
+tap --label "Check for pages"
+wait --id message-draft --timeout 10
+shot browser-native-returned

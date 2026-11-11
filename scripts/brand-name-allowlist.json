@@ -1,0 +1,293 @@
+{
+  "phase": "enforced",
+  "note": "Only product copy and the public CLI change. Protected spans and exact reviewed compatibility exceptions retain existing identities.",
+  "protected_spans": [
+    {
+      "pattern": "(?:https?://|wss?://|git@)[^\\s\\\"'<>`]+",
+      "reason": "Existing endpoints, repository addresses and immutable download URLs; no domain or publication change authorized."
+    },
+    {
+      "pattern": "\\b(?:com|group)\\.[A-Za-z0-9_.$()-]+",
+      "reason": "Bundle identifiers, application groups, signing and service identity stay unchanged."
+    },
+    {
+      "pattern": "\\bWONDER_[A-Z0-9_]+\\b",
+      "reason": "Internal environment/build setting names; user-facing host settings are CUPOLA_*, with WONDER_* kept as deprecated aliases."
+    },
+    {
+      "pattern": "\\bmuse-wonder-[0-9.]+\\b",
+      "reason": "Meta's Muse Wonder model id, as Cursor lists it; the context-window table keys on it."
+    },
+    {
+      "pattern": "\\bwonderd\\b",
+      "reason": "The daemon and its crate name stay wonderd."
+    },
+    {
+      "pattern": "\\bwonder-(?:api|store|harness|app-server|desktop|tunnel|push|computer-use|phone-replies|share-to-phone)\\b",
+      "reason": "Internal package, worker, helper and skill identities stay stable."
+    },
+    {
+      "pattern": "\\b(?:Wonder|wonder)[A-Z][A-Za-z0-9_]*\\b",
+      "reason": "Swift/module/type/storage identifiers stay internal."
+    },
+    {
+      "pattern": "\\bwonder_[A-Za-z0-9_]+\\b|\\bx-wonder-[A-Za-z0-9_-]+\\b|\\bwonder://[^\\s\\\"'<>`]*",
+      "reason": "Protocol, tool, header and URL-scheme compatibility names stay internal."
+    },
+    {
+      "pattern": "\\b_wonder[A-Za-z0-9_]+\\b|\\bwonder[.:](?!rb\\b|exe\\b|cmd\\b|app\\b)[a-z][A-Za-z0-9_.:-]*",
+      "reason": "Persisted keys, protocol namespaces, notification categories and database filenames stay stable."
+    },
+    {
+      "pattern": "\\b[A-Za-z0-9_]*_wonder(?:_[A-Za-z0-9_]+)?\\b|\\bWonder\\.(?:xcodeproj|xcarchive|icns|pdf|swift|entitlements|appex)\\b|(?<![\\w-])(?:-scheme|-project)\\s+[A-Za-z0-9/._-]*Wonder[A-Za-z0-9/._-]*",
+      "reason": "Persisted state names, source/resource filenames and Xcode scheme/project references stay internal."
+    },
+    {
+      "pattern": "\\bwonder-(?:action-v|session-v|host-proof-v|host-view|preview|automations-fixture|host-signals|fastlane-|install-|test-)[A-Za-z0-9_.-]*|wonder-\\$\\{label\\}",
+      "reason": "Protocol domains, fixture/temp prefixes, preview schemes, credentials and existing tunnel resource names stay internal."
+    },
+    {
+      "pattern": "\\.wonder(?:[/-][A-Za-z0-9_./-]*)?",
+      "reason": "The pre-Cupola data directory (moved to ~/.cupola, kept as a link for one release) and existing temporary directory prefixes."
+    },
+    {
+      "pattern": "(?:\\.local/share/wonder|\\.config/wonder|(?:LOCALAPPDATA[^\\n]{0,20})?[Pp]rograms[\\\\/]Wonder|(?:Library/Application Support/|Application Support[^\\n]{0,5})Wonder)\\b",
+      "reason": "Keep install/config/data locations pending owner decision and upgrade design."
+    },
+    {
+      "pattern": "\\bwonder\\.(?:log|pid|service|socket|question-reply|project-widget)\\b|\\bwonder-cli-v1\\b",
+      "reason": "Persisted log/service/category/widget/installation receipt identities need compatibility, not a cosmetic replacement."
+    },
+    {
+      "pattern": "(?i)(?<=/)wonder(?=/)|\\bwonderctl\\b",
+      "reason": "Existing source path segments and internal controller name remain stable."
+    },
+    {
+      "pattern": "\\bwonder-(?:cli|host|acp|claude|task|cu|icon|project|terminal|markdown|workspace|widget|share|notify|rpc|test|fixture|bootstrap|runtime|protocol)[A-Za-z0-9_.:-]*",
+      "reason": "Internal helper/package, protocol or temporary identity remains stable."
+    },
+    {
+      "pattern": "\\bWonder\\.(?:sqlite|db)\\b|\\bWonder(?:\\\\\\\\|/)(?:headless|logs|state)\\b",
+      "reason": "Existing durable storage layout remains stable."
+    },
+    {
+      "pattern": "(?<=/)(?:Wonder|wonder)(?=/)|share\\\\\\\\wonder\\\\\\\\",
+      "reason": "Existing source/install path segment remains stable."
+    },
+    {
+      "pattern": "\\bwonder-[a-z][a-z0-9_.:-]*|\\bwonder:(?=[\"\\x27+\\\\/])",
+      "reason": "Internal protocol/helper/fixture namespace is stable; public archives use a numeric version."
+    },
+    {
+      "pattern": "\\bWonder/(?=[A-Za-z])",
+      "reason": "Existing native application support or source directory."
+    },
+    {
+      "pattern": "(?:defaultID\\s*=|\\bid:|\\.name\\s*[!=]==?|PLUGIN_NAME[^=]*=|serverInfo:\\s*\\{\\s*name:|createSdkMcpServer\\(\\{\\s*name:)\\s*\"wonder\"",
+      "reason": "Persisted theme/plugin/MCP identity remains stable."
+    },
+    {
+      "pattern": "\"wonder/1\\.0\"|\"Wonder (?:Claude|OpenCode) bridge\"",
+      "reason": "Runtime protocol client identity is not product display copy."
+    },
+    {
+      "pattern": "(?:domain\\s*[=:]|\\.domain\\s*==)\\s*\"Wonder\"",
+      "reason": "NSError compatibility domain stays stable."
+    },
+    {
+      "pattern": "(?i)\\bx-wonder-[a-z0-9-]+",
+      "reason": "HTTP compatibility headers remain stable."
+    },
+    {
+      "pattern": "\\bswaymun/wonder\\b|\\bwonder-511821\\b",
+      "reason": "Existing repository/cloud project identity; no publication or infrastructure rename."
+    },
+    {
+      "pattern": "Library/Logs/Wonder\\b|share\\\\wonder\\b",
+      "reason": "Existing log/install data paths remain stable."
+    },
+    {
+      "pattern": "(?<=\\$)wonder\\b",
+      "reason": "Internal script variable, not command or copy."
+    },
+    {
+      "pattern": "\\bshare/wonder\\b",
+      "reason": "Existing runtime install/data path."
+    },
+    {
+      "pattern": "CommonName, \"Wonder\"",
+      "reason": "Internal TLS certificate subject; keep existing certificate construction stable."
+    },
+    {
+      "pattern": "\\bWonder\\\\(?:headless|logs|state)\\b",
+      "reason": "Existing Windows durable data path."
+    },
+    {
+      "pattern": "\\bwonder:(?=\\S)|\\bwonder-(?=[${])",
+      "reason": "Dynamic protocol references and temporary identities retain their prefix."
+    },
+    {
+      "pattern": "~/actions-runner-wonder-N|wonder-<label>",
+      "reason": "Existing runner directories and internal tunnel resource names."
+    },
+    {
+      "pattern": "path/to/(?:diagnostics|release)/Wonder\\.app",
+      "reason": "Xcode product filename remains internal; only the installed display name changes."
+    },
+    {
+      "pattern": "%LOCALAPPDATA%\\\\Wonder\\b|apps/ios/Wonder(?=[`/])|wonder-<8 hex>",
+      "reason": "Existing Windows data directory, source path or per-session protocol namespace."
+    },
+    {
+      "pattern": "(?:withName:|kSecAttr(?:Service|AccessGroup)[^:]*:)\\s*\"(?:\\\\.|[^\"\\\\])*\"|\\.expect\\(\"(?:\\\\.|[^\"\\\\])*\"\\)",
+      "reason": "Only the specific Keychain/background-task or developer assertion literal is internal, never other copy on that line."
+    }
+  ],
+  "exceptions": [
+    {
+      "path": "apps/ios/Wonder/ProjectShortcuts.swift",
+      "text": "guard reference.count == 2, [family.rawValue, \"wonder\"].contains(reference[0]),",
+      "reason": "Persisted data, protocol, URL scheme or service identity; preserve across rebrand."
+    },
+    {
+      "path": "apps/ios/Wonder/ProjectShortcuts.swift",
+      "text": "if reference[0] != \"wonder\" {",
+      "reason": "Persisted data, protocol, URL scheme or service identity; preserve across rebrand."
+    },
+    {
+      "path": "apps/ios/WonderWidget/ProjectWidgetSnapshot.swift",
+      "text": "var linkScheme: String { \"wonder\" }",
+      "reason": "Persisted data, protocol, URL scheme or service identity; preserve across rebrand."
+    },
+    {
+      "path": "crates/wonderd/src/main.rs",
+      "text": "let path = PathBuf::from(base).join(\"Wonder\");",
+      "reason": "Persisted data, protocol, URL scheme or service identity; preserve across rebrand."
+    },
+    {
+      "path": "crates/wonderd/src/headless/os_windows.rs",
+      "text": "Ok(PathBuf::from(base).join(\"Wonder\"))",
+      "reason": "Persisted data, protocol, URL scheme or service identity; preserve across rebrand."
+    },
+    {
+      "path": "crates/wonderd/src/headless/os_windows.rs",
+      "text": "pub(super) const SERVICE_TASK: &str = \"Wonder Host\";",
+      "reason": "Persisted data, protocol, URL scheme or service identity; preserve across rebrand."
+    },
+    {
+      "path": "uninstall.ps1",
+      "text": "$data = if ($env:WONDER_DATA_DIR) { $env:WONDER_DATA_DIR } else { Join-Path $env:LOCALAPPDATA 'Wonder' }",
+      "reason": "Persisted data, protocol, URL scheme or service identity; preserve across rebrand."
+    },
+    {
+      "path": "scripts/windows/install-host.ps1",
+      "text": "} else { Join-Path $env:LOCALAPPDATA 'Wonder' }",
+      "reason": "Existing Windows durable data directory."
+    },
+    {
+      "path": "scripts/windows/install-host.ps1",
+      "text": "foreach ($old in 'cupola.exe', 'wonder.exe', 'wonder-host.exe') {",
+      "reason": "Stop only the legacy commands under the explicit installation prefix during migration."
+    },
+    {
+      "path": "scripts/windows/install-host.ps1",
+      "text": "Remove-Item -Force -ErrorAction SilentlyContinue (Join-Path $binDir 'wonder.exe'), (Join-Path $binDir 'wonder-host.exe')",
+      "reason": "Remove the retired commands in this installation; no public alias is kept."
+    },
+    {
+      "path": "uninstall.sh",
+      "text": "name = 'cupola' if 'cupola' in receipt['targets'] else 'wonder'",
+      "reason": "Read old installation receipts so testers can uninstall the exact owned legacy command."
+    },
+    {
+      "path": "scripts/link-cli-macos.sh",
+      "text": "legacy = directory / 'wonder'",
+      "reason": "Retire only the exact previous installation-owned command during explicit migration."
+    },
+    {
+      "path": "scripts/link-cli-macos.sh",
+      "text": "old_target = previous / 'Contents/MacOS/wonder'",
+      "reason": "Compare the old command target exactly before removing its symlink."
+    },
+    {
+      "path": "distribution/homebrew-tap/Casks/cupola.rb.in",
+      "text": "conflicts_with cask: \"wonder\"",
+      "reason": "Prevent coexistence with the legacy cask and direct testers through the documented no-alias migration."
+    },
+    {
+      "path": "distribution/homebrew-tap/Formula/cupola.rb.in",
+      "text": "conflicts_with \"wonder\", because: \"the previous beta owns the same daemon command\"",
+      "reason": "Prevent two formulae from owning wonderd; uninstall the old formula before the rename."
+    },
+    {
+      "path": "distribution/README.md",
+      "text": "wonder stop",
+      "reason": "Exact legacy commands/installed bundle used only for migration; no alias is shipped."
+    },
+    {
+      "path": "distribution/README.md",
+      "text": "wonder service uninstall",
+      "reason": "Exact legacy commands/installed bundle used only for migration; no alias is shipped."
+    },
+    {
+      "path": "distribution/README.md",
+      "text": "brew uninstall --cask wonder",
+      "reason": "Exact legacy commands/installed bundle used only for migration; no alias is shipped."
+    },
+    {
+      "path": "distribution/README.md",
+      "text": "brew uninstall wonder",
+      "reason": "Exact legacy commands/installed bundle used only for migration; no alias is shipped."
+    },
+    {
+      "path": "distribution/README.md",
+      "text": "scripts/link-cli-macos.sh /Applications/Cupola.app \"$HOME/.local/bin\" \"/Applications/Wonder CLI.app\"",
+      "reason": "Exact legacy commands/installed bundle used only for migration; no alias is shipped."
+    },
+    {
+      "path": "crates/wonderd/computer-helper/notices/ComputerSharing-Linux.md",
+      "text": "* Just wonder if there&#x27;s any copyright information with your Successive",
+      "reason": "Verbatim third-party license text (the English verb \"wonder\"), generated from upstream crates; notices must not be edited."
+    },
+    {
+      "path": "crates/wonderd/computer-helper/notices/ComputerSharing-Windows.md",
+      "text": "* Just wonder if there&#x27;s any copyright information with your Successive",
+      "reason": "Verbatim third-party license text (the English verb \"wonder\"), generated from upstream crates; notices must not be edited."
+    },
+    {
+      "path": "crates/wonderd/src/simulators.rs",
+      "text": "const TEST_DEVICE_PREFIX: &str = \"Wonder Control \";",
+      "reason": "The simulator names scripts/wonderctl creates and leases; matching them is a compatibility identifier, not product copy."
+    },
+    {
+      "path": "docs/development/outside-agents.md",
+      "text": "lease, and `wonder_simulator_list` says so in `agentInput`. Cupola's own \"Wonder",
+      "reason": "The simulator names scripts/wonderctl creates and leases; matching them is a compatibility identifier, not product copy."
+    },
+    {
+      "path": "crates/wonderd/src/thread_tools/secret.rs",
+      "text": "pub(crate) const METHOD: &str = \"wonder/requestSecret\";",
+      "reason": "Wire identifier of the secret request in the approval list, matched by the phone like other wonder/ protocol methods; never shown as copy."
+    },
+    {
+      "path": "apps/native/Sources/WonderPairing/Attention.swift",
+      "text": "public var isSecretRequest: Bool { method == \"wonder/requestSecret\" && params.secretRequest != nil }",
+      "reason": "The phone matches the host's wire identifier for a secret request; never shown as copy."
+    },
+    {
+      "path": "DEVELOPMENT.md",
+      "text": "Open `apps/ios/Wonder.xcodeproj`. The **Wonder** scheme builds Release; the",
+      "reason": "The Xcode scheme and project keep their internal name; this export's own build documentation names them."
+    },
+    {
+      "path": "apps/ios/DIAGNOSTICS.md",
+      "text": "| Release | `Wonder` / `Release` | Product UI; no recorder, diagnostic UI, uploader, fixtures or scenario runner |",
+      "reason": "The Xcode scheme and project keep their internal name; this export's own build documentation names them."
+    },
+    {
+      "path": "apps/ios/TESTING.md",
+      "text": "| `Wonder` | `Release` | Distribution builds; no recorder, fixtures or test driver |",
+      "reason": "The Xcode scheme and project keep their internal name; this export's own build documentation names them."
+    }
+  ]
+}

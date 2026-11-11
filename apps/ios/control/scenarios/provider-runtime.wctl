@@ -1,0 +1,65 @@
+# devices: iphone ipad
+# Settings > computer > Claude > Runtime: a program that isn't there is refused
+# in the computer's words and nothing is saved; a real program, arguments and a
+# variable save, show in the row's summary, and a secret variable shows as dots
+# and is never read back. The fixture computer stands in for the host's checks;
+# nothing is launched or sent. A Codex home waits for the computer's restart and says so.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture provider-updates
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id connection-rename --timeout 10
+tap --id settings-provider:claude
+wait --id provider-runtime:claude --timeout 15
+wait --id provider-runtime-summary:claude --contains "Default" --timeout 5
+shot provider-runtime-row
+tap --id provider-runtime:claude
+wait --id provider-runtime-program:claude --timeout 10
+tap --id provider-runtime-program:claude
+type "/nope/claude"
+tap --id provider-runtime-save:claude
+wait --id provider-runtime-failure:claude --contains "Nothing is at /nope/claude." --timeout 10
+shot provider-runtime-refused
+# Nothing was saved: leaving and coming back starts from the saved (default) runtime.
+back
+wait --id provider-runtime-summary:claude --contains "Default" --timeout 5
+tap --id provider-runtime:claude
+wait --id provider-runtime-program:claude --timeout 10
+tap --id provider-runtime-program:claude
+type "/fixture/claude"
+tap --id provider-runtime-arguments:claude
+type "verbose"
+tap --id provider-runtime-add-variable:claude
+tap --id provider-runtime-variable-name:0
+type "ANTHROPIC_BASE_URL"
+tap --id provider-runtime-variable-value:0
+type "https://gateway.example"
+tap --id provider-api-key-field:claude
+type "sk-fixture-secret"
+shot provider-runtime-filled
+tap --id provider-runtime-save:claude
+wait --id provider-runtime-summary:claude --contains "Own program · Arguments · API key · 1 variable" --timeout 10
+shot provider-runtime-saved
+# The key is never read back; removing it returns the runtime to its login.
+tap --id provider-runtime:claude
+wait --id provider-api-key-set:claude --timeout 10
+shot provider-api-key-set
+tap --id provider-api-key-remove:claude
+wait --id provider-api-key-field:claude --timeout 5
+tap --id provider-runtime-save:claude
+wait --id provider-runtime-summary:claude --contains "Own program · Arguments · 1 variable" --timeout 10
+# A Codex home folder is held for the computer's next restart; saving says so and stays.
+back
+wait --id settings-provider:codex --timeout 10
+tap --id settings-provider:codex
+wait --id provider-runtime:codex --timeout 15
+tap --id provider-runtime:codex
+wait --id provider-runtime-home:codex --timeout 10
+tap --id provider-runtime-home:codex
+type "/fixture/codex-home"
+tap --id provider-runtime-save:codex
+wait --id provider-runtime-notice:codex --contains "Restart Cupola" --timeout 10
+shot provider-runtime-notice

@@ -1,0 +1,12 @@
+{
+  "installed": true,
+  "running": true,
+  "reachable": null,
+  "state": "expired",
+  "error": "T3 Code removed Cupola's access. Connect again to send messages through T3 Code.",
+  "pairingFailure": null,
+  "launches": true,
+  "launchProviders": ["codex", "claude"],
+  "revoked": true,
+  "expiresAt": "2026-11-21T04:18:56Z"
+}

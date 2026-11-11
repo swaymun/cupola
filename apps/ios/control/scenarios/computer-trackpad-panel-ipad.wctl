@@ -1,0 +1,62 @@
+# devices: ipad
+# Software keyboard and trackpad together: the keyboard carries its shortcut row
+# (Esc, the app keys) and the pad stays above it.
+# Offline fixture; no paired host input or model calls.
+launch --fixture companion-computer --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-control-active --fixture no-hardware-keyboard --fixture computer-reconnect
+wait --id computer-session-control-active --timeout 30
+wait --id computer-session-trackpad-toggle --timeout 10
+shot computer-trackpad-ipad-before
+tap --id computer-session-trackpad-toggle
+wait --id computer-session-trackpad --timeout 10
+wait --id computer-viewport-appearances --contains "trackpad: true;" --timeout 5
+shot computer-trackpad-ipad-expanded
+tap --id computer-session-keyboard
+wait --id computer-viewport-appearances --contains "sent: 1; hardware: false;" --timeout 10
+wait --id computer-session-shortcuts-row --timeout 10
+wait --id computer-session-trackpad --timeout 10
+shot computer-trackpad-ipad-keyboard-up
+tap --id computer-session-key-escape
+wait --id computer-viewport-appearances --contains "sent: 2;" --timeout 5
+tap --id computer-session-keyboard
+wait --id computer-session-keyboard --contains "Show keyboard" --timeout 10
+wait --id computer-session-trackpad --timeout 10
+wait --id computer-viewport-appearances --contains "keyboards: 1;" --timeout 5
+shot computer-trackpad-ipad-keyboard-hidden
+# Explicit hardware presence: fresh Simulator clones can report either state.
+# This fixture exercises hardware focus, the shortcut row and the pad without relying on GCKeyboard.
+launch --fixture companion-computer --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-control-active --fixture hardware-keyboard --fixture computer-trackpad --fixture computer-reconnect
+wait --id computer-session-control-active --timeout 30
+wait --id computer-viewport-appearances --contains "hardware: true;" --timeout 10
+wait --id computer-session-trackpad --timeout 10
+wait --id computer-session-key-escape --timeout 10
+wait --id computer-viewport-appearances --contains "keyboards: 1;" --timeout 5
+shot computer-trackpad-ipad-hardware-keyboard
+# The shortcut row sends input through the same queue, not just a visible row.
+# Initial pointer (1), Escape (2).
+tap --id computer-session-key-escape
+wait --id computer-viewport-appearances --contains "sent: 2; hardware: true;" --timeout 5
+# A hardware keyboard requests focus implicitly: the pad's toggle hides the
+# keyboard first (the pad stays and the choice is saved), a second tap removes the pad.
+tap --id computer-session-trackpad-toggle
+wait --id computer-session-key-escape --gone --timeout 10
+wait --id computer-session-trackpad --timeout 10
+wait --id computer-viewport-appearances --contains "saved: trackpad;" --timeout 5
+tap --id computer-session-trackpad-toggle
+wait --id computer-session-trackpad --gone --timeout 10
+wait --id computer-viewport-appearances --contains "saved: off;" --timeout 5
+tap --id computer-session-trackpad-toggle
+wait --id computer-session-trackpad --timeout 10
+wait --id computer-viewport-appearances --contains "saved: trackpad;" --timeout 5
+# The keyboard returns with its shortcut row; the app switcher holds Command and
+# hiding the keyboard sends the key-up.
+tap --id computer-session-keyboard
+wait --id computer-session-key-escape --timeout 10
+tap --id computer-session-shortcut-app-switcher
+wait --id computer-viewport-appearances --contains "hardware: true;" --timeout 5
+tap --id computer-session-keyboard
+wait --id computer-session-key-escape --gone --timeout 10
+wait --id computer-session-trackpad --timeout 5
+tap --id computer-session-keyboard
+wait --id computer-session-key-escape --timeout 10
+wait --id computer-viewport-appearances --contains "appearances: 1; keyboards: 1;" --timeout 5
+shot computer-trackpad-ipad-hardware-shortcuts-restored

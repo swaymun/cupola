@@ -1,0 +1,24 @@
+# nightly-ipad: Automations open full screen in the chat column, with Back to the chat
+# Automations open from each computer's row in the sidebar (not from its
+# connection settings) as a full screen in the chat column, not a sheet, with
+# New automation and Back to the chat.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-automations --timeout 20
+shot sidebar-automations-row
+tap --id sidebar-automations
+wait --id project-automation-new --timeout 15
+wait --id automations-empty --timeout 15
+shot sidebar-automations-page
+back
+wait --id project-automation-new --gone --timeout 10
+sidebar open
+wait --id sidebar-automations --timeout 10
+# With several computers there is still one Automations row, then the merged Projects.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-automations --timeout 20
+order --ids sidebar-automations,project-row:read-project
+shot sidebar-automations-several

@@ -1,0 +1,30 @@
+# nightly-ipad: inline / and @ lists above the keyboard
+# Inline composer lists: the provider's native `/` commands and Project `@` files.
+# Synthetic catalog and search only; choosing edits the draft and nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-read --fixture composer-completion
+wait --id open-sidebar --timeout 30
+sidebar open
+tap --id pinned-thread:claude:read-fixture
+wait --id message-draft --timeout 15
+tap --id message-draft
+type "/"
+# Check input delivery before attributing a missing list to completion.
+wait --id message-draft --contains "/" --timeout 5
+wait --id composer-suggestion:command:review --timeout 15
+wait --id composer-suggestion:command:compact --timeout 5
+shot composer-completion-commands
+type "re"
+wait --id message-draft --contains "/re" --timeout 5
+wait --id composer-suggestion:command:compact --gone --timeout 5
+wait --id composer-suggestion:command:review --timeout 5
+tap --id composer-suggestion:command:review
+wait --id composer-suggestions --gone --timeout 5
+wait --id message-draft --contains "/review " --timeout 10
+type "@comp"
+wait --id message-draft --contains "/review @comp" --timeout 5
+wait --id composer-suggestion:file:workspace:src/ComposerEditor.swift --timeout 15
+shot composer-completion-files
+tap --id composer-suggestion:file:workspace:src/ComposerEditor.swift
+wait --id composer-suggestions --gone --timeout 5
+wait --id message-draft --contains "/review @src/ComposerEditor.swift" --timeout 10
+shot composer-completion-inserted

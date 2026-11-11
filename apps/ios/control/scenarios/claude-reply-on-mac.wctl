@@ -1,0 +1,11 @@
+# Claude on the Mac is writing a reply in a Project chat. The last sender
+# wins: the button sends instead of queuing (the Mac stops its reply, keeping
+# what it wrote, then continues the chat with the message). The composer adds
+# no line about it; VoiceOver hears it as Send's hint.
+launch --fixture read-preview --fixture project-running-elsewhere-preview --fixture project-mac-reply-stops-preview
+wait --id message-draft --timeout 30
+tap --id message-draft --type TextArea
+type "Next step"
+wait --label "Send message" --timeout 10
+wait --contains "on your Mac" --never 2
+shot claude-reply-on-mac

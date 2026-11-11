@@ -1,0 +1,41 @@
+{
+  "approvalId": "fixture-form",
+  "conversationId": "preview",
+  "method": "mcpServer/elicitation/request",
+  "actionNonce": "fixture",
+  "params": {
+    "threadId": "fixture-thread",
+    "turnId": "fixture-turn",
+    "mode": "form",
+    "serverName": "Example",
+    "message": "Choose export settings.",
+    "requestedSchema": {
+      "type": "object",
+      "properties": {
+        "quality": {
+          "type": "string",
+          "title": "Quality",
+          "enum": [
+            "Standard",
+            "High"
+          ]
+        },
+        "copies": {
+          "type": "integer",
+          "title": "Copies",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "watermark": {
+          "type": "boolean",
+          "title": "Watermark"
+        }
+      },
+      "required": [
+        "quality",
+        "copies"
+      ]
+    }
+  },
+  "resolutionIdempotencyKey": null
+}

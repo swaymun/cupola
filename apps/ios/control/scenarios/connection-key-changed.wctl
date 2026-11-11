@@ -1,0 +1,16 @@
+# A computer that answers with another security key than the paired one (its
+# Cupola was reset, or another machine answers) is explained as a key change
+# with Pair again, not as unreachable; nothing signed in is sent to it.
+# Synthetic proof only: no pairing, Tailscale change or agent work.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture connection-key-changed
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --contains "again to open its chats." --timeout 20
+wait --label "Pair again" --timeout 5
+shot connection-key-changed-chats
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+tap --label "Synthetic fixture" --type Button
+wait --id connection-status --contains "different security key" --timeout 20
+wait --id connection-pair-again --timeout 5
+shot connection-key-changed-settings

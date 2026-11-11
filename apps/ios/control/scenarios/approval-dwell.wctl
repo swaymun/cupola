@@ -1,0 +1,15 @@
+# A request that opens by itself ignores answer taps for a short dwell (0.6 s): a tap aimed at
+# the timeline or Send cannot land on Allow. A scenario tap takes over a second, so the dwell is
+# stretched to 6 s here (-diagnostics-request-dwell). The tap straight after auto-open resolves
+# nothing and raises no error; after the dwell, the Always allow row resolves the request.
+launch --fixture subagent-fixture --fixture opencode-fixture --fixture opencode-approval --fixture theme --arg nord --arg=-diagnostics-request-dwell --arg=6
+wait --id approval-accept-fixture-opencode-approval --timeout 20
+tap --id approval-accept-fixture-opencode-approval
+wait --id approval-accept-fixture-opencode-approval --timeout 3
+wait --contains "Action failed" --gone --timeout 3
+shot approval-dwell-ignored
+pause 6
+wait --id approval-opencode:allow_always:fixture-always-allow-fixture-opencode-approval --timeout 5
+tap --id approval-opencode:allow_always:fixture-always-allow-fixture-opencode-approval
+wait --id approval-opencode:allow_always:fixture-always-allow-fixture-opencode-approval --gone --timeout 10
+shot approval-dwell-resolved

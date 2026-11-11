@@ -1,0 +1,35 @@
+# Actual mounted recovery rows at Accessibility XXXL; owned responses only.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --arg=-diagnostics-recovery-case --arg=expired --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id new-chat-t3-note --contains "authorization expired" --timeout 30
+assert --path composer.attachmentCount --equals 1
+shot recovery-large-new-expired
+driver off
+reveal up --id new-chat-t3-reconnect --max-drags 6
+shot recovery-large-new-expired-scrolled
+tap --id new-chat-t3-reconnect
+wait --id t3code-status --contains "Sign-in expired" --timeout 15
+shot recovery-large-settings-expired
+dismiss
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --arg=-diagnostics-recovery-case --arg=model --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id new-chat-provider-recovery --contains "no longer available" --timeout 30
+assert --path composer.attachmentCount --equals 1
+shot recovery-large-new-model
+driver off
+reveal up --id new-chat-recovery-retry --max-drags 6
+shot recovery-large-new-model-scrolled
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --arg=-diagnostics-recovery-case --arg=offline --fixture mac-offline --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id new-chat-draft --timeout 30
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path composer.attachmentCount --equals 1 --timeout 30
+signal mac-gone
+driver off
+button home
+activate
+wait --id composer-mac-unreachable --timeout 30
+shot recovery-large-existing-offline
+driver on
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentHashes --equals '["f85719d7a0b08264889ccce4156d13f595151ebc1a2d0be3bb8eaadede3b165f"]'

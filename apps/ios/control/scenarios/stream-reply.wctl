@@ -1,0 +1,20 @@
+# A reply streams into the open chat from the event socket's frames: its text
+# grows in place, part by part, without the chat being read again (the
+# fixture's HTTP history never contains this reply), and ends complete. The
+# fixture holds the last part until the scenario signals it.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture stream-reply
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Streaming reply, part one." --timeout 15
+# Still streaming: the last part has not arrived yet.
+wait --contains "part ten." --never 1
+shot stream-reply-partial
+signal stream
+wait --contains "part ten." --timeout 15
+wait --id scroll-to-bottom --never 1
+shot stream-reply
+
+# The finished reply carries time + Copy; the earlier streaming state showed none.
+wait --id copy-reply --timeout 10
