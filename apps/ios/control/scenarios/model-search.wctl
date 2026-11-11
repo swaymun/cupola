@@ -1,0 +1,25 @@
+# nightly-ipad: the Model sheet's search field and keyboard in a form sheet
+# Synthetic Cursor Project with more models than fit: the Model sheet offers a
+# search field that narrows by name or provider, says when nothing matches, and
+# clears when the sheet closes. No provider session or model work is started.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture cursor-fixture --fixture open-project-thread
+wait --id project-composer-model --contains "Auto fixture" --timeout 20
+tap --id project-composer-model
+wait --id project-model-search --timeout 10
+wait --id "project-model:cursor:claude-opus-5.5[fast=false]" --timeout 5
+tap --id project-model-search
+type "opus"
+wait --id "project-model:cursor:claude-opus-5.5[fast=false]" --timeout 5
+wait --id "project-model:cursor:luna[reasoning=medium]" --gone --timeout 5
+shot model-search-opus
+tap --id project-model-search-clear
+wait --id "project-model:cursor:luna[reasoning=medium]" --timeout 5
+tap --id project-model-search
+type "zzz"
+wait --contains "No models match" --timeout 5
+shot model-search-empty
+tap --id sheet-done
+wait --id project-model-search --gone --timeout 5
+tap --id project-composer-model
+wait --id "project-model:cursor:luna[reasoning=medium]" --timeout 10
+tap --id sheet-done

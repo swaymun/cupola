@@ -1,0 +1,25 @@
+# nightly-ipad: the lifted context-menu preview of a bubble at iPad width
+# visual-review: the long-press lift shows only the bubble, not a row-wide panel
+# Long-press an agent bubble and a user bubble under a photo theme: the lifted
+# context-menu preview is the bubble alone, not a wider panel behind it. Check the
+# shots by eye; theme-sweep.sh reruns this per theme. Nothing is sent.
+# sweep-default: desert-dunes
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture theme --arg desert-dunes
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Reply 13. Continuing the project" --timeout 20
+hold --contains "Reply 13. Continuing the project"
+wait --id select-message-text-action --timeout 10
+shot menu-preview-desert-dunes-agent
+tap --id select-message-text-action
+wait --id select-message-text --timeout 10
+tap --id select-message-done --type Button
+wait --id select-message-text --gone --timeout 10
+wait --id copy-message --gone --timeout 10
+hold --contains "Please continue"
+wait --id copy-message --timeout 10
+shot menu-preview-desert-dunes-user
+tap --id copy-message
+wait --id copy-message --gone --timeout 10

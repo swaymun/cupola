@@ -1,0 +1,32 @@
+# First launch with nothing paired (an App Store reviewer): every welcome page
+# offers "No computer? Try the demo" under Continue, and the last page Try the
+# demo beside Skip; each opens the demo computer and Leave demo returns to Add a
+# computer. demo-mode.wctl covers the demo itself (send, scripted reply) and
+# demo-tour.wctl every main screen in it.
+launch --fixture unpaired --fixture account-fixture --fixture onboarding
+wait --id onboarding-welcome --timeout 30
+wait --id carousel-try-demo --label "No computer? Try the demo" --timeout 5
+shot onboarding-demo-first-page
+tap --id carousel-try-demo
+wait --id onboarding-welcome --gone --timeout 10
+sidebar open
+wait --id demo-badge --timeout 15
+tap --id demo-leave
+wait --id welcome-add-computer --timeout 15
+launch --fixture unpaired --fixture account-fixture --fixture onboarding
+wait --id onboarding-welcome --timeout 30
+tap --id carousel-next
+tap --id carousel-next
+tap --id carousel-next
+tap --id carousel-next
+wait --id onboarding-try-demo --timeout 5
+wait --id onboarding-skip --timeout 2
+shot onboarding-demo-last-page
+tap --id onboarding-try-demo
+wait --id onboarding-welcome --gone --timeout 10
+sidebar open
+wait --id demo-badge --timeout 15
+wait --id demo-notice --timeout 5
+shot onboarding-demo-opened
+tap --id demo-leave
+wait --id welcome-add-computer --timeout 15

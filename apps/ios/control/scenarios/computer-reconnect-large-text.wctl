@@ -1,0 +1,21 @@
+# nightly-ipad: largest text keeps the last picture readable; connection details and Try again work
+# devices: iphone ipad
+# Offline decoded-frame fixture. Control is explicitly selected at launch,
+# avoiding an active-control screenshot as a substitute for recovery proof.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-control-active --arg=-computer.fillsViewport --arg unset --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id computer-session-control-active --timeout 30
+signal computer-network-change
+wait --id computer-session-preview --contains "showing the last picture" --timeout 10
+wait --id computer-session-recovery-details --timeout 10
+shot recovery-large-text-paused
+tap --id computer-session-recovery-details
+wait --contains "The connection to your computer was interrupted. Reconnecting" --timeout 10
+shot recovery-large-text-details
+tap --label OK
+wait --id computer-session-recovery-details --timeout 10
+signal computer-retry-ready
+tap --id computer-session-retry
+wait --id computer-session-live-status --contains Live --timeout 15
+wait --id computer-session-more --timeout 10
+wait --id computer-session-control-active --timeout 15
+shot recovery-large-text-resumed

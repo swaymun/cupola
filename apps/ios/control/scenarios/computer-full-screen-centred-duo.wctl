@@ -1,0 +1,31 @@
+# devices: duo
+# The computer's full-screen cover on the unfolded Duo spans both displays: the
+# title pill and the control bar are centred on the screen (not the leading
+# display), the window buttons end at the trailing edge, and the trackpad
+# toggle is reachable with the keyboard down and up. `check-layout
+# computer-fullscreen` asserts the frames (title and bar centres within 1 pt).
+# Offline fixture: no paired host input or model calls.
+driver on
+hinge 180
+orient portrait
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-control-active --fixture computer-full-screen --fixture no-hardware-keyboard
+assert --path computer.hasPicture --equals true --timeout 30
+driver off
+wait --id computer-session-exit-full-screen --timeout 30
+wait --id computer-session-control-active --timeout 15
+wait --id computer-session-trackpad-toggle --timeout 10
+check-layout computer-fullscreen --controlling
+shot computer-duo-full-screen-centred-keyboard-down --display primary-1
+# Native taps are not drivable on the unfolded Duo (#387): the keyboard-up pose is a launch fixture.
+driver on
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-control-active --fixture computer-full-screen --fixture computer-keyboard --fixture no-hardware-keyboard
+assert --path computer.hasPicture --equals true --timeout 30
+driver off
+wait --id computer-session-exit-full-screen --timeout 30
+wait --id computer-session-keyboard --contains "Hide keyboard" --timeout 20
+wait --id computer-session-trackpad-toggle --timeout 10
+check-layout computer-fullscreen --controlling
+shot computer-duo-full-screen-centred-keyboard-up --display primary-1
+driver on
+hinge 0
+orient portrait

@@ -1,0 +1,33 @@
+# devices: iphone ipad
+# UX-POLISH-221: New chat's computer and Project pills are one group flush with the composer's leading edge; Settings is one
+# full-width page that pushes (no list + detail split); the reasoning-effort popover has no grab line. Light then dark.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults --fixture several-computers --fixture theme --arg cupola-light
+wait --id new-chat-access --timeout 30
+check-layout newchat-pills
+shot ux-polish-221-newchat-light
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults --fixture several-computers --fixture theme --arg cupola-light --arg=-diagnostics-effort-open
+wait --id new-chat-effort-slider --timeout 20
+shot ux-polish-221-effort-light
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture settings-open --fixture theme --arg cupola-light
+wait --id settings-search-field --timeout 30
+check-layout settings-column
+shot ux-polish-221-settings-light
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults --fixture several-computers --fixture theme --arg cupola-dark
+wait --id new-chat-access --timeout 30
+check-layout newchat-pills
+shot ux-polish-221-newchat-dark
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults --fixture several-computers --fixture theme --arg cupola-dark --arg=-diagnostics-effort-open
+wait --id new-chat-effort-slider --timeout 20
+shot ux-polish-221-effort-dark
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture settings-open --fixture theme --arg cupola-dark
+wait --id settings-search-field --timeout 30
+check-layout settings-column
+shot ux-polish-221-settings-dark
+# A search result pushes its page over the list on every screen, and Back returns to the list.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture settings-open --arg=-diagnostics-settings-search-row --arg=settings-take-over-warning
+wait --id settings-take-over-warning --timeout 30
+wait --id settings-search-field --gone --timeout 10
+shot ux-polish-221-settings-pushed
+back
+wait --id settings-search-field --timeout 10
+check-layout settings-column

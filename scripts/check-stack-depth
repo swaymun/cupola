@@ -1,0 +1,236 @@
+#!/usr/bin/env python3
+"""Peak main-thread stack at every Wonder SwiftUI view body and type-metadata lookup, in an optimized build.
+
+scripts/check-stack-depth [--device iphone|duo|ipad ...] [--limit-kb 512] [--seconds 20] [--no-build]
+
+Build 213 crashed on device because ConversationView.body needed ~1 MB of the 1 MB main
+stack. Debug (-Onone) builds hide it, so this builds the unchanged Diagnostics settings
+(`wonderctl build --optimized`), launches the fixtures that open a Project chat and its
+computer view, New chat, Settings and an open chat's header menu with the app held at launch, attaches lldb and
+records the stack depth at each `Wonder.*.body` entry on the main thread and at every
+swift_getTypeByMangledNameInContext2 call (scripts/stack_depth_lldb.py). The New chat crash was a deep
+generic type demangled recursively, which body-entry samples do not see; the type-metadata peak does.
+Simulators have an 8 MB main stack and do not crash where the 1 MB phone stack does, so this reports depth, not
+crashes; scripts/device-smoke is the run on the phone.
+Exit 1 names the deepest view when any scenario exceeds the limit (or the optimized build fails); exit 75 when a
+lane or tool is unavailable; exit 76 when a scenario could not be measured (lldb attach timeout, the app never
+reached its screen, no view body sampled): nothing failed, so callers retry instead of blaming a commit. A measured
+over-limit scenario still exits 1 even if another scenario was incomplete. Needs a pooled lane for each kind: `wonderctl lane acquire --kind K`
+(WONDER_CONTROL_LANE_OWNER_PID); the check acquires and releases one itself if none is held.
+"""
+import argparse
+import os
+import re
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+WONDERCTL = ROOT / "scripts" / "wonderctl"
+BUNDLE = "com.swaymun.wonder"
+DEFAULT_DEVICES = ("iphone", "duo")
+# Fixture flags that open a Project chat, and that chat with its computer view. A scenario is
+# (launch flags, wonderctl steps run while lldb samples; an ("arm",) step turns sampling on at that point,
+# so screen waits before it are not slowed by the breakpoints): New chat, Settings and the header menu
+# are reached the way a user reaches them, since no fixture flag opens New chat directly.
+CHAT = ["-diagnostics-subagent-fixture", "-diagnostics-chat-layout", "-diagnostics-chat-layout-unsaved",
+        "-diagnostics-project-actions", "-diagnostics-open-project-thread", "-diagnostics-theme", "cupola-light"]
+SCENARIOS = {
+    "project-chat": (["-diagnostics-subagent-fixture", "-diagnostics-chat-layout", "-diagnostics-chat-layout-unsaved",
+                      "-diagnostics-project-actions", "-diagnostics-project-speed", "-diagnostics-send-states",
+                      "-diagnostics-open-project-thread", "-diagnostics-theme", "cupola-light"], []),
+    "computer-view": (["-diagnostics-open-project-thread", "-diagnostics-several-computers",
+                       "-diagnostics-companion-computer", "-diagnostics-companion-expanded",
+                       "-diagnostics-theme", "cupola-light"], []),
+    "open-chat": (CHAT, [("wait", "--id", "conversation-title-menu", "--timeout", "90"), ("arm",),
+                         ("tap", "--id", "conversation-title-menu"), ("wait", "--id", "conversation-title-menu", "--timeout", "60"),
+                         ("tap", "--id", "open-sidebar", "--optional", "--timeout", "20")]),
+    "new-chat": (CHAT, [("wait", "--id", "conversation-title-menu", "--timeout", "90"), ("sidebar", "open", "--timeout", "60"), ("arm",),
+                        ("tap", "--id", "sidebar-new-chat"), ("wait", "--id", "project-agent-picker", "--timeout", "60"),
+                        ("wait", "--id", "new-chat-access", "--timeout", "60")]),
+    # Settings is built at launch, so it is sampled from launch (no arm); a fixed sleep gives it time to build
+    # under the breakpoints, since the accessibility wait cannot answer while the sampler holds the main thread.
+    "settings": (CHAT + ["-diagnostics-settings-open"], [("sleep", "75")]),
+}
+INCOMPLETE = 76  # exit code: some scenario was not measured; same code as scripts/verify-main
+SETTLE = 8  # seconds for lldb to attach and resume before the first step
+STEP_GAP = 2
+
+
+class Incomplete(Exception):
+    """The scenario could not be measured (tool timeout, screen never reached): not a stack failure."""
+
+
+def run(*cmd, **kwargs):
+    return subprocess.run(cmd, text=True, capture_output=True, **kwargs)
+
+
+def ctl(device, *args, **kwargs):
+    return run(str(WONDERCTL), "--device", device, *args, **kwargs)
+
+
+def duo_tap_args(device, step):
+    """Unfolded Duo reports its window frame (669x951) rotated against its content (951x669), so the control's
+    tap-by-id lands 1.4x too far out; tap the element's centre scaled back into the window frame instead."""
+    ident = step[step.index("--id") + 1]
+    deadline = time.monotonic() + 60
+    while time.monotonic() < deadline:
+        lines = ctl(device, "tree").stdout.splitlines()
+        app = next((re.search(r"(\d+)x(\d+)\s*$", l) for l in lines if l.startswith("Application")), None)
+        for line in lines:
+            parts = [part.strip() for part in line.split(" | ")]
+            frame = re.match(r"(-?\d+),(-?\d+) (\d+)x(\d+)$", parts[-1]) if len(parts) > 4 else None
+            if app and frame and parts[1] == ident and int(frame[1]) >= 0:
+                scale = int(app[1]) / int(app[2])
+                x, y, w, h = (int(v) for v in frame.groups())
+                return ("tap", "--xy", f"{(x + w / 2) * scale:.0f},{(y + h / 2) * scale:.0f}")
+        time.sleep(1)
+    return step
+
+
+def measure(device, udid, flags, steps, seconds):
+    run("xcrun", "simctl", "terminate", udid, BUNDLE)
+    launched = run("xcrun", "simctl", "launch", "--wait-for-debugger", udid, BUNDLE, *flags)
+    match = re.search(r":\s*(\d+)", launched.stdout)
+    if not match:
+        raise Incomplete("app did not launch: " + (launched.stderr or launched.stdout).strip())
+    script = str(ROOT / "scripts" / "stack_depth_lldb.py")
+    seconds = max(seconds, SETTLE + (STEP_GAP + 60) * len(steps) + 90)
+    done_file = Path(tempfile.mkdtemp(prefix="stackdepth-")) / "steps-done"
+    arm_file = done_file.parent / "armed"
+    env = {**os.environ, "WONDER_STACK_DONE_FILE": str(done_file)} if steps else os.environ
+    if any(step == ("arm",) for step in steps):  # sampling starts at ("arm",), after the screen is up
+        env = {**env, "WONDER_STACK_ARM_FILE": str(arm_file)}
+    lldb = subprocess.Popen(["lldb", "-b", "-p", match.group(1), "-o", f"command script import {script}",
+                             "-o", f"stackrun {seconds}", "-o", "detach"],
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env)
+    missed = None
+    time.sleep(SETTLE)
+    for step in steps:
+        if step == ("arm",):
+            if not missed:
+                arm_file.touch()
+            continue
+        if step[0] == "sleep":
+            time.sleep(float(step[1]))
+            continue
+        if device == "duo" and step[0] == "tap" and "--id" in step:
+            step = duo_tap_args(device, step)
+        try:  # a wedged simulator must not hold the check for minutes past the step's own timeout
+            done = ctl(device, *step, timeout=180)
+            problem = f"failed: {(done.stdout + done.stderr).strip()[-160:]}" if done.returncode else None
+        except subprocess.TimeoutExpired:
+            problem = "did not return within 180s"
+        if problem and not missed:
+            missed = f"`wonderctl {' '.join(step)}` {problem}"
+        time.sleep(STEP_GAP)
+    if steps:
+        time.sleep(3)  # let the last screen finish building under sampling
+        done_file.touch()
+    try:
+        output, _ = lldb.communicate(timeout=seconds + 120)
+    except subprocess.TimeoutExpired:
+        lldb.kill()
+        raise Incomplete(f"lldb did not finish within {seconds + 120}s")
+    run("xcrun", "simctl", "terminate", udid, BUNDLE)
+    rows = [(int(m[0]), int(m[1]), m[2]) for m in re.findall(r"^DEPTH (\d+) (\d+) (.+)$", output, re.M)]
+    peak = re.search(r"^PEAK (\d+) hits=(\d+)", output, re.M)
+    gap = "the scenario did not reach its screen, so its stack is only partly measured: " + missed if missed else None
+    meta_hits = re.search(r"^METADATA \d+ hits=(\d+)", output, re.M)
+    sampled_metadata = bool(meta_hits and int(meta_hits.group(1)))
+    if not peak or int(peak.group(2)) == 0 and not (sampled_metadata and not gap):  # a menu opens without a new body: metadata lookups still measure it
+        if gap:
+            raise Incomplete(gap.replace("only partly", "not"))
+        raise Incomplete("no view body ran on the main thread (lldb output tail: " + output[-400:] + ")")
+    meta = re.search(r"^METADATA (\d+) hits=(\d+) call=(\d+) decoder=(\d+) (.+)$", output, re.M)
+    metadata = tuple(meta.groups()) if meta else ("0", "0", "0", "0", "?")
+    rows = rows or [(0, 0, "(no view body ran; type-metadata lookups only)")]
+    name = re.search(r"^TYPENAME (\d+) (.+)$", output, re.M)
+    return rows, metadata + (name.groups() if name else ("0", "?")), gap
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--device", action="append", choices=("iphone", "duo", "ipad"))
+    parser.add_argument("--limit-kb", type=int, default=512)
+    parser.add_argument("--seconds", type=int, default=20)
+    parser.add_argument("--scenario", action="append", choices=sorted(SCENARIOS), help="measure only this scenario (repeatable)")
+    parser.add_argument("--no-build", action="store_true", help="measure the app already installed in the lane")
+    parser.add_argument("--keep-lane", action="store_true", help="do not release the lane (iterate with --no-build)")
+    args = parser.parse_args()
+    limit = args.limit_kb * 1024
+    if not os.environ.get("WONDER_CONTROL_LANE_OWNER_PID"):
+        # This process releases its lanes itself, so it owns them; a short-lived parent shell
+        # would let pool reap reclaim the lane mid-measurement. --keep-lane hands it to the caller.
+        os.environ["WONDER_CONTROL_LANE_OWNER_PID"] = str(os.getppid() if args.keep_lane else os.getpid())
+    failures, incomplete, started = [], [], time.monotonic()
+    for device in args.device or DEFAULT_DEVICES:
+        t0 = time.monotonic()
+        acquired = run(str(WONDERCTL), "lane", "acquire", "--kind", device)
+        if acquired.returncode:
+            print(f"check-stack-depth: no {device} lane: {acquired.stderr.strip()[-300:]}", file=sys.stderr)
+            return 75
+        try:
+            if not args.no_build:
+                built = ctl(device, "build", "--optimized")
+                if built.returncode:
+                    print(built.stdout[-2000:] + built.stderr[-2000:], file=sys.stderr)
+                    print(f"check-stack-depth: optimized build failed on {device}", file=sys.stderr)
+                    return 1
+            udid = ctl(device, "device").stdout.strip().splitlines()[-1]
+            ctl(device, "terminate")
+            if device == "duo":  # the Duo lane only takes taps unfolded, as the Duo scenarios set it before launching
+                ctl(device, "hinge", "180")
+                ctl(device, "orient", "portrait")
+                time.sleep(10)
+            built_s = time.monotonic() - t0
+            for name, (flags, steps) in SCENARIOS.items():
+                if args.scenario and name not in args.scenario:
+                    continue
+                try:
+                    try:
+                        result = measure(device, udid, flags, steps, args.seconds)
+                    except Incomplete as first:
+                        if "lldb did not finish" not in str(first):
+                            raise
+                        print(f"check-stack-depth: {device} {name}: {first}; retrying once", file=sys.stderr)
+                        result = measure(device, udid, flags, steps, args.seconds)  # a stuck lldb stop is intermittent
+                    rows, (meta_peak, meta_hits, meta_call, meta_decoder, meta_view, name_len, name_view), gap = result
+                except (Incomplete, subprocess.TimeoutExpired) as error:
+                    incomplete.append(f"{device} {name}: {error}")
+                    print(f"check-stack-depth: {device} {name}: not measured: {error}", file=sys.stderr)
+                    continue
+                depth, frame, view = rows[0]
+                print(f"{device} {name}: peak {depth // 1024} KB at {view} (own frame {frame // 1024} KB, limit {args.limit_kb} KB)", flush=True)
+                meta_depth = int(meta_peak)
+                print(f"{device} {name}: type-metadata peak {meta_depth // 1024} KB at {meta_view} "
+                      f"({meta_hits} lookups; call {int(meta_call) // 1024} KB, decoder {int(meta_decoder) // 1024} KB"
+                      f"{'' if int(meta_decoder) else '; decoder frames not sampled'}, limit {args.limit_kb} KB); "
+                      f"longest requested type name {name_len} bytes at {name_view}", flush=True)
+                if meta_depth > limit:
+                    failures.append(f"type-metadata lookup under {meta_view} reaches {meta_depth // 1024} KB of main-thread stack on "
+                                    f"{device} ({name}); limit {args.limit_kb} KB. The New chat crash looked like this: a deep generic "
+                                    f"modifier chain demangled recursively. Type-erase it (AnyView) or move it into its own view")
+                if depth > limit:
+                    failures.append(f"{view} needs {depth // 1024} KB of main-thread stack on {device} ({name}); "
+                                    f"limit {args.limit_kb} KB. Build 213 crashed this way: split the body into smaller "
+                                    f"views or type-erase deep modifier chains (AnyView) so each frame stays small")
+                if gap:  # whatever was sampled before the screen wait failed still counts; the rest is unmeasured
+                    incomplete.append(f"{device} {name}: {gap}")
+                    print(f"check-stack-depth: {device} {name}: not fully measured: {gap}", file=sys.stderr)
+            print(f"{device}: build+setup {built_s:.0f}s, total {time.monotonic() - t0:.0f}s")
+        finally:
+            if not args.keep_lane:
+                run(str(WONDERCTL), "lane", "release", "--kind", device)
+    print(f"check-stack-depth: {time.monotonic() - started:.0f}s")
+    for failure in failures:
+        print("FAIL " + failure, file=sys.stderr)
+    for gap in incomplete:
+        print("INCOMPLETE " + gap, file=sys.stderr)
+    return 1 if failures else INCOMPLETE if incomplete else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

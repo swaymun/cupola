@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+"""Check the iOS privacy manifests. Exits nonzero with one line per problem.
+
+  scripts/check-privacy-manifests [BUILT_PRODUCTS_DIR]
+
+Apple rejects an upload (ITMS-91053) when a bundle calls a required-reason API that its
+PrivacyInfo.xcprivacy does not declare. For each shipped iOS bundle this checks:
+
+1. `apps/ios/<Target>/PrivacyInfo.xcprivacy` exists, is a valid plist and is in that
+   target's Resources build phase in Wonder.xcodeproj.
+2. Every required-reason API category the target's sources use (including the
+   WonderPairing package it links) is declared. A new category needs a reason from
+   https://developer.apple.com/documentation/bundleresources/describing-use-of-required-reason-api
+   added to the manifest, not to this script.
+3. With BUILT_PRODUCTS_DIR (for example `.local/build/.../Release-iphoneos`), the built
+   Wonder.app and each appex contain their manifest.
+"""
+import plistlib
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+IOS = ROOT / "apps/ios"
+PAIRING = ROOT / "apps/native/Sources/WonderPairing"
+PROJECT = IOS / "Wonder.xcodeproj/project.pbxproj"
+
+# Target -> (Resources phase id, source folders compiled into it, product path in the app).
+TARGETS = {
+    "Wonder": ("000000000000000000000020", [IOS / "Wonder", PAIRING], "Wonder.app"),
+    "WonderShare": ("5C81B237D021866F6AA09608", [IOS / "WonderShare", PAIRING],
+                    "Wonder.app/PlugIns/WonderShare.appex"),
+    "WonderWidget": ("E10000000000000000000016", [IOS / "WonderWidget"],
+                     "Wonder.app/PlugIns/WonderWidget.appex"),
+    "WonderNotificationService": ("A286D7D94DD1D09AFE8EC476", [IOS / "WonderNotificationService", IOS / "PushShared"],
+                                  "Wonder.app/PlugIns/WonderNotificationService.appex"),
+}
+
+# Source patterns for Apple's required-reason API categories.
+CATEGORIES = {
+    "UserDefaults": r"\bUserDefaults\b|@AppStorage\b|NSUserDefaults",
+    "SystemBootTime": r"\bsystemUptime\b|mach_absolute_time|kern\.boottime",
+    "FileTimestamp": r"creationDate|modificationDate|ModificationDate|contentAccessDate|"
+                     r"addedToDirectoryDate|attributesOfItem|\b[fl]?stat\(|getattrlist",
+    "DiskSpace": r"AvailableCapacity|volumeTotalCapacity|\bstatv?fs\(|systemFreeSize|systemSize\b",
+    "ActiveKeyboards": r"activeInputModes",
+}
+
+problems = []
+project = PROJECT.read_text()
+for target, (phase, folders, product) in TARGETS.items():
+    manifest = IOS / target / "PrivacyInfo.xcprivacy"
+    if not manifest.exists():
+        problems.append(f"{target}: missing {manifest.relative_to(ROOT)}")
+        continue
+    try:
+        data = plistlib.loads(manifest.read_bytes())
+    except Exception as error:
+        problems.append(f"{target}: {manifest.relative_to(ROOT)} is not a valid plist ({error})")
+        continue
+    files = re.search(re.escape(phase) + r" /\* Resources \*/ = \{.*?files = \((.*?)\);", project, re.S)
+    if not files or "PrivacyInfo.xcprivacy in Resources" not in files.group(1):
+        problems.append(f"{target}: PrivacyInfo.xcprivacy is not in the target's Resources build phase")
+    declared = {entry["NSPrivacyAccessedAPIType"].removeprefix("NSPrivacyAccessedAPICategory")
+                for entry in data.get("NSPrivacyAccessedAPITypes", []) if any(str(r).strip() for r in entry.get("NSPrivacyAccessedAPITypeReasons", []))}
+    for category, pattern in CATEGORIES.items():
+        uses = sorted({str(p.relative_to(ROOT)) for folder in folders for p in folder.rglob("*")
+                       if p.suffix in {".swift", ".m", ".c", ".mm"} and re.search(pattern, p.read_text(errors="ignore"))})
+        if uses and category not in declared:
+            problems.append(f"{target}: uses {category} ({', '.join(uses[:3])}) but its manifest declares no reason for it")
+    if len(sys.argv) > 1 and not (Path(sys.argv[1]) / product / "PrivacyInfo.xcprivacy").exists():
+        problems.append(f"{target}: built {product} has no PrivacyInfo.xcprivacy")
+
+print("\n".join(problems) or "Privacy manifests OK")
+sys.exit(1 if problems else 0)

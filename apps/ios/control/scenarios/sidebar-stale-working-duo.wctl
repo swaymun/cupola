@@ -1,0 +1,24 @@
+# devices: duo
+# Duo taps are gated (#387): the sidebar opens by launch flag and nothing is tapped. The held synthetic
+# catalog's two worker sessions end; the rail's Working marks clear on their own, folded and unfolded.
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-stale-working --fixture sidebar-all-chats --fixture sidebar-open
+wait --id chat-thread:claude:session-takeover --contains "Working" --timeout 30
+wait --id chat-thread:claude:computer-clipboard --contains "Working"
+shot stale-working-duo-folded-running
+signal workers-finished
+wait --id chat-thread:claude:session-takeover --contains "Working" --gone --timeout 25
+wait --id chat-thread:claude:computer-clipboard --contains "Working" --gone
+wait --id chat-thread:claude:session-takeover
+shot stale-working-duo-folded-ended
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-stale-working --fixture sidebar-all-chats --fixture sidebar-open
+wait --id chat-thread:claude:session-takeover --contains "Working" --timeout 30
+wait --id chat-thread:claude:computer-clipboard --contains "Working"
+signal workers-finished
+wait --id chat-thread:claude:session-takeover --contains "Working" --gone --timeout 25
+wait --id chat-thread:claude:computer-clipboard --contains "Working" --gone
+wait --id chat-thread:claude:session-takeover
+shot stale-working-duo-unfolded-ended

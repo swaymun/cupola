@@ -1,0 +1,13 @@
+# devices: iphone ipad
+# Automations and Usage use the same title header as Settings (the floating pill beside
+# the Duo rail and on iPad, the system title on iPhone), with no extra header gap.
+launch --fixture automations-fixture
+wait --id automation-row:fixture-morning-schedule --timeout 15
+shot header-pills-automations
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture --fixture usage-live-reset --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-usage --timeout 30
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+shot header-pills-usage

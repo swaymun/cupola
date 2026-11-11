@@ -1,0 +1,36 @@
+# devices: duo
+# Same message-link, in-app presentation, native dismissal and Settings checks as
+# link-opening.wctl: the link viewer's ✕ is a native control on the folded cover.
+# Offline chat fixture; the only page opened is https://example.com. No sends.
+driver on
+launch --fixture read-preview --fixture scroll-performance-preview --arg=-wonder.links.open --arg=inApp
+driver off
+wait --contains "Message 300" --timeout 20
+shot link-opening-message
+tap --label "link" --nth -1
+driver on
+assert --path browser.kind --equals '"link"' --timeout 10
+assert --path applicationState --equals '"active"'
+assert --path openedLinks.0.url --equals '"https://example.com"'
+assert --path openedLinks.0.opening --equals '"inApp"'
+driver off
+shot link-opening-in-app-browser
+wait --id link-viewer-close --timeout 10
+tap --id link-viewer-close
+driver on
+assert --path browser --equals null --timeout 10
+assert --path applicationState --equals '"active"'
+driver off
+wait --contains "Message 300" --timeout 10
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-wonder.links.open --arg=inApp
+wait --id open-sidebar --timeout 30
+sidebar open
+tap --id sidebar-settings
+reveal up --id settings-open-links --max 6
+wait --id settings-open-links --contains "In Cupola" --timeout 10
+tap --id settings-open-links
+wait --label "In Safari" --timeout 5
+wait --label "In default browser" --timeout 5
+shot link-opening-settings
+tap --label "In Cupola"
+wait --id settings-open-links --contains "In Cupola" --timeout 5

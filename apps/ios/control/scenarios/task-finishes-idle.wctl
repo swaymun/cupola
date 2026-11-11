@@ -1,0 +1,34 @@
+# nightly-ipad: the task roster anchors to the composer in a wide layout too.
+# One background task finishes while its parent's only turn stays completed.
+# The signal delivers a native-history wake through the actual event-frame path;
+# no parent reply, send, reopen or manual refresh can update the roster for it.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture open-project-thread --fixture task-roster-open --fixture task-finishes-idle
+wait --id project-subagent-roster-list --timeout 30
+wait --label "1 agent task running" --timeout 10
+wait --label "Audit the release checklist, general-purpose, Running" --timeout 10
+wait --id project-subagent-stop:fixture-third-child-thread --timeout 5
+shot task-finishes-idle-running
+signal task-finish
+wait --label "Audit the release checklist, general-purpose, Completed" --timeout 10
+wait --id project-subagent-section:running --gone --timeout 5
+wait --id project-subagent-section:completed --timeout 5
+wait --id project-subagent-stop:fixture-third-child-thread --gone --timeout 5
+wait --label "1 agent task" --timeout 5
+shot task-finishes-idle-completed
+# Dismiss and reopen on the input-qualified lanes, then inspect the same result.
+tap --xy 350,200
+wait --id project-subagent-roster-list --gone --timeout 5
+tap --id project-subagent-status-pill
+wait --label "Audit the release checklist, general-purpose, Completed" --timeout 10
+shot task-finishes-idle-reopened
+
+# A native-status completion also refreshes a clean idle parent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture open-project-thread --fixture task-roster-open --fixture task-finishes-idle --fixture task-finish-status
+wait --label "1 agent task running" --timeout 10
+wait --label "Audit the release checklist, general-purpose, Running" --timeout 10
+signal task-finish
+wait --label "Audit the release checklist, general-purpose, Completed" --timeout 10
+wait --id project-subagent-section:running --gone --timeout 5
+wait --id project-subagent-stop:fixture-third-child-thread --gone --timeout 5
+wait --label "1 agent task" --timeout 5
+shot task-finishes-idle-status-completed

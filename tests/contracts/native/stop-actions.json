@@ -1,0 +1,15 @@
+{
+  "path": "/api/v1/conversations/phone-provider/turns/turn/interrupt",
+  "first": { "ownerActionId": "57e7c489-b27e-41b6-9a0e-c8d7bc80c4fb" },
+  "second": { "ownerActionId": "60ef4c35-76bf-4943-a4d1-825127e2fe9e" },
+  "legacy": {},
+  "invalid": [
+    { "ownerActionId": "" },
+    { "ownerActionId": " " },
+    { "ownerActionId": 2 },
+    { "ownerActionId": "stop\nagain" },
+    { "ownerActionId": "stop\n" },
+    { "ownerActionId": "stóp" },
+    { "ownerActionId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" }
+  ]
+}

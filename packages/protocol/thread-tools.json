@@ -1,0 +1,23 @@
+{
+  "description": "Every Cupola tool a Project agent receives. wonderd checks its registry against this list (thread_tools.rs); the Claude and ACP bridges' allowlists are tested against it.",
+  "names": [
+    "wonder_thread_list",
+    "wonder_thread_read",
+    "wonder_thread_send",
+    "wonder_thread_wait",
+    "wonder_thread_stop",
+    "wonder_delegate",
+    "wonder_models",
+    "wonder_show_visual",
+    "wonder_request_secret",
+    "wonder_run_with_secret",
+    "wonder_request_takeover",
+    "wonder_stream_screen",
+    "wonder_schedule",
+    "wonder_schedules",
+    "wonder_schedule_update",
+    "wonder_notify",
+    "wonder_preferences",
+    "wonder_code_thread"
+  ]
+}

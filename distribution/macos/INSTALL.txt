@@ -1,0 +1,119 @@
+Cupola for Mac
+==============
+
+Cupola.app runs the Cupola host on this Mac so Cupola on your iPhone can reach
+your agent conversations. It has no window: you use it with the `cupola`
+command in Terminal. Your conversations, pairing and sign-ins are kept in
+~/.cupola and survive upgrades and reinstalls.
+
+You need a Mac with Apple silicon on macOS 14 or newer, and Cupola on your
+iPhone or iPad on the same Wi-Fi as this Mac. Sign in on this Mac to the
+agents you use (`cupola providers` shows them):
+
+  Codex        the Codex CLI (npm or Homebrew) or the ChatGPT desktop app;
+               `cupola providers login codex`. The ChatGPT app is optional
+               and adds its own threads and computer use.
+  Claude Code  included; `cupola providers login claude`.
+  OpenCode     install OpenCode; `cupola providers login opencode`.
+  Cursor       install Cursor's CLI; `agent login`.
+
+To reach this Mac away from home, add Tailscale later (see below).
+
+
+New installation
+----------------
+
+1. Drag Cupola.app into your Applications folder. Keep it there, and keep its
+   name: the login service and the `cupola` command point at
+   /Applications/Cupola.app.
+
+2. Put the `cupola` command on your PATH. In Terminal:
+
+     mkdir -p ~/.local/bin
+     ln -s /Applications/Cupola.app/Contents/MacOS/cupola ~/.local/bin/cupola
+
+   If `cupola version` then says "command not found", add the folder to your
+   PATH and open a new Terminal window:
+
+     echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zprofile
+
+3. Set up the host, start it now and at every login, and pair your iPhone:
+
+     cupola init
+     cupola service install
+     cupola pair
+
+   If macOS asks whether to open an app downloaded from the internet,
+   choose Open. Open Cupola on your iPhone, on the same Wi-Fi as this Mac,
+   tap Add computer and scan the code. Your iPhone then shows a short
+   verification text: type it here to let it connect. macOS may ask once
+   whether Cupola may accept incoming network connections; choose Allow, or
+   your iPhone cannot connect.
+
+4. Check that everything is ready:
+
+     cupola doctor
+     cupola status
+
+   Screen sharing is off until you turn it on. To let your iPhone view and
+   control this Mac's screen:
+
+     cupola stop
+     cupola init --computer
+     cupola permissions grant
+     cupola service restart
+
+   and allow Screen Recording and Accessibility for Cupola in System
+   Settings. Your iPhone stays paired. To allow viewing but not control,
+   then run `cupola computer control off`.
+
+
+Away from home (optional)
+-------------------------
+
+Your iPhone connects on the same Wi-Fi without anything else. To reach this
+Mac from anywhere, install Tailscale on this Mac and your iPhone, sign both in
+to the same tailnet and turn on HTTPS certificates for it. The host notices
+Tailscale by itself; there is no need to set up or pair again. `cupola routes`
+shows every way your iPhone can reach this Mac. To stop same Wi-Fi
+connections, run `cupola lan off` and `cupola service restart`.
+
+
+Upgrading
+---------
+
+A zip install has no update feed, so `cupola update` does not work on it:
+download each new zip. (Homebrew and the install.sh installer can update.)
+
+From an earlier Cupola.app: run `cupola stop`, replace
+/Applications/Cupola.app with the new one, then run `cupola service restart`
+(or `cupola start` if you never installed the login service). Do not run
+`cupola init` again; your iPhone stays paired.
+
+From "Cupola CLI.app" (earlier releases used that name):
+
+     cupola stop
+     # Drag the new Cupola.app into Applications, then move
+     # "/Applications/Cupola CLI.app" to the Trash.
+     ln -sfn /Applications/Cupola.app/Contents/MacOS/cupola ~/.local/bin/cupola
+     cupola service restart
+     cupola status
+
+`cupola service restart` points the login service at Cupola.app; use
+`cupola start` instead if you never installed the service. Screen Recording,
+Accessibility and Automation permissions carry over, because the app keeps the
+same identity. macOS may ask once more about incoming network connections;
+choose Allow. If you installed Cupola with Homebrew, use
+`brew upgrade --cask cupola` and then `cupola service restart` instead.
+
+
+Uninstalling
+------------
+
+     cupola service uninstall
+     rm ~/.local/bin/cupola
+
+Run `cupola stop` instead of `cupola service uninstall` if you never
+installed the login service. Then move /Applications/Cupola.app to the Trash.
+~/.cupola is kept; delete it too only if you want to remove your
+conversations and pairing.

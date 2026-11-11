@@ -1,0 +1,34 @@
+# devices: duo
+# Owned offline Settings root; leading Back belongs beside its title, not on
+# the far rail. Subsections keep their own navigation stack and parent label.
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id settings-back-to-chats --timeout 30
+# The Back target is the whole title row (UX6), so it spans the title: no left-to-right order.
+order --axis y --ids settings-root-title,settings-search-field
+tree --json
+shot menus-settings-leading-back-folded
+# AXe cannot scroll the cover reliably (#387); open the real search destination
+# through its existing launch fixture, then check native Back and the return state.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-settings-open --arg=-diagnostics-settings-search-row --arg=settings-theme --arg=-diagnostics-theme --arg=light-classic --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id theme-option:wonder --timeout 15
+# Back includes the title; their frames intentionally overlap horizontally.
+wait --id settings-subsection-back --timeout 5
+order --axis y --ids settings-subsection-title,theme-option:wonder
+tree --json
+shot menus-settings-theme-leading-back-folded
+tap --id settings-subsection-back
+wait --id settings-search-field --timeout 10
+# Native folded input checks the return action, rather than just its presence.
+tap --id settings-back-to-chats
+wait --id settings-search-field --gone --timeout 10
+wait --id new-chat-draft --timeout 10
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=dark-classic --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id settings-back-to-chats --timeout 30
+hinge 180
+orient portrait
+# The full-width Back button also contains the title when unfolded.
+order --axis y --ids settings-root-title,settings-search-field
+tree --json
+shot menus-settings-leading-back-unfolded --display primary-1

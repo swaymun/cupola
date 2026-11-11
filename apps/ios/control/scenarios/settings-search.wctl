@@ -1,0 +1,140 @@
+# Own the theme: previous demo runs must not change this scenario’s geometry.
+# devices: iphone ipad
+# Owned offline host fixtures only. No chat sends, grants, provider actions or
+# owner preferences. Each navigation case selects its own initial state.
+# Real TextField typing exercises the local index; on every screen a result
+# pushes its destination over the list (no detail beside the results). Assert durable destination
+# rows and eventual highlight expiry; inspect recorded highlights because
+# an AX snapshot on a loaded host
+# can take longer than the three-second cue. No setting is changed by selection.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic --fixture account-fixture --fixture account-signed-in
+wait --id settings-search-field --timeout 30
+order --axis y --ids settings-computer:diagnostic-host,settings-add-computer,settings-notifications
+shot settings-search-phone-and-computer-scopes
+tap --id settings-search-field
+type "dark"
+wait --id settings-search-result:theme-option:cupola-dark --timeout 10
+shot settings-search-dark-theme-results
+tap --id settings-search-result:theme-option:cupola-dark
+wait --id theme-option:cupola-dark --timeout 10
+shot settings-search-dark-theme-destination
+wait --id settings-search-highlight:theme-option:cupola-dark --gone --timeout 10
+shot settings-search-theme-settled
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic
+wait --id settings-search-field --timeout 30
+tap --id settings-search-field
+type "archive"
+wait --id settings-search-result:auto-archive-days:diagnostic-host --timeout 10
+wait --contains "This device" --timeout 10
+wait --contains "On Synthetic fixture" --timeout 10
+shot settings-search-archive-results
+tap --id settings-search-result:auto-archive-days:diagnostic-host
+wait --id auto-archive-days --timeout 10
+shot settings-search-archive-destination
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture t3-code --fixture computer-use --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic
+wait --id settings-search-field --timeout 30
+tap --id settings-search-field
+# AXe text injection can drop this short query after iPad relaunch.
+# Send actual keyboard events; still assert the native result and destination.
+keys e1:down,17,e1:up,20
+wait --id settings-search-result:t3code-status:diagnostic-host --timeout 10
+shot settings-search-t3-results
+tap --id settings-search-result:t3code-status:diagnostic-host
+wait --id t3code-status --timeout 10
+shot settings-search-t3-destination
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic
+wait --id settings-search-field --timeout 30
+tap --id settings-search-field
+type "reach"
+wait --id settings-search-result:connection-remote-access:diagnostic-host --timeout 10
+shot settings-search-reach-results
+tap --id settings-search-result:connection-remote-access:diagnostic-host
+wait --id connection-remote-access --timeout 10
+shot settings-search-reach-destination
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic
+wait --id settings-search-field --timeout 30
+tap --id settings-search-field
+type "Default models"
+wait --id settings-search-result:settings-default-models:diagnostic-host --timeout 10
+shot settings-search-default-models-results
+tap --id settings-search-result:settings-default-models:diagnostic-host
+wait --id provider-default-model:codex --timeout 10
+shot settings-search-default-models-destination
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic
+wait --id settings-search-field --timeout 30
+tap --id settings-search-field
+type "font"
+wait --id settings-search-result:settings-font --timeout 10
+tap --id settings-search-result:settings-font
+wait --id message-font:system --timeout 10
+shot settings-search-font-destination
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic
+wait --id settings-search-field --timeout 30
+tap --id settings-search-field
+type "pills"
+wait --id settings-search-result:settings-pills --timeout 10
+tap --id settings-search-result:settings-pills
+wait --id pills-row:computer --timeout 10
+shot settings-search-pills-destination
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic
+wait --id settings-search-field --timeout 30
+tap --id settings-search-field
+type "Codex custom instructions"
+wait --id settings-search-result:custom-instruction:codex:diagnostic-host --timeout 10
+tap --id settings-search-result:custom-instruction:codex:diagnostic-host
+wait --id custom-instruction-text:codex --timeout 10
+shot settings-search-codex-destination
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic
+wait --id settings-search-field --timeout 30
+tap --id settings-search-field
+type "voice daily spending"
+wait --id settings-search-result:voice-daily-dollars:diagnostic-host-studio --timeout 10
+tap --id settings-search-result:voice-daily-dollars:diagnostic-host-studio
+wait --id voice-daily-dollars --timeout 10
+shot settings-search-voice-studio
+wait --id voice-limits-header --contains "Limits" --timeout 10
+reveal down --label "Voice computer" --in voice-settings-list
+wait --id voice-key-computer --contains "Studio" --timeout 10
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture provider-updates --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic
+wait --id settings-search-field --timeout 30
+tap --id settings-search-field
+type "Codex Thinking"
+wait --id settings-search-result:provider-chat-detail:codex:thinking:diagnostic-host --timeout 10
+tap --id settings-search-result:provider-chat-detail:codex:thinking:diagnostic-host
+wait --id provider-chat-detail:codex:thinking --timeout 10
+shot settings-search-thinking-destination
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture wonder-skills --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic
+wait --id settings-search-field --timeout 30
+tap --id settings-search-field
+type "Phone-friendly replies"
+wait --id settings-search-result:wonder-skill:wonder-phone-replies:diagnostic-host --timeout 10
+tap --id settings-search-result:wonder-skill:wonder-phone-replies:diagnostic-host
+wait --id wonder-skill:wonder-phone-replies --timeout 10
+shot settings-search-skill-destination
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic
+wait --id settings-search-field --timeout 30
+tap --id settings-search-field
+type "Worktree chats"
+wait --id settings-search-result:include-worktrees-chats:diagnostic-host --timeout 10
+tap --id settings-search-result:include-worktrees-chats:diagnostic-host
+wait --id include-worktrees-chats --timeout 10
+shot settings-search-worktree-destination
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic
+wait --id settings-search-field --timeout 30
+tap --id settings-search-field
+type "zzzz-no-such-setting"
+wait --id settings-search-empty --contains "No settings match" --timeout 10
+shot settings-search-empty
+tap --id settings-search-clear
+wait --id settings-add-computer --timeout 10
+wait --id settings-search-empty --gone --timeout 10
+shot settings-search-cleared
+# The computer's new-chat default arrived on main while this branch was reviewed.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture default-models --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic
+wait --id settings-search-field --timeout 30
+tap --id settings-search-field
+type "Start new chats in T3 Code"
+wait --id settings-search-result:computer-start-new-chats-in-t3:diagnostic-host --timeout 10
+tap --id settings-search-result:computer-start-new-chats-in-t3:diagnostic-host
+wait --id computer-start-new-chats-in-t3 --timeout 10
+shot settings-search-new-chat-default

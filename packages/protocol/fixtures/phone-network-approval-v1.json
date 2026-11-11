@@ -1,0 +1,27 @@
+{
+  "approvalId": "fixture-network",
+  "conversationId": "preview",
+  "method": "item/commandExecution/requestApproval",
+  "actionNonce": "fixture",
+  "params": {
+    "threadId": "fixture-thread",
+    "turnId": "fixture-turn",
+    "networkApprovalContext": {
+      "host": "example.com",
+      "protocol": "https"
+    },
+    "availableDecisions": [
+      "accept",
+      {
+        "applyNetworkPolicyAmendment": {
+          "network_policy_amendment": {
+            "host": "example.com",
+            "action": "allow"
+          }
+        }
+      },
+      "decline"
+    ]
+  },
+  "resolutionIdempotencyKey": null
+}

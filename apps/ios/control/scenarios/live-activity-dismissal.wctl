@@ -1,0 +1,26 @@
+# iPhone. A pooled lane is a fresh simulator, so the first Lock Screen shows
+# iOS's "Allow Live Activities from Cupola?" card; the scenario taps Allow when
+# it shows and moves on when this simulator was already authorized.
+# wonderctl restores liveactivitiesd, chronod and PosterBoard on a slim lane.
+# This swipes the real extension off the Lock Screen; iOS 26 reveals a Clear
+# action there, which the scenario taps. The final probe comes from the
+# production ActivityKit observer and stored suppression, not a
+# dismissedWhileWorking value injected by a unit test. No pairing or send.
+launch --fixture unpaired --fixture live-activity-probe --fixture live-activity-fixture --arg running --arg 1
+wait --id live-activity-status --label "Live Activity: running 1 (active): 1 agent working; compact 1, rows: Fix login crash is running" --timeout 20
+button lock
+# A freshly restored lane can draw the activity on the Lock Screen late (post-merge verify
+# timed out at 20 s twice although the capture right after showed it); the wait still
+# returns as soon as the activity is there.
+wait --id activity-content-view --timeout 60
+tap --label Allow --type Button --optional --timeout 8
+shot live-activity-before-swipe
+swipe left --from activity-content-view
+tap --label Clear --type Button --optional --timeout 5
+button home
+activate
+wait --id live-activity-status --label "Live Activity: dismissed while working; suppressed" --timeout 20
+shot live-activity-dismissal-recorded
+wait --id live-activity-status --label "Live Activity: running 1 (active): 1 agent working; compact 1, rows: Fix login crash is running" --never 10
+launch --fixture unpaired --fixture live-activity-probe --fixture live-activity-fixture --arg done --arg=-1
+wait --id live-activity-status --label "Live Activity: none" --timeout 20

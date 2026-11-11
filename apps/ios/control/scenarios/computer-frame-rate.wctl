@@ -1,0 +1,39 @@
+# devices: iphone, ipad
+# FPS4: the computer menu offers a frame-rate choice beside the resolution
+# choice: Auto, 15, 30, 60, and 120 only where the display runs at 120 Hz.
+# Low Power Mode and heat cap a pick and the row says so. Fixtures never save
+# the pick (a live relaunch check covers that). Synthetic transport; nothing is sent to a computer.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture computer-simulator-fixture --arg=-diagnostics-computer-display-hz --arg 60 --arg=-computer.frameRate --arg unset
+driver off
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+wait --id computer-session-more --timeout 15
+tap --id computer-session-more
+wait --label "Frame rate: Auto" --timeout 15
+shot computer-frame-rate-menu
+tap --label "Frame rate: Auto"
+wait --label "15 fps" --timeout 15
+wait --label "60 fps" --timeout 10
+wait --label "120 fps" --gone
+shot computer-frame-rate-60hz-options
+tap --label "15 fps"
+driver on
+assert --path computer.frameRateChoice --equals '"15"' --timeout 10
+assert --path computer.frameRateAsked --equals 15 --timeout 10
+assert --path computer.frameRateOptions --equals '["Auto","15 fps","30 fps","60 fps"]' --timeout 10
+driver off
+# 120 Hz display with Low Power Mode: 120 is offered, a pick of 120 is held at 60 and the row says why.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture computer-simulator-fixture --arg=-diagnostics-computer-display-hz --arg 120 --arg=-diagnostics-computer-low-power --arg=-computer.frameRate --arg 120
+driver off
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+wait --id computer-session-more --timeout 15
+tap --id computer-session-more
+wait --label "Frame rate: 60 fps · Low Power" --timeout 15
+shot computer-frame-rate-120hz-low-power
+driver on
+assert --path computer.frameRateOptions --equals '["Auto","15 fps","30 fps","60 fps","120 fps"]' --timeout 10
+assert --path computer.frameRateAsked --equals 60 --timeout 10
+driver off

@@ -1,0 +1,13 @@
+# Text first: a thread's words show at once while each picture waits in a box
+# sized from the size the computer reported; the phone-sized pictures fill in
+# afterwards. Pictures are held until `signal thumbnails`.
+# Offline preview fixture; nothing is sent.
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture activity-mixed-preview --fixture activity-final-image-preview --fixture activity-gallery-preview --fixture diagnostics-thumbnails-held
+wait --contains "I updated the chat labels" --timeout 30
+wait --id tool-image:final-preview --contains Loading
+wait --id tool-image:gallery-wide --contains Loading
+shot text-first-pictures-waiting
+signal thumbnails
+wait --id tool-image:final-preview --contains Loaded --timeout 15
+wait --id tool-image:gallery-wide --contains Loaded
+shot text-first-pictures-loaded

@@ -1,0 +1,128 @@
+# nightly-ipad: chat-link return restores the pane beside the chat; iPhone restores its sheet
+# devices: iphone ipad
+# Owned offline A/B chats and the actual system URL entry point. Native waits
+# observe the URL's result before querying the driver; they never activate the
+# app to restore a pane. The one background-only activation is a separate control.
+# rail-fixture isolates notification storage for unsigned simulator builds.
+# On a fresh simulator install, accept the system first-use Open prompt for
+# this owned URL before running; see TESTING.md#physical-chat-link-restoration.
+# No model messages, live shell or computer input.
+driver on
+launch --fixture subagent-fixture --fixture rail-fixture --fixture chat-layout --fixture project-actions --fixture terminal-available --fixture terminal-preview --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture durable-store --fixture open-project-thread --fixture durable-store-reset --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-diagnostics-theme --arg=cupola-light --arg=-AppleInterfaceStyle --arg=Light
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+type "Link draft A"
+driver off
+tap --id conversation-terminal-pill
+wait --id terminal-output --contains "build.sh" --timeout 20
+shot chat-link-terminal-before
+# Normal shell navigation is the control for this regression.
+driver on
+open-thread fixture-fork-conversation --host diagnostic-host
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 30
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+driver off
+wait --id terminal-output --contains "build.sh" --timeout 20
+shot chat-link-terminal-shell-return
+open wonder://v1/hosts/diagnostic-host/chats/fixture-fork-conversation
+wait --id conversation-title-menu --contains "Read status fixture (fork)" --timeout 30
+driver on
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 30
+type "Link draft B"
+assert --path composer.text --equals '"Link draft B"'
+driver off
+wait --id terminal-output --gone --timeout 10
+open wonder://v1/hosts/diagnostic-host/chats/fixture-parent-conversation
+wait --id terminal-output --contains "build.sh" --timeout 20
+driver on
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+assert --path composer.text --equals '"Link draft A"' --timeout 10
+driver off
+shot chat-link-terminal-return
+driver on
+assert --path composer.text --equals '"Link draft A"'
+driver off
+# Background alone keeps the pane; external link return then restores it too.
+button home
+activate
+wait --id terminal-output --contains "build.sh" --timeout 20
+shot chat-link-terminal-foreground-return
+button home
+open wonder://v1/hosts/diagnostic-host/chats/fixture-fork-conversation
+wait --id conversation-title-menu --contains "Read status fixture (fork)" --timeout 30
+driver on
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path composer.text --equals '"Link draft B"' --timeout 10
+driver off
+wait --id terminal-output --gone --timeout 10
+button home
+open wonder://v1/hosts/diagnostic-host/chats/fixture-parent-conversation
+wait --id terminal-output --contains "build.sh" --timeout 20
+driver on
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+assert --path composer.text --equals '"Link draft A"' --timeout 10
+driver off
+shot chat-link-terminal-external-return
+driver on
+dismiss
+driver off
+wait --id terminal-output --gone --timeout 10
+tap --id computer-status-pill
+wait --id computer-session-live-status --contains "Live" --timeout 20
+wait --id computer-session-control-active --timeout 15
+shot chat-link-computer-before
+open wonder://v1/hosts/diagnostic-host/chats/fixture-fork-conversation
+wait --id conversation-title-menu --contains "Read status fixture (fork)" --timeout 30
+driver on
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path composer.text --equals '"Link draft B"' --timeout 10
+driver off
+wait --id computer-session-container --gone --timeout 10
+open wonder://v1/hosts/diagnostic-host/chats/fixture-parent-conversation
+wait --id computer-session-live-status --contains "Live" --timeout 20
+driver on
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+driver off
+wait --id computer-session-more --timeout 10
+wait --id computer-session-control-active --timeout 15
+shot chat-link-computer-return-controlled
+# An explicit close still clears the saved choice on the link path.
+driver on
+dismiss
+driver off
+wait --id computer-session-container --gone --timeout 10
+button home
+open wonder://v1/hosts/diagnostic-host/chats/fixture-fork-conversation
+wait --id conversation-title-menu --contains "Read status fixture (fork)" --timeout 30
+driver on
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 30
+driver off
+button home
+open wonder://v1/hosts/diagnostic-host/chats/fixture-parent-conversation
+wait --id conversation-title-menu --contains "Read status fixture" --timeout 30
+driver on
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+assert --path composer.text --equals '"Link draft A"' --timeout 10
+driver off
+wait --id computer-session-container --gone --timeout 10
+wait --id terminal-output --gone --timeout 10
+shot chat-link-explicit-close
+
+# Cold URL control: reset belongs only to setup. Retaining it across an
+# XCTest URL relaunch would erase the pane that this check is meant to restore.
+tap --id conversation-terminal-pill
+wait --id terminal-output --contains "build.sh" --timeout 20
+shot chat-link-cold-terminal-before
+driver on
+launch --fixture subagent-fixture --fixture rail-fixture --fixture chat-layout --fixture project-actions --fixture terminal-available --fixture terminal-preview --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture durable-store --fixture open-project-thread --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-diagnostics-theme --arg=cupola-light --arg=-AppleInterfaceStyle --arg=Light --arg=-diagnostics-deep-link --arg=wonder://v1/hosts/diagnostic-host/chats/fixture-fork-conversation
+assert --path selection.id --equals '"fixture-fork-conversation"' --timeout 30
+driver off
+wait --id terminal-output --gone --timeout 10
+driver on
+launch --fixture subagent-fixture --fixture rail-fixture --fixture chat-layout --fixture project-actions --fixture terminal-available --fixture terminal-preview --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture durable-store --fixture open-project-thread --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-diagnostics-theme --arg=cupola-light --arg=-AppleInterfaceStyle --arg=Light --arg=-diagnostics-deep-link --arg=wonder://v1/hosts/diagnostic-host/chats/fixture-parent-conversation
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+assert --path composer.text --equals '"Link draft A"' --timeout 10
+driver off
+wait --id terminal-output --contains "build.sh" --timeout 20
+shot chat-link-cold-terminal-return

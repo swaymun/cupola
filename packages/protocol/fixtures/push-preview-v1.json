@@ -1,0 +1,10 @@
+{
+  "key" : "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+  "payload" : {
+    "eventId" : "00000000-0000-4000-8000-000000000003",
+    "preview" : "AAECAwQFBgcICQoLPCC3a7WXrW3sLbWxyssZDve_6Fq-FDEfXUXfpy1ZMIIxIJ7MgvEiqESJS924twUA3mlQoGrmk-oPpxopKNPF2tIQ5BujoVQOajXGJ4utNMpK_6cWHw42UpyN7r4Xhtjh5sl7m4hjqnX6ZRyIaidUEZoTCs7DsUDpOYxokeyIHmObJmW1wIulfH-OOspOqi2hU9uXWlF-4GigfYsYlKSMnOD26nyGkYUahVn_nLb48s7vq-dW49kW3QH97OUZqsSHWiL5jmyxuqhDP7yI8yX7vsMYkQ5JdciUXPn1tDVqo9g3SqDDgwI5BwYo3GeVcAwhiFEOVdxA-dd4HQYfq-4n8GG0geT4vmpDh07aOXZYGzlquQ-OD51DUQ",
+    "registrationId" : "00000000-0000-4000-8000-000000000001",
+    "routeId" : "00000000-0000-4000-8000-000000000002"
+  },
+  "plaintext" : "{\"approval\":{\"actionNonce\":\"00000000-0000-4000-8000-000000000004\",\"approvalId\":\"runtime:approval-1\"},\"body\":\"Run the tests?\\nnpm test\\n/workspace/todos\",\"conversationId\":\"fixture-thread\",\"hostInstallationId\":\"fixture-host\",\"title\":\"Todo app · Approval requested\"}"
+}

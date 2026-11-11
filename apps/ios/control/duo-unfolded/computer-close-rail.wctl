@@ -1,0 +1,27 @@
+# devices: duo
+# DUO-CHAT-CENTRE: after opening and closing the computer view (twice) the rail buttons keep one x-centre and never overlap,
+# and the chat's pill and arrow stay centred. The driver opens/closes (Duo taps gated, #387).
+hinge 180
+orient portrait
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture project-git-preview --fixture terminal-preview --fixture computer-session-available-fixture --arg=-composerPills --arg=computer,files,terminal --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+assert --path pane --equals null --timeout 20
+tap --id computer-status-pill
+assert --path pane.tool --equals '"computer"' --timeout 10
+tap --id computer-status-pill
+assert --path pane --equals null --timeout 10
+driver off
+wait --id message-draft --timeout 15
+shot computer-closed-rail-1 --display primary-1
+check-layout duo-chat-centre --expect split --settle 10
+driver on
+tap --id computer-status-pill
+assert --path pane.tool --equals '"computer"' --timeout 10
+tap --id computer-status-pill
+assert --path pane --equals null --timeout 10
+driver off
+wait --id message-draft --timeout 15
+shot computer-closed-rail-2 --display primary-1
+check-layout duo-chat-centre --expect split --settle 10
+hinge 0
+orient portrait

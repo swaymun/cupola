@@ -1,0 +1,24 @@
+# UX6: synthetic routes exercise all three kinds and the paired key.
+launch --fixture ux6-settings-fixture --fixture ux6-routes
+wait --id connection-routes --timeout 30
+wait --id connection-reveal:home --contains Hidden --timeout 5
+wait --id connection-reveal:tailscale --contains Hidden --timeout 5
+wait --id connection-reveal:key --contains Hidden --timeout 5
+wait --contains relay.example.invalid --gone --timeout 2
+tree --json
+shot ux6-connection-details-hidden
+tap --id connection-reveal:home
+tap --id connection-reveal:tailscale
+tap --id connection-reveal:key
+wait --id connection-reveal:home --contains "192.168.50.20" --timeout 5
+wait --id connection-reveal:tailscale --contains "fixture.tail000000.ts.net" --timeout 5
+wait --contains relay.example.invalid --gone --timeout 2
+tree --json
+shot ux6-connection-details-revealed
+tap --id connection-reveal:home
+tap --id connection-reveal:tailscale
+tap --id connection-reveal:key
+wait --id connection-reveal:home --contains Hidden --timeout 5
+wait --id connection-reveal:tailscale --contains Hidden --timeout 5
+wait --id connection-reveal:key --contains Hidden --timeout 5
+shot ux6-connection-details-hidden-again

@@ -1,0 +1,9 @@
+# Held synthetic goal: no provider work or owner conversations.
+# A goal the agent works on by itself, before anything is said in its thread,
+# reads "Goal running" with its objective instead of an idle empty chat
+# (owner, 2026-10-21: the goal thread on agent/WIN-REPLAY-024 looked idle).
+launch --fixture subagent-fixture --fixture goal-fixture --fixture goal-empty
+wait --id goal-running --contains "Goal running" --timeout 15
+wait --id goal-running --contains "Prepare a reliable beta launch" --timeout 5
+wait --id goal-status-pill --timeout 5
+shot goal-running-empty

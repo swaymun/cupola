@@ -1,0 +1,46 @@
+# devices: iphone ipad
+# CONTEXT-PERSIST: a chat's last context reading is kept on the phone and shown on
+# open, before the computer answers. Offline fixtures; nothing is sent.
+# 1) The computer reports 84K of 258K (3 hours old); the ring shows it and the phone saves it.
+# 2) After a process kill the activity check fails (503), so only the saved reading can show:
+#    the ring and its panel carry the same value, dimmed with its age, before any send.
+# 3) A reply with tokens but no window shows its tokens without a percentage.
+# 4) A provider that has not reported says so in words in the panel.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture durable-store --fixture durable-store-reset
+wait --id message-draft --timeout 30
+wait --id context-usage-ring --contains "33 percent used" --timeout 15
+shot context-persist-reported
+wait --id context-usage-window --never 2
+button home
+terminate
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage-offline --fixture durable-store
+wait --id message-draft --timeout 30
+wait --id context-usage-ring --contains "33 percent used" --timeout 15
+shot context-persist-after-relaunch
+tap --id context-usage-ring
+wait --id context-usage-window --contains "33 percent used, 84,210 of 258,400 tokens" --timeout 10
+wait --contains "Last reported" --never 2
+shot context-persist-after-relaunch-panel
+tap --xy 200,500
+wait --id context-usage-window --gone --timeout 5
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage-tokens-only --fixture durable-store --fixture durable-store-reset
+wait --id message-draft --timeout 30
+wait --id context-usage-ring --contains "62K tokens used" --timeout 15
+tap --id context-usage-ring
+wait --id context-usage-window --contains "61,600 tokens used, window size unknown" --timeout 10
+wait --contains "This model's window size is not known" --timeout 5
+shot context-persist-tokens-only-panel
+# The Mac fills in a model's typical window when its provider gave none, and says so.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage-typical --fixture durable-store --fixture durable-store-reset
+wait --id message-draft --timeout 30
+wait --id context-usage-ring --contains "8 percent used" --timeout 15
+tap --id context-usage-ring
+wait --id context-usage-window --contains "8 percent used, 84,210 of 1,000,000 tokens, typical window for this model" --timeout 10
+wait --contains "Typical window for this model" --timeout 5
+shot context-persist-typical-panel
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage-unreported --fixture durable-store --fixture durable-store-reset
+wait --id message-draft --timeout 30
+wait --id context-usage-ring --contains "Not reported yet" --timeout 15
+tap --id context-usage-ring
+wait --id context-usage-window --contains "has not reported this chat" --timeout 10
+shot context-persist-unreported-panel

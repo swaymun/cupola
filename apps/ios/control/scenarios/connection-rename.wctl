@@ -1,0 +1,47 @@
+# Renaming the computer saves the name on its host (the fixture's), which the
+# Mac app shows too. No pairing or agent work. HostNameTests (menubar) and
+# wonderd's host_name tests cover the host side; SavedConnectionsTests cover
+# the saved host name through refresh and replacement pairing.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+# Settings lists computers and app preferences. Providers belong to a computer.
+wait --id settings-computer:diagnostic-host --timeout 10
+wait --id settings-default-models --timeout 5
+wait --id settings-provider:codex --gone --timeout 2
+shot settings-root
+tap --id settings-computer:diagnostic-host
+wait --id connection-rename --timeout 10
+wait --id connection-state --contains "Connected" --timeout 10
+wait --id connection-status --gone --timeout 2
+wait --id settings-provider:codex --timeout 5
+wait --id settings-provider:opencode --timeout 5
+shot connection-name-before
+tap --id connection-rename
+# UIKit's native alert drops the SwiftUI text-field identifier. Its focused
+# field exposes the placeholder/value; select that visible native field.
+wait --label "Rename computer" --timeout 5
+# The field starts with the current name and already has focus, so one tap
+# opens its edit menu (a second tap closes it); Select All makes typing replace
+# the name instead of appending to it. (Rig `keys` would attach a hardware
+# keyboard that outlives this run.)
+tap --contains "Synthetic fixture" --type TextField
+tap --label "Select All" --timeout 5
+type "Work computer"
+wait --contains "Work computer" --timeout 5
+wait --contains "Synthetic fixtureWork computer" --gone --timeout 1
+tap --label Save --type Button
+wait --id connection-rename --contains "Work computer" --timeout 5
+wait --id connection-rename --contains "Synthetic fixture" --gone --timeout 2
+shot connection-name-after
+back
+# Settings reads the renamed computer from its model at once, not a saved copy.
+wait --id settings-computer:diagnostic-host --label "Work computer" --timeout 5
+tap --label "Work computer" --type Button
+tap --id connection-rename
+wait --label "Rename computer" --timeout 5
+tap --contains "Work computer" --type TextField
+tap --label Cancel --type Button
+wait --id connection-rename --contains "Work computer" --timeout 5

@@ -1,0 +1,27 @@
+# An unreachable saved endpoint leaves temporary reconnect available and offers
+# the existing explicit pairing sheet for a changed address. No real pairing,
+# Tailscale connection or agent work occurs; the old synthetic port refuses renewal.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture connection-unreachable
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+tap --label "Synthetic fixture" --type Button
+wait --id connection-status --contains "Could not reach your computer" --timeout 15
+wait --id connection-pair-again --timeout 5
+wait --contains "If your computer’s address changed" --timeout 5
+shot connection-address-unreachable
+tap --id connection-pair-again
+wait --id pairing-entry-mode --timeout 10
+tap --id pairing-entry-mode
+wait --id pairing-mac-address --timeout 5
+tap --id pairing-mac-address
+type "https://studio.tail.ts.net:8444"
+wait --id pairing-mac-address --contains "https://studio.tail.ts.net:8444" --timeout 5
+shot connection-address-pair-again
+tap --label Cancel --type Button
+wait --id connection-status --contains "Could not reach your computer" --timeout 10
+tap --label "Check connection" --type Button
+wait --id connection-status --contains "Could not reach your computer" --timeout 10
+wait --id connection-pair-again --timeout 5
+shot connection-address-retry

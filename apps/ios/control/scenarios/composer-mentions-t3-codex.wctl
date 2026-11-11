@@ -1,0 +1,21 @@
+# T3 owns this Codex chat. Its native command transport supports /compact.
+# Synthetic host replies; selections edit the draft, never send a model request.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture composer-completion --fixture composer-keyboard --fixture project-read --fixture open-project-thread --fixture composer-codex --fixture t3-code --fixture t3-code-running
+wait --id message-draft --timeout 30
+tap --id message-draft
+type "/"
+wait --id composer-suggestion:command:compact --timeout 15
+wait --id composer-suggestion:command:review --gone --timeout 5
+shot composer-mentions-t3-codex-commands
+tap --id composer-suggestion:command:cupola-summary
+wait --id message-draft --contains "Summarize this conversation" --timeout 5
+type " @rlnts"
+wait --id "composer-suggestion:file:workspace:docs/Release notes.md" --timeout 15
+tap --id "composer-suggestion:file:workspace:docs/Release notes.md"
+wait --id message-draft --contains "Release notes.md" --timeout 5
+type "@rel"
+wait --id composer-suggestion:thread:claude:release-notes --timeout 15
+shot composer-mentions-t3-codex-references
+tap --id composer-suggestion:thread:claude:release-notes
+wait --id message-draft --contains 'cupola://thread/claude%3Arelease-notes' --timeout 5
+shot composer-mentions-t3-codex-inserted

@@ -1,0 +1,38 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/wonder-api",
+  "crates/wonder-app-server",
+  "crates/wonder-store",
+  "crates/wonderd",
+]
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+version = "0.1.0"
+
+# Keep useful backtraces without full debug data in every dependency/test binary.
+# Use CARGO_PROFILE_DEV_DEBUG=2 when inspecting local variables in a debugger.
+[profile.dev]
+debug = "line-tables-only"
+incremental = false
+
+[workspace.dependencies]
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+sha2 = "0.11.0"
+axum = { version = "0.8.9", features = ["ws"] }
+sqlx = { version = "0.9.0", default-features = false, features = ["runtime-tokio", "sqlite", "migrate", "macros"] }
+tokio = { version = "1.53.1", features = ["full"] }
+tower = "0.5.2"
+uuid = { version = "1.26.0", features = ["v4", "serde"] }
+hex = "0.4.3"
+time = { version = "0.3.55", features = ["formatting", "macros", "parsing"] }
+chrono = { version = "0.4.42", default-features = false, features = ["clock", "std"] }
+chrono-tz = "0.10.4"
+tempfile = "3.27.0"
+p256 = { version = "0.14.0", features = ["ecdsa"] }
+base64 = "0.23.1"
+subtle = "2.6.1"
+getrandom = "0.4.3"

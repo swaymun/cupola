@@ -1,0 +1,9 @@
+driver on
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-dock --fixture computer-control-active --fixture no-hardware-keyboard
+assert --path computer.hasPicture --equals true --timeout 30
+assert --path computer.controlling --equals true --timeout 30
+signal computer-dock-dictate
+assert --path computer.dictation --equals '"recording"' --timeout 10
+signal computer-control-lost
+assert --path computer.controlling --equals false --timeout 15
+assert --path computer.dictation --equals '"idle"' --timeout 5

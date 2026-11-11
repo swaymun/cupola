@@ -1,0 +1,20 @@
+# devices: duo
+# PROVIDER-SWITCH-RENDER on the Duo, folded then unfolded: a thread that changed provider names the
+# provider at the first reply of each run; an unchanged thread shows no label. Offline; nothing is sent.
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture opencode-fixture --fixture t3-provider-switch --fixture t3-provider-switch-late --fixture open-project-thread
+wait --contains "OpenCode: Reply 12." --timeout 20
+shot provider-switch-render-duo-folded-latest
+wait --id message-provider --contains "OpenCode" --timeout 10
+shot provider-switch-render-duo-folded-label
+hinge 180
+pause 2
+wait --id message-provider --contains "OpenCode" --timeout 20
+pause 1
+shot provider-switch-render-duo-unfolded
+hinge 0
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture opencode-fixture --fixture open-project-thread
+wait --contains "Reply 12. The update is ready." --timeout 20
+wait --id message-provider --gone --timeout 5
+shot provider-switch-render-duo-folded-unswitched

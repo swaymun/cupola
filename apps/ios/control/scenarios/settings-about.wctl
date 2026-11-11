@@ -1,0 +1,16 @@
+# devices: iphone
+# Settings > About shows the version and build, links the app's
+# privacy policy.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-follow-up
+# About is the last section; it starts off screen. iPhone only: on the iPad
+# simulator AXe drags don't scroll Settings beside Chats (as voice-settings
+# step 6 in the nightly), so neither swipes nor reveal reach About there.
+reveal up --id settings-acknowledgements
+wait --id settings-version --contains "(" --timeout 10
+wait --id settings-privacy --timeout 5
+shot settings-about

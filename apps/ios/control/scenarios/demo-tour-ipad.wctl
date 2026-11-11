@@ -1,0 +1,182 @@
+# nightly-ipad: every main screen of the demo in the iPad's split layout, tools in the companion pane
+# devices: ipad
+# Generated from demo-tour.wctl (keep them in step): on iPad, Code changes and the
+# computer open beside the chat and close from their pills.
+# Demo tour for an App Store reviewer with no computer: from the first screen,
+# Try the demo opens Fix sign-out after wake, and every main screen is reached in
+# a few taps and captured: the conversation (activity, Thinking, an image), a link
+# in the in-app browser, Code changes (This thread), Files, View computer (a still
+# picture), the context ring, the one model picker, Plan mode, the goal thread and
+# its agent tasks, an approval, a question, Automations, Settings (Demo computer,
+# chat detail, themes) and Leave demo. The demo computer answers inside the app:
+# no message leaves it and no model runs. The browser may load the linked public
+# page; the scenario checks only that it opens and closes.
+# demo-mode.wctl covers a send and its scripted reply; onboarding-demo.wctl the
+# welcome pages' entry.
+# The launch argument selects Open links: In Cupola so no earlier run's choice matters.
+driver on
+launch --fixture unpaired --arg=-wonder.links.open --arg=inApp
+# Select the welcome route; a previous scenario can retain a removed chat.
+tap --id sidebar-new-chat
+driver off
+wait --id welcome-try-demo --contains "Try the demo" --timeout 30
+shot demo-tour-first-screen
+tap --id welcome-try-demo
+
+# Chats opens beside Fix sign-out after wake, with the demo notice (Add your computer, Leave demo).
+sidebar open
+wait --id demo-notice --timeout 15
+wait --id pinned-thread:codex:demo-sign-out --timeout 20
+shot demo-tour-chats
+tap --id pinned-thread:codex:demo-sign-out
+
+# Conversation: bubbles, activity rows, Thinking (Codex starts at + Thinking), the screenshot.
+wait --id project-conversation-header --timeout 20
+wait --contains "42 tests passed" --timeout 20
+wait --id demo-badge --timeout 5
+shot demo-tour-conversation
+
+# A link in a reply opens in the in-app browser; its close button returns to the chat.
+# The link starts its own paragraph: a link wrapped over two lines is tapped at its
+# box centre, between the lines, and misses. The viewer is Cupola's own
+# screen; the driver's browser state reports it.
+tap --label "Swift book: actors"
+# The app handed exactly that link to the in-app browser, which now covers the
+# app while it stays in the foreground (Safari would send it to the background).
+driver on
+assert --path browser.kind --equals '"link"' --timeout 10
+assert --path applicationState --equals '"active"'
+assert --path openedLinks.0.url --equals '"https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/"'
+assert --path openedLinks.0.opening --equals '"inApp"'
+driver off
+shot demo-tour-in-app-browser
+# The viewer's ✕, top right, is a native control; the viewer must be gone afterwards.
+wait --id link-viewer-close --timeout 10
+tap --id link-viewer-close
+driver on
+assert --path browser --equals null --timeout 10
+assert --path applicationState --equals '"active"'
+driver off
+wait --contains "42 tests passed" --timeout 10
+
+# Context ring: how full the thread's context is.
+tap --id context-usage-ring
+wait --id context-usage-window --timeout 10
+shot demo-tour-context
+tap --xy 200,500
+wait --id context-usage-window --gone --timeout 5
+
+# The demo has no pull requests; Files lists the Project folder.
+tap --id conversation-files-pill
+wait --id workspace-file-list --timeout 10
+wait --contains "Sources" --timeout 10
+shot demo-tour-files
+tap --id conversation-files-pill
+wait --id workspace-file-list --gone --timeout 10
+
+# View computer: a still picture of a made-up screen, never a capture.
+tap --id computer-status-pill
+wait --id demo-computer-frame --timeout 10
+wait --id demo-computer-note --timeout 5
+shot demo-tour-computer
+tap --id computer-status-pill
+wait --id demo-computer --gone --timeout 10
+
+# One model picker: harness first, then its models.
+tap --id project-composer-model
+wait --id project-agent:claude --timeout 10
+wait --id project-model:gpt-6.1-sol --timeout 5
+shot demo-tour-model-picker
+tap --label "Done" --type Button
+wait --id project-agent:claude --gone --timeout 5
+
+# Plan mode belongs with the other permissions and modes.
+tap --id project-composer-access
+wait --label "Plan, Plans the work without changing files." --timeout 5
+shot demo-tour-composer-actions
+tap --label "Plan, Plans the work without changing files."
+wait --label "Plan, Plans the work without changing files." --gone --timeout 5
+
+# The goal thread: a running goal, live Thinking, two agent tasks.
+sidebar open
+tap --id project-thread:codex:demo-speed
+wait --id goal-status-pill --timeout 20
+# On the iPhone the agent-tasks pill starts past the pill row's right edge.
+swipe left --in composer-pill-row
+wait --id project-subagent-status-pill --timeout 15
+shot demo-tour-goal-thread
+tap --id goal-status-pill
+wait --id goal-objective --timeout 10
+shot demo-tour-goal
+tap --id goal-status-pill
+wait --id goal-objective --gone --timeout 10
+tap --id project-subagent-status-pill
+wait --contains "Scout" --timeout 10
+wait --contains "Builder" --timeout 5
+shot demo-tour-agent-tasks
+# The list is a popover over its pill; the pill closes it.
+tap --id project-subagent-status-pill
+wait --contains "Profiling the forecast request" --gone --timeout 5
+
+# An approval: Push the beta branch asks before git push.
+sidebar open
+tap --id project-thread:codex:demo-release
+wait --id question-dock-open --timeout 20
+wait --contains "git push" --timeout 10
+shot demo-tour-approval
+tap --id question-dock-open
+
+# A question: Add a dark mode toggle (Claude) asks where the toggle goes.
+# It is in Website, whose threads may be folded: the Project's row always unfolds
+# them (and opens the demo's new-chat notice); the folder button would toggle.
+sidebar open
+tap --id project-row:demo-website
+wait --id demo-new-chat --timeout 10
+sidebar open
+tap --id project-thread:claude:demo-dark-mode
+wait --id question-dock-open --timeout 20
+wait --id "question-option-placement-Header" --timeout 10
+shot demo-tour-question
+tap --id "question-option-placement-Header"
+tap --id question-reply
+wait --contains "The toggle goes in the" --timeout 20
+shot demo-tour-question-answered
+
+# Automations: two schedules on the demo computer.
+sidebar open
+tap --id sidebar-automations
+wait --id automation-row:demo-automation-tests --timeout 15
+wait --id automation-row:demo-automation-packages --timeout 5
+shot demo-tour-automations
+
+# Settings: the Demo computer page, chat detail and themes. On the iPhone,
+# Automations was pushed from Chats; back returns there.
+back
+sidebar open
+tap --id sidebar-settings
+wait --id settings-computer:wonder-demo-computer --timeout 10
+shot demo-tour-settings
+tap --id settings-computer:wonder-demo-computer
+wait --id demo-computer-settings --timeout 10
+shot demo-tour-demo-computer
+tap --id settings-provider:codex
+wait --id provider-chat-detail:codex:thinking --contains "Selected" --timeout 10
+shot demo-tour-chat-detail
+back
+back
+# Appearance sits below Chats and Confirmations; on a phone it starts off screen.
+reveal up --id settings-theme
+tap --id settings-theme
+wait --id theme-option:cupola-light --timeout 10
+wait --id theme-option:cupola-dark --timeout 5
+shot demo-tour-themes
+back
+
+# Leaving: Settings > Demo computer > Leave demo returns to Add a computer.
+reveal down --id settings-computer:wonder-demo-computer
+tap --id settings-computer:wonder-demo-computer
+reveal up --id settings-leave-demo
+tap --id settings-leave-demo
+wait --id welcome-add-computer --timeout 15
+wait --id welcome-try-demo --timeout 5
+shot demo-tour-left

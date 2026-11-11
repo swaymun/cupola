@@ -1,0 +1,7 @@
+# devices: duo
+# Unfolded Duo with Chats hidden: the Needs you list stays on the right display, off the hinge.
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --arg=-diagnostics-needs-attention-open --fixture theme --arg cupola-light
+wait --id needs-you-list --timeout 30
+shot a-bell-unfolded-hidden-sidebar-list --display primary-1

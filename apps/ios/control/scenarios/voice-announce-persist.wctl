@@ -1,0 +1,30 @@
+# Settings → Voice → Announcements, turned off, is still off after the app is
+# quit and opened again (the choice is one UserDefaults key; fixture launches
+# normally clear it, the second launch keeps it).
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --arg=-diagnostics-theme --arg=light-classic
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-voice
+tap --id settings-voice
+wait --id voice-key-computer --contains "Synthetic fixture" --timeout 15
+reveal up --id voice-announce
+wait --id voice-announce --contains "1"
+hold --id voice-announce --x-fraction 0.9 --seconds 0.15
+wait --id voice-announce --contains "0" --timeout 5
+button home
+terminate
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --arg=-diagnostics-theme --arg=light-classic --arg=-diagnostics-keep-voice-announce
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-voice
+tap --id settings-voice
+wait --id voice-key-computer --contains "Synthetic fixture" --timeout 15
+reveal up --id voice-announce
+wait --id voice-announce --contains "0" --timeout 5
+shot voice-announce-persist-after-relaunch
+hold --id voice-announce --x-fraction 0.9 --seconds 0.15
+wait --id voice-announce --contains "1" --timeout 5

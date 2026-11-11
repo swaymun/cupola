@@ -1,0 +1,48 @@
+# Real AppShell, offline host. Two running Claude tasks match the owner's glyph/count.
+# Queue through orch on the folded Duo. Capture each shot with native AX (tree
+# --json, or axe describe-ui). Run measure-rail.py on each PNG/AX pair;
+# it checks each target and the visible gaps between separate surfaces. All pill preferences stay enabled initially:
+# unavailable Goal, Preview, attention and Git must not reserve empty slots.
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture terminal-available --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture current-step-finished --fixture project-files-send --fixture open-project-thread --arg=-wonder.sidebar.hidden --arg=NO --arg=-diagnostics-theme --arg=cupola-light --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-AppleInterfaceStyle --arg=Light --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+driver off
+wait --id open-sidebar --timeout 30
+wait --id project-subagent-status-pill --contains "2 agent tasks running" --timeout 10
+wait --id composer-pill-row --gone --timeout 5
+wait --id conversation-terminal-pill --timeout 10
+order --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+shot duo-cover-layout-rail-owner-four-pills
+tree --json
+tree --json
+# Keyboard up: the rail takes only the rows left above the keyboard and never
+# slides up over the Chats button.
+tap --id message-draft
+wait --id duo-rail-tools --timeout 10
+order --axis y --ids open-sidebar,duo-rail-tools
+shot duo-cover-layout-rail-keyboard
+# The owner's screenshot uses Cupola Dark; keep the same four controls.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture terminal-available --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture current-step-finished --fixture project-files-send --fixture open-project-thread --arg=-wonder.sidebar.hidden --arg=NO --arg=-diagnostics-theme --arg=cupola-dark --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-AppleInterfaceStyle --arg=Dark --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+driver off
+wait --id conversation-terminal-pill --timeout 30
+wait --id project-subagent-status-pill --contains "2 agent tasks running" --timeout 10
+order --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+shot duo-cover-layout-rail-owner-dark-four-pills
+tree --json
+tree --json
+# Also measure a two-pill rail with unavailable features still enabled.
+# Explicit preferences avoid inheriting Settings from an earlier scenario.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture terminal-available --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture current-step-finished --fixture project-files-send --fixture open-project-thread --arg=-wonder.sidebar.hidden --arg=NO --arg=-diagnostics-theme --arg=cupola-light --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-AppleInterfaceStyle --arg=Light --arg=-composerPills --arg=computer,files,-terminal,preview,attention,goal,-agentTasks,git
+driver off
+wait --id open-sidebar --timeout 30
+wait --id conversation-files-pill --timeout 10
+wait --id conversation-terminal-pill --gone --timeout 5
+wait --id project-subagent-status-pill --gone --timeout 5
+wait --id composer-pill-row --gone --timeout 5
+order --ids computer-status-pill,conversation-files-pill
+shot duo-cover-layout-rail-two-pills
+tree --json
+tree --json

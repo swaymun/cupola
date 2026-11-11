@@ -1,0 +1,16 @@
+# A computer that refuses this device's sign-in (disconnected there, or its
+# Cupola data reset) says so in Settings and offers Pair again; Chats says to
+# pair again (with Pair again) instead of "can't reach". Synthetic refusal only: no pairing,
+# Tailscale change or agent work.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture connection-access-ended
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --contains "again to open its chats." --timeout 15
+wait --label "Pair again" --timeout 5
+shot connection-access-ended-chats
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+tap --label "Synthetic fixture" --type Button
+wait --id connection-status --contains "no longer accepts this device" --timeout 15
+wait --id connection-pair-again --timeout 5
+shot connection-access-ended-settings

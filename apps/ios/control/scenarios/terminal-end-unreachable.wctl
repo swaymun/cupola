@@ -1,0 +1,17 @@
+# devices: iphone
+# End terminal that can't reach the computer keeps the sheet open, says the
+# shell is still running there and offers Try again.
+# Done still only closes the sheet. (iPad shows Terminal in the companion pane
+# without Done; its End terminal path is the same model, unit-tested.)
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture terminal-preview --fixture terminal-end-unreachable
+wait --id conversation-terminal-pill --timeout 20
+tap --id conversation-terminal-pill
+wait --id terminal-output --contains "build.sh" --timeout 10
+tap --id terminal-menu
+tap --id terminal-end
+tap --label "End terminal"
+wait --id terminal-end-failed --contains "still running" --timeout 10
+wait --id terminal-sheet --timeout 2
+shot terminal-end-unreachable
+swipe down --from terminal-title
+wait --id terminal-sheet --gone --timeout 10

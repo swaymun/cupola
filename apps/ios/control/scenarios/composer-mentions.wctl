@@ -1,0 +1,57 @@
+# Project references, cached native commands and Cupola draft actions.
+# Synthetic host replies. Choosing only edits the draft; no model sends.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture composer-completion --fixture composer-keyboard --fixture project-read --fixture open-project-thread --fixture composer-cached
+wait --id message-draft --timeout 30
+tap --id message-draft
+type "/"
+wait --id composer-suggestion:command:compact --timeout 15
+wait --id composer-suggestion:command:cupola-summary --timeout 5
+shot composer-mentions-claude-commands
+tap --id composer-suggestion:command:cupola-summary
+wait --id message-draft --contains "Summarize this conversation" --timeout 5
+type " @rlnts"
+wait --id "composer-suggestion:file:workspace:docs/Release notes.md" --timeout 15
+shot composer-mentions-claude-files
+tap --id "composer-suggestion:file:workspace:docs/Release notes.md"
+wait --id message-draft --contains ' @"docs/Release notes.md"' --timeout 5
+type "@rel"
+wait --id composer-suggestion:thread:claude:release-notes --timeout 15
+wait --id composer-suggestion:thread:codex:release-plan --timeout 5
+shot composer-mentions-claude-threads
+tap --id composer-suggestion:thread:codex:release-plan
+wait --id message-draft --contains '[@Release planning](cupola://thread/codex%3Arelease-plan)' --timeout 5
+shot composer-mentions-claude-inserted
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture composer-completion --fixture composer-keyboard --fixture project-read --fixture open-project-thread --fixture composer-codex
+wait --id message-draft --timeout 30
+tap --id message-draft
+type "/"
+wait --id composer-suggestion:command:compact --timeout 15
+wait --id composer-suggestion:command:review --timeout 5
+shot composer-mentions-codex-commands
+tap --id composer-suggestion:command:review
+wait --id message-draft --contains "/review " --timeout 5
+type "@rlnts"
+wait --id "composer-suggestion:file:workspace:docs/Release notes.md" --timeout 15
+tap --id "composer-suggestion:file:workspace:docs/Release notes.md"
+wait --id message-draft --contains '"docs/Release notes.md"' --timeout 5
+type "@rel"
+wait --id composer-suggestion:thread:claude:release-notes --timeout 15
+shot composer-mentions-codex-threads
+tap --id composer-suggestion:thread:claude:release-notes
+wait --id message-draft --contains '[@Release notes](cupola://thread/claude%3Arelease-notes)' --timeout 5
+shot composer-mentions-codex-inserted
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture composer-completion --fixture composer-keyboard --fixture project-read --fixture open-project-thread --fixture t3-code --fixture t3-code-running --fixture composer-cached
+wait --id message-draft --timeout 30
+tap --id message-draft
+type "/"
+wait --id composer-suggestion:command:compact --timeout 15
+shot composer-mentions-t3-commands
+tap --id composer-suggestion:command:compact
+wait --id message-draft --contains "/compact " --timeout 5
+type "@rel"
+wait --id "composer-suggestion:file:workspace:docs/Release notes.md" --timeout 15
+wait --id composer-suggestion:thread:claude:release-notes --timeout 5
+shot composer-mentions-t3-references
+tap --id composer-suggestion:thread:claude:release-notes
+wait --id message-draft --contains 'cupola://thread/claude%3Arelease-notes' --timeout 5
+shot composer-mentions-t3-inserted

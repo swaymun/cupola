@@ -1,0 +1,62 @@
+# Take over takes a Claude thread over from the app on the Mac that holds it
+# (T3 Code, running two background tasks). The waiting note names that app and
+# the computer; touch and hold Send offers Take over; the first time, a warning
+# names what stops, with "Don't show this again"; then the waiting message and
+# the new one are sent and the note goes away. Settings shows the warning
+# off. send-held keeps dispatch until the scenario signals
+# it. Nothing reaches a real Mac.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-held --fixture send-claude --fixture send-held-by-app --arg=-wonder.send.followUp --arg=queue
+signal receipt
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id message-draft --timeout 15
+tap --id message-draft --type TextArea
+type "Check the build"
+wait --label "Queue message" --timeout 10
+tap --id send-message
+wait --id open-elsewhere --contains "Open in T3 Code on" --timeout 10
+wait --id open-elsewhere --contains "Touch and hold Send to take over." --timeout 5
+shot take-over-note
+tap --id message-draft --type TextArea
+type "Ship it now"
+hold --id send-message
+wait --label "Take over" --timeout 5
+wait --label "Send now" --never 1
+shot take-over-hold
+tap --label "Take over"
+wait --id take-over-confirmation --timeout 5
+wait --contains "Take over this chat?" --timeout 5
+wait --contains "stops it there and continues it here." --timeout 5
+wait --contains "2 background tasks running there will stop too." --timeout 5
+shot take-over-warning
+# AXe's tap misses a UISwitch; a 200 ms touch actuates it.
+hold --id take-over-dont-show --seconds 0.2
+wait --id take-over-dont-show --contains "1" --timeout 5
+shot take-over-toggle
+tap --id take-over-send
+wait --id take-over-confirmation --gone --timeout 5
+wait --id open-elsewhere --gone --timeout 10
+wait --contains "Queued message" --gone --timeout 15
+wait --contains "Ship it now" --timeout 5
+wait --contains "Taking over from your computer" --timeout 5
+shot take-over-sending
+# The computer starts both messages; reopening reloads the conversation.
+signal dispatch
+sidebar open
+tap --id project-row:read-project
+wait --id new-chat-draft --timeout 10
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 10
+tap --id pinned-thread:claude:read-fixture
+wait --contains "Ship it now" --timeout 10
+wait --contains "Taking over from your computer" --gone --timeout 15
+shot take-over-sent
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+# "Don't show this again" turned the warning off; Settings' switch turns it
+# back on (AXe cannot actuate a switch in a Form row, so only its state is checked).
+wait --id settings-take-over-warning --contains "0" --timeout 10
+shot take-over-settings

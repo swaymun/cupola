@@ -1,0 +1,18 @@
+# devices: duo
+# OpenCode's long model list (search, Select all / Select none, grouped by provider, no "only on" note) on the folded and unfolded Duo.
+# Opened by launch fixture because Duo taps do not register (#387); the flow is checked by model-lists on iPhone/iPad.
+# Run once in light appearance and once in dark (`simctl ui UDID appearance dark`).
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture default-models --fixture opencode-list --arg=-diagnostics-settings-open --arg=-diagnostics-settings-search-row --arg=default-model-opencode
+wait --id default-model-opencode --timeout 30
+wait --id models-search:opencode --timeout 10
+shot model-lists-folded
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture default-models --fixture opencode-list --arg=-diagnostics-settings-open --arg=-diagnostics-settings-search-row --arg=default-model-opencode
+wait --id default-model-opencode --timeout 30
+wait --id models-search:opencode --timeout 10
+shot model-lists-unfolded --display primary-1
+hinge 0
+orient portrait

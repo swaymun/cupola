@@ -1,0 +1,10 @@
+{
+  "name": "wonder-highlightjs-bundle",
+  "private": true,
+  "description": "Builds the highlight.js subset Wonder vendors for code blocks (scripts/build-highlightjs).",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "highlight.js": "11.12.0"
+  }
+}

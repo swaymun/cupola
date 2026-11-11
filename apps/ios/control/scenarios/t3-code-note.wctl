@@ -1,0 +1,102 @@
+# A Claude thread open in T3 Code on the computer has a note above the
+# composer, before anything is sent, while a message would wait. Not
+# connected, the note says how to send without stopping T3 Code (connect it
+# in Settings) or to hold Send to take over, and a message waits. After
+# connecting in Settings, messages go through T3 Code there like any send:
+# the note goes away and the waiting message leaves the queue. A sketch is a
+# file, which T3 Code now takes too: with one attached the composer still
+# sends through T3 Code, with no note. Relaunched with the sign-in ended, and then connected while T3 Code
+# isn't answering, the note says why messages wait before anything is sent.
+# The message with the sketch is then sent: the computer stores the sketch and
+# receives the message with it, and the draft empties.
+# Host response fixture only; nothing reaches a real Mac.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --arg=-wonder.send.followUp --arg=queue
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+# Before anything is sent.
+wait --id open-elsewhere --contains "Open in T3 Code on" --timeout 15
+wait --id open-elsewhere --contains "Connect T3 Code in Settings to send without stopping it, or hold Send to take over." --timeout 5
+shot t3-note-before-send
+wait --id message-draft --timeout 15
+tap --id message-draft --type TextArea
+type "Check the build"
+wait --label "Queue message" --timeout 10
+tap --id send-message
+wait --contains "Queued message: Check the build" --timeout 15
+wait --id open-elsewhere --contains "Connect T3 Code in Settings to send without stopping it, or hold Send to take over." --timeout 5
+shot t3-note-connect
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+tap --id settings-computer:diagnostic-host
+swipe up
+wait --id connection-connected-apps --timeout 10
+tap --id connection-connected-apps
+tap --id t3code-connect
+wait --id t3code-status --contains "Connected" --timeout 15
+# Back through the computer page and Settings to the thread.
+back
+back
+back
+wait --id open-elsewhere --gone --timeout 15
+wait --contains "Queued message" --gone --timeout 15
+# Nothing runs in Cupola: the composer sends rather than queues.
+tap --id message-draft --type TextArea
+type "And the tests"
+wait --label "Send message" --timeout 15
+shot t3-note-sends
+tap --id composer-actions
+tap --id composer-add-sketch
+wait --id sketch-canvas --timeout 15
+swipe up --in sketch-canvas
+wait --contains "1 strokes" --timeout 10
+tap --id sketch-attach
+wait --label "Send message" --timeout 15
+wait --id open-elsewhere --gone --timeout 10
+shot t3-note-attachments
+tap --id send-message
+wait --label "And the tests" --timeout 15
+wait --contains "Queued message" --never 3
+driver on
+assert --path composer.text --equals '""' --timeout 10
+assert --path fixtureSends.bodies --equals '["Check the build","And the tests"]' --timeout 10
+assert --path fixtureSends.uploads --equals 1
+assert --path fixtureSends.attachments --equals 1
+assert --path fixtureSends.duplicates --equals 0
+assert --path "userMessageCounts.And the tests" --equals 1
+driver off
+shot t3-note-sent-with-sketch
+
+# The sign-in ended: before anything is sent, the note says to connect again,
+# and a message would wait.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-expired --arg=-wonder.send.followUp --arg=queue
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id open-elsewhere --contains "Messages wait: Cupola" --timeout 15
+wait --id open-elsewhere --contains "sign-in to T3 Code ended. Connect T3 Code again in Settings. Touch and hold Send to take over." --timeout 5
+wait --id message-draft --timeout 15
+tap --id message-draft --type TextArea
+type "Check the build"
+wait --label "Queue message" --timeout 10
+shot t3-note-expired
+
+# Connected, but T3 Code isn't answering: before anything is sent, the note
+# says messages wait and Cupola tries again, and a message would wait.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-unreachable --arg=-wonder.send.followUp --arg=queue
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id open-elsewhere --contains "Messages wait: T3 Code on" --timeout 15
+wait --id open-elsewhere --contains "answering. Cupola tries again shortly. Touch and hold Send to take over." --timeout 5
+wait --id message-draft --timeout 15
+tap --id message-draft --type TextArea
+type "Check the build"
+wait --label "Queue message" --timeout 10
+shot t3-note-unreachable

@@ -1,0 +1,36 @@
+# nightly-ipad: expanded Terminal restores on returning to its conversation and after kill
+# devices: ipad
+# Same owned offline fixture as continuity-loop; no model work or live shell.
+driver on
+launch --fixture chat-layout --fixture project-actions --fixture open-project-thread --fixture terminal-available --fixture terminal-preview --fixture durable-store --fixture durable-store-reset
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+driver off
+tap --id conversation-terminal-pill
+wait --id terminal-output --contains "build.sh" --timeout 20
+tap --id companion-pane-expand
+wait --label "Exit full screen" --timeout 10
+driver on
+assert --path pane.expanded --equals true --timeout 10
+open-thread fixture-fork-conversation --host diagnostic-host
+assert --path selection.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 30
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path pane.expanded --equals true --timeout 30
+driver off
+wait --id terminal-output --contains "build.sh" --timeout 20
+wait --id message-draft --gone --timeout 10
+shot continuity-expanded-terminal-return
+button home
+terminate
+driver on
+launch --fixture chat-layout --fixture project-actions --fixture terminal-available --fixture terminal-preview --fixture durable-store
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+assert --path pane.expanded --equals true --timeout 10
+driver off
+wait --id terminal-output --contains "build.sh" --timeout 20
+wait --id message-draft --gone --timeout 10
+shot continuity-expanded-terminal-relaunch
+tap --id companion-pane-expand
+wait --id message-draft --timeout 10
+tap --id conversation-terminal-pill
+wait --id companion-pane --gone --timeout 10

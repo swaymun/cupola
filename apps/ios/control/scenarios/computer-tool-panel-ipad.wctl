@@ -1,0 +1,14 @@
+# devices: ipad
+# Contract (UX-DUO-4): in the iPad's split the computer bar and the chat
+# composer share bottom edge, height, radius and fill. Check the shot:
+#   python3 apps/ios/control/scenarios/measure-tool-panel-baseline.py SHOT.png \
+#     --composer-x <point inside the composer> --panel-x <point inside the panel> --scale <2 or 3>
+driver on
+launch --fixture read-preview --fixture send-preview --fixture computer-session-available-fixture --fixture computer-control-active --fixture computer-dock --fixture no-hardware-keyboard --arg=-composerPills --arg=computer --arg=-wonder.companionPane.flipped --arg=NO
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+driver off
+wait --id companion-pane --timeout 15
+wait --id computer-session-control-active --timeout 20
+wait --id message-draft --timeout 5
+shot ipad-ux4-split-computer

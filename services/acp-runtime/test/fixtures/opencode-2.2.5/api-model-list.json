@@ -1,0 +1,424 @@
+{
+ "location": {
+  "directory": "/home/user"
+ },
+ "data": [
+  {
+   "id": "gpt-6.1-terra",
+   "modelID": "gpt-6.1-terra",
+   "providerID": "openai",
+   "type": "chat",
+   "family": "gpt-terra",
+   "name": "GPT-6.1 Terra",
+   "package": "@opencode/ai/providers/openai/responses",
+   "settings": {
+    "baseURL": "https://api.openai.com/v1"
+   },
+   "capabilities": {
+    "tools": true,
+    "input": [
+     "text",
+     "image",
+     "pdf"
+    ],
+    "output": [
+     "text"
+    ],
+    "temperature": false
+   },
+   "variants": [
+    {
+     "id": "none",
+     "settings": {
+      "reasoningEffort": "none",
+      "reasoningSummary": "auto",
+      "include": [
+       "reasoning.encrypted_content"
+      ]
+     }
+    },
+    {
+     "id": "low",
+     "settings": {
+      "reasoningEffort": "low",
+      "reasoningSummary": "auto",
+      "include": [
+       "reasoning.encrypted_content"
+      ]
+     }
+    },
+    {
+     "id": "medium",
+     "settings": {
+      "reasoningEffort": "medium",
+      "reasoningSummary": "auto",
+      "include": [
+       "reasoning.encrypted_content"
+      ]
+     }
+    },
+    {
+     "id": "high",
+     "settings": {
+      "reasoningEffort": "high",
+      "reasoningSummary": "auto",
+      "include": [
+       "reasoning.encrypted_content"
+      ]
+     }
+    },
+    {
+     "id": "xhigh",
+     "settings": {
+      "reasoningEffort": "xhigh",
+      "reasoningSummary": "auto",
+      "include": [
+       "reasoning.encrypted_content"
+      ]
+     }
+    },
+    {
+     "id": "max",
+     "settings": {
+      "reasoningEffort": "max",
+      "reasoningSummary": "auto",
+      "include": [
+       "reasoning.encrypted_content"
+      ]
+     }
+    }
+   ],
+   "time": {
+    "released": 1792972800000
+   },
+   "cost": [
+    {
+     "input": 1,
+     "output": 5,
+     "cache": {
+      "read": 0.05,
+      "write": 1.25
+     }
+    },
+    {
+     "tier": {
+      "type": "context",
+      "size": 272000
+     },
+     "input": 2,
+     "output": 7.5,
+     "cache": {
+      "read": 0.1,
+      "write": 2.5
+     }
+    }
+   ],
+   "status": "active",
+   "enabled": true,
+   "limit": {
+    "context": 1050000,
+    "input": 922000,
+    "output": 128000
+   }
+  },
+  {
+   "id": "beam-free",
+   "modelID": "beam-free",
+   "providerID": "opencode",
+   "type": "chat",
+   "family": "beam",
+   "name": "Beam Free",
+   "compatibility": {
+    "reasoningField": "reasoning_content"
+   },
+   "package": "@opencode/ai/providers/openai-compatible",
+   "settings": {
+    "apiKey": "public",
+    "baseURL": "https://opencode.ai/inference/openai/v1",
+    "provider": "opencode"
+   },
+   "capabilities": {
+    "tools": true,
+    "input": [
+     "text"
+    ],
+    "output": [
+     "text"
+    ],
+    "temperature": true
+   },
+   "variants": [
+    {
+     "id": "low",
+     "settings": {
+      "reasoningEffort": "low"
+     }
+    },
+    {
+     "id": "medium",
+     "settings": {
+      "reasoningEffort": "medium"
+     }
+    },
+    {
+     "id": "high",
+     "settings": {
+      "reasoningEffort": "high"
+     }
+    },
+    {
+     "id": "xhigh",
+     "settings": {
+      "reasoningEffort": "xhigh"
+     }
+    },
+    {
+     "id": "max",
+     "settings": {
+      "reasoningEffort": "max"
+     }
+    }
+   ],
+   "time": {
+    "released": 1791158400000
+   },
+   "cost": [
+    {
+     "input": 0,
+     "output": 0,
+     "cache": {
+      "read": 0,
+      "write": 0
+     }
+    }
+   ],
+   "status": "active",
+   "enabled": true,
+   "limit": {
+    "context": 1048576,
+    "output": 131072
+   }
+  },
+  {
+   "id": "deepseek-v4.1-flash-free",
+   "modelID": "deepseek-v4.1-flash-free",
+   "providerID": "opencode",
+   "type": "chat",
+   "family": "deepseek-flash",
+   "name": "DeepSeek V4.1 Flash Free",
+   "compatibility": {
+    "reasoningField": "reasoning_content"
+   },
+   "package": "@opencode/ai/providers/openai-compatible",
+   "settings": {
+    "apiKey": "public",
+    "baseURL": "https://opencode.ai/inference/openai/v1",
+    "provider": "opencode"
+   },
+   "capabilities": {
+    "tools": true,
+    "input": [
+     "text",
+     "image"
+    ],
+    "output": [
+     "text"
+    ],
+    "temperature": true
+   },
+   "variants": [
+    {
+     "id": "low",
+     "settings": {
+      "reasoningEffort": "low"
+     }
+    },
+    {
+     "id": "high",
+     "settings": {
+      "reasoningEffort": "high"
+     }
+    },
+    {
+     "id": "max",
+     "settings": {
+      "reasoningEffort": "max"
+     }
+    }
+   ],
+   "time": {
+    "released": 1788998400000
+   },
+   "cost": [
+    {
+     "input": 0,
+     "output": 0,
+     "cache": {
+      "read": 0,
+      "write": 0
+     }
+    }
+   ],
+   "status": "active",
+   "enabled": true,
+   "limit": {
+    "context": 200000,
+    "output": 32000
+   }
+  },
+  {
+   "id": "gemma-4-31b-it",
+   "modelID": "gemma-4-31b-it",
+   "providerID": "google",
+   "type": "chat",
+   "family": "gemma",
+   "name": "Gemma 4 31B IT",
+   "package": "@opencode/ai/providers/google",
+   "settings": {
+    "baseURL": "https://generativelanguage.googleapis.com/v1beta"
+   },
+   "capabilities": {
+    "tools": true,
+    "input": [
+     "text",
+     "image"
+    ],
+    "output": [
+     "text"
+    ],
+    "temperature": true
+   },
+   "variants": [
+    {
+     "id": "none",
+     "settings": {
+      "thinkingConfig": {
+       "includeThoughts": false,
+       "thinkingBudget": 0
+      }
+     }
+    },
+    {
+     "id": "thinking",
+     "settings": {
+      "thinkingConfig": {
+       "includeThoughts": true,
+       "thinkingBudget": -1
+      }
+     }
+    }
+   ],
+   "time": {
+    "released": 1775088000000
+   },
+   "cost": [
+    {
+     "input": 0,
+     "output": 0,
+     "cache": {
+      "read": 0,
+      "write": 0
+     }
+    }
+   ],
+   "status": "active",
+   "enabled": true,
+   "limit": {
+    "context": 262144,
+    "output": 32768
+   }
+  },
+  {
+   "id": "big-pickle",
+   "modelID": "big-pickle",
+   "providerID": "opencode",
+   "type": "chat",
+   "family": "big-pickle",
+   "name": "Big Pickle",
+   "compatibility": {
+    "reasoningField": "reasoning_content"
+   },
+   "package": "@opencode/ai/providers/openai-compatible",
+   "settings": {
+    "apiKey": "public",
+    "baseURL": "https://opencode.ai/inference/openai/v1",
+    "provider": "opencode"
+   },
+   "capabilities": {
+    "tools": true,
+    "input": [
+     "text"
+    ],
+    "output": [
+     "text"
+    ],
+    "temperature": true
+   },
+   "variants": [],
+   "time": {
+    "released": 1760659200000
+   },
+   "cost": [
+    {
+     "input": 0,
+     "output": 0,
+     "cache": {
+      "read": 0,
+      "write": 0
+     }
+    }
+   ],
+   "status": "active",
+   "enabled": true,
+   "limit": {
+    "context": 200000,
+    "input": 160000,
+    "output": 32000
+   }
+  },
+  {
+   "id": "gpt-4o",
+   "modelID": "gpt-4o",
+   "providerID": "openai",
+   "type": "chat",
+   "family": "gpt",
+   "name": "GPT-4o",
+   "package": "@opencode/ai/providers/openai/responses",
+   "settings": {
+    "baseURL": "https://api.openai.com/v1"
+   },
+   "capabilities": {
+    "tools": true,
+    "input": [
+     "text",
+     "image",
+     "pdf"
+    ],
+    "output": [
+     "text"
+    ],
+    "temperature": true
+   },
+   "variants": [],
+   "time": {
+    "released": 1715558400000
+   },
+   "cost": [
+    {
+     "input": 2.5,
+     "output": 10,
+     "cache": {
+      "read": 1.25,
+      "write": 0
+     }
+    }
+   ],
+   "status": "active",
+   "enabled": true,
+   "limit": {
+    "context": 128000,
+    "output": 16384
+   }
+  }
+ ]
+}

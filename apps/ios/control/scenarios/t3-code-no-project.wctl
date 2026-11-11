@@ -1,0 +1,24 @@
+# A chat with no Project starts in T3 Code like any other: the computer's own
+# No project Project offers Start in T3 Code (T3 Code gives the thread its own
+# scratch folder), and Send goes to T3 Code, not to Cupola's agent. The first
+# launch's answer is lost in the fixture, so the proof that Send used T3 Code is
+# its "may have started" notice. Host response fixture only: no T3 Code or model
+# work.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-launch --fixture no-project
+wait --id new-chat-draft --timeout 30
+wait --id destination-picker --timeout 10
+tap --id destination-picker
+wait --id project-option:scratch --timeout 10
+tap --id project-option:scratch
+wait --id destination-picker --contains "No project" --timeout 10
+wait --id new-chat-attach --timeout 10
+tap --id new-chat-attach
+wait --id new-chat-add-t3 --timeout 10
+tap --id new-chat-add-t3
+wait --id composer-start-in-t3 --timeout 10
+shot t3-no-project-offered
+tap --id new-chat-draft --type TextArea
+type "What is a monad?"
+tap --id new-chat-send
+wait --id new-chat-t3-unconfirmed --contains "Not sure it started in T3 Code" --timeout 10
+shot t3-no-project-launch

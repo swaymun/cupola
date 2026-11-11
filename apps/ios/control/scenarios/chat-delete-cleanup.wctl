@@ -1,0 +1,17 @@
+# devices: iphone ipad
+# visual-review: The computer deleted the chat but this device's cleanup stopped
+# early: the chat closes back to Chats and no failure message appears.
+# Owned transport only. No provider sends or production history deletion.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture open-project-thread --fixture chat-notice-held --arg=-diagnostics-delete-cleanup-fails
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+driver off
+tap --id conversation-title-menu
+wait --id delete-conversation --timeout 10
+tap --id delete-conversation
+wait --id delete-conversation-confirm --timeout 10
+tap --id delete-conversation-confirm
+wait --id sidebar-cupola --timeout 15
+assert --id conversation-title-menu --gone
+assert --id chat-notice --gone
+shot chat-delete-cleanup-left

@@ -1,0 +1,162 @@
+# nightly-ipad: scene-owned navigation avoids drawer-only close assumptions.
+# Voice stays pinned to A. All audio/transcripts are offline launch fixtures:
+# no microphone, network, OpenAI or agent work. The semantic driver selects
+# states and invokes controller actions for setup. Bar target/Mute/End use
+# real touches with AX state checks. Duo selects the qualified HID rig (#387);
+# this qualifies these controls on the cover fixture, not the full Duo map.
+# Real audio/interruption checks remain physical.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture send-states --fixture voice-preview --fixture open-project-thread
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+tap --id voice-start
+assert --path voice.active --equals 'true'
+assert --path voice.historyUnchanged --equals 'true'
+driver off
+wait --id voice-panel --timeout 5
+wait --id voice-orb
+wait --id voice-agent-caption --gone --timeout 3
+wait --id voice-confirmation-summary --contains "Voice mode"
+wait --id voice-confirmation-message --contains "Run the voice tests"
+wait --id message-draft --gone --timeout 2
+wait --id voice-session-bar:diagnostic-host --gone --timeout 2
+wait --id voice-time-left --contains "left"
+shot voice-mode
+driver on
+tap --id voice-mute
+assert --path voice.muted --equals 'true'
+tap --id voice-confirmation-cancel
+driver off
+wait --label "Unmute"
+wait --id voice-confirmation --gone --timeout 3
+driver on
+tap --id voice-end
+assert --path voice.active --equals 'false'
+assert --path voice.historyUnchanged --equals 'true'
+driver off
+wait --id voice-panel --gone --timeout 3
+wait --id message-draft --timeout 5
+shot voice-mode-ended
+# Chats must offer controls even while the starting conversation is covered.
+driver on
+tap --id voice-start
+tap --id voice-mute
+tap --id open-sidebar
+assert --path sidebarOpen --equals 'true'
+assert --path voice.active --equals 'true'
+driver off
+wait --id voice-session-bar:diagnostic-host --timeout 5
+wait --id voice-target:diagnostic-host --contains "Talking in Read status fixture"
+wait --label "Unmute voice in Read status fixture"
+wait --label "End voice in Read status fixture"
+shot voice-mode-Chats
+tap --id voice-bar-mute:diagnostic-host
+driver on
+assert --path voice.muted --equals 'false'
+driver off
+wait --label "Mute voice in Read status fixture"
+tap --id voice-target:diagnostic-host
+driver on
+assert --path sidebarOpen --equals 'false'
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 15
+driver off
+wait --id voice-panel --timeout 5
+wait --id voice-session-bar:diagnostic-host --gone --timeout 3
+# B retains its own composer while the shell keeps A's controls available.
+driver on
+open-thread fixture-fork-conversation --host diagnostic-host
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path voice.active --equals 'true'
+assert --path voice.chatID --equals '"fixture-parent-conversation"'
+type "Voice destination B draft"
+assert --path composer.text --equals '"Voice destination B draft"'
+signal voice-transcript
+assert --path voice.transcript.entries.2.text --equals '"Keep this transcript in the starting chat."' --timeout 5
+assert --path voice.transcript.threadIds --equals '["fixture-parent-conversation"]'
+assert --path voice.historyUnchanged --equals 'true'
+assert --path composer.text --equals '"Voice destination B draft"'
+assert --path fixtureSends.bodies --equals '[]'
+driver off
+wait --id voice-panel --gone --timeout 3
+wait --id message-draft --contains "Voice destination B draft"
+# Send must be wholly on screen and unoccluded without scrolling, including
+# iPad: an inactive drawer must not retain a full-window AX scrim.
+reveal up --id send-message --max-drags 0
+wait --id voice-session-bar:diagnostic-host
+wait --label "Talking in Read status fixture"
+wait --label "Mute voice in Read status fixture"
+wait --label "End voice in Read status fixture"
+shot voice-mode-talking-in-A-from-B
+tap --id voice-bar-mute:diagnostic-host
+driver on
+assert --path voice.muted --equals 'true'
+driver off
+wait --label "Unmute voice in Read status fixture"
+tap --id voice-bar-mute:diagnostic-host
+driver on
+assert --path voice.muted --equals 'false'
+driver off
+wait --label "Mute voice in Read status fixture"
+shot voice-mode-unmuted-from-B
+# Simulator proves controller lifetime; real background audio needs the phone.
+button home
+shot voice-mode-backgrounded
+driver on
+activate
+assert --path voice.active --equals 'true' --timeout 15
+assert --path voice.chatID --equals '"fixture-parent-conversation"'
+assert --path voice.muted --equals 'false'
+assert --path composer.text --equals '"Voice destination B draft"'
+driver off
+wait --id voice-target:diagnostic-host --contains "Talking in Read status fixture"
+shot voice-mode-background-return
+tap --id voice-target:diagnostic-host
+driver on
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 15
+assert --path voice.active --equals 'true'
+assert --path voice.transcript.threadIds --equals '["fixture-parent-conversation"]'
+assert --path voice.historyUnchanged --equals 'true'
+driver off
+wait --id voice-panel
+wait --id voice-agent-caption --gone --timeout 3
+driver on
+assert --path voice.transcript.entries.3.text --equals '"This transcript stays where voice started."'
+driver off
+wait --id voice-confirmation-summary --contains "Voice mode"
+shot voice-mode-target-return-A
+# New chat, like Chats, keeps a path back to A and an End control.
+driver on
+tap --id open-sidebar
+tap --id sidebar-new-chat
+assert --path route --equals '"new-chat"' --timeout 15
+driver off
+wait --id voice-target:diagnostic-host
+wait --label "End voice in Read status fixture"
+shot voice-mode-new-chat
+driver on
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 20
+assert --path voice.active --equals 'true'
+open-thread fixture-fork-conversation --host diagnostic-host
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 20
+driver off
+wait --id voice-target:diagnostic-host
+tap --id voice-bar-end:diagnostic-host
+driver on
+assert --path voice.active --equals 'false'
+assert --path voice.historyUnchanged --equals 'true'
+assert --path fixtureSends.bodies --equals '[]'
+assert --path composer.text --equals '"Voice destination B draft"'
+driver off
+wait --id voice-session-bar:diagnostic-host --gone --timeout 3
+wait --id voice-target:diagnostic-host --gone --timeout 3
+wait --id message-draft --contains "Voice destination B draft"
+shot voice-mode-B-ended
+driver on
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 20
+assert --path voice.active --equals 'false'
+assert --path voice.historyUnchanged --equals 'true'
+driver off
+wait --id voice-panel --gone --timeout 3
+wait --id message-draft --timeout 5
+shot voice-mode-ended-from-B

@@ -1,0 +1,19 @@
+# Settings > computer on a computer whose Cupola is older than this app
+# needs (it sends no Cupola version): the page says "Update Cupola on <Mac>:
+# brew upgrade --cask cupola" and the providers list still shows.
+# Host response fixture only: nothing is installed and nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture host-older
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id connection-rename --timeout 10
+wait --id host-update-note --contains "Update Cupola on" --timeout 15
+wait --id host-update-note --contains "brew upgrade --cask cupola" --timeout 5
+shot host-older-computer
+reveal up --id settings-provider:codex --in connection-settings
+tap --id settings-provider:codex
+wait --id provider:codex --timeout 5
+shot host-older

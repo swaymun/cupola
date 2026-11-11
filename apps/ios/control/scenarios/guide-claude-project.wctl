@@ -1,0 +1,15 @@
+# While a Claude reply runs in a Project thread, touching and holding the send
+# button offers Send now (steer the running reply) beside Queue, as for Codex.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture send-claude --arg=-wonder.send.followUp --arg=queue
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id message-draft --timeout 15
+tap --id message-draft --type TextArea
+type "Make it shorter"
+wait --label "Queue message" --timeout 10
+hold --id send-message
+wait --label "Send now" --timeout 5
+wait --label "Queue" --timeout 5
+shot guide-claude-project

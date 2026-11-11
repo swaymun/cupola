@@ -1,0 +1,45 @@
+# devices: duo
+# The Duo's computer view has its own Full screen control: it covers both
+# halves and returns to the pane. Folded (hinge 0, cover display) and unfolded
+# (hinge 180, inner display). Accessibility taps: the controls are not driver actions.
+driver on
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture open-project-thread --fixture rail-fixture --arg=-wonder.sidebar.hidden --arg=YES
+wait --id computer-status-pill --timeout 30
+driver on
+tap --id computer-status-pill
+driver off
+wait --id computer-session-live-status --timeout 15
+shot computer-duo-folded-pane
+driver on
+dismiss
+wait --id computer-status-pill --contains "Closed" --timeout 10
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture open-project-thread --fixture rail-fixture --arg=-wonder.sidebar.hidden --arg=YES
+wait --id computer-status-pill --timeout 30
+driver on
+tap --id computer-status-pill
+driver off
+wait --id computer-session-live-status --timeout 15
+shot computer-duo-unfolded-pane --display primary-1
+driver on
+dismiss
+wait --id computer-status-pill --contains "Closed" --timeout 10
+# The cover opened as the Full screen button does (taps are not drivable on the Duo).
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture open-project-thread --fixture rail-fixture --arg=-wonder.sidebar.hidden --arg=YES --arg=-diagnostics-computer-full-screen --arg=YES
+wait --id computer-status-pill --timeout 30
+driver on
+tap --id computer-status-pill
+driver off
+wait --id computer-session-exit-full-screen --timeout 20
+shot computer-duo-unfolded-full-screen --display primary-1
+# The cover spans both displays: the title pill is centred on the screen (not
+# the leading display), the window buttons end at the trailing edge and the
+# control bar is centred.
+check-layout computer-fullscreen
+driver on
+dismiss
+hinge 0
+orient portrait

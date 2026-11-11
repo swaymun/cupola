@@ -1,0 +1,27 @@
+# devices: iphone
+# Agent work and user input share the same viewer and existing handoff action.
+# The host's input capability applies to both app windows and whole displays.
+# Synthetic transport; nothing is sent to a native desktop or model.
+# A running agent shows no preview card in the chat; the computer pill opens the whole screen.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture computer-agent-preview --fixture computer-session-available-fixture --fixture computer-picture --fixture computer-simulator-fixture
+driver off
+wait --id computer-status-pill --timeout 30
+wait --id computer-agent-preview --gone --timeout 15
+shot computer-agent-no-card
+tap --id computer-status-pill
+wait --id computer-session-close
+wait --id computer-session-more --timeout 15
+wait --id computer-session-live-status --contains "Live"
+wait --id computer-session-window-view-only --gone
+shot computer-agent-whole-screen
+driver on
+assert --path computer.sourceKind --equals '"display"' --timeout 15
+assert --path computer.hasPicture --equals true --timeout 15
+driver off
+wait --id computer-session-control-active --timeout 15
+shot computer-agent-give-back
+wait --id computer-session-more --timeout 10
+tap --id computer-session-close
+wait --id computer-status-pill --timeout 15
+wait --id computer-agent-preview --gone --timeout 5

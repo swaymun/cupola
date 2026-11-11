@@ -1,0 +1,52 @@
+# Synthetic messages only. Host transport projections are independently checked
+# by history_tests::rendering_fixtures_preserve_content_and_remove_transport_markup.
+# This flow proves readable tables/list code and preservation of the owner's paste.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture render-sanitize --fixture render-markdown --fixture open-project-thread
+wait --id message:render-markdown/render-markdown-text --timeout 30
+wait --id project-composer-access --label "Permissions" --timeout 10
+wait --id dictate-message --label "Dictate message" --timeout 10
+wait --id voice-start --label "Talk with voice" --timeout 10
+order --axis x --ids project-composer-access,dictate-message,voice-start
+wait --contains "left|right" --timeout 10
+wait --contains "Both sides" --timeout 10
+wait --contains "Trailing pipe" --timeout 10
+wait --contains "let count = 2" --timeout 10
+wait --contains "Fish & chips" --timeout 10
+shot render-markdown
+clipboard --clear
+tap --id copy-reply
+clipboard --contains "left\|right" --contains "```swift" --contains "Fish &amp; chips"
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture render-sanitize --fixture render-literals --fixture open-project-thread
+wait --id message:user-render-literals-text --timeout 30
+wait --contains "<system-reminder>sample</system-reminder>" --timeout 10
+wait --contains "call_synthetic123" --timeout 10
+shot render-literals
+clipboard --clear
+hold --id message:user-render-literals-text
+wait --id copy-message --timeout 10
+tap --id copy-message
+clipboard --contains "<task-notification>sample</task-notification>" --contains "<pasted_content" --contains "<command-name>/sample</command-name>" --contains "Repeated text is intentional."
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture render-sanitize --fixture render-output --fixture open-project-thread
+wait --id message:render-output/render-output-text --timeout 30
+wait --contains "Checks passed" --timeout 10
+wait --contains "Read the log" --timeout 10
+wait --contains "private terminal title" --gone --timeout 3
+shot render-output
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture render-sanitize --fixture render-metadata --fixture open-project-thread
+wait --id message:render-metadata/render-metadata-text --timeout 30
+wait --contains "Synthetic rendering preference" --timeout 10
+wait --contains "oai-mem-citation" --gone --timeout 3
+wait --contains "00000000-0000-4000" --gone --timeout 3
+shot render-metadata
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture render-sanitize --fixture render-long --fixture open-project-thread
+wait --id message:user-render-long-text --timeout 30
+shot render-long
+clipboard --clear
+hold --id message:user-render-long-text
+wait --id copy-message --timeout 10
+tap --id copy-message
+clipboard --contains "data:image/png;base64,QUJD" --contains "0123456789abcdef0123456789abcdef"

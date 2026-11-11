@@ -1,0 +1,17 @@
+# A started reply has no text yet. Hold that real event shape until inspected.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture send-held --fixture stream-reply
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 15
+wait --contains "Message content unavailable" --never 2
+wait --contains "Streaming reply, part one." --gone
+shot reply-start-waiting
+signal first-token
+wait --contains "Streaming reply, part one." --timeout 15
+wait --contains "Message content unavailable" --gone
+shot reply-start-first-text
+signal stream
+wait --contains "part ten." --timeout 20
+shot reply-start-completed

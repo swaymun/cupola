@@ -1,0 +1,8 @@
+# A new chat starts on a provider that is signed in. The Mac found Codex signed
+# out (and the Project last used Codex), so the draft opens on Claude with no
+# "Codex is signed out" note under the composer; picking Codex stays possible.
+# Synthetic host; nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch --fixture fresh-agent-defaults --fixture project-last-model --fixture codex-signed-out
+wait --id project-agent-picker --contains "Claude" --timeout 30
+wait --contains "signed out" --never 2
+shot new-chat-signed-in-default

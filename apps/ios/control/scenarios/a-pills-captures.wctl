@@ -1,0 +1,86 @@
+# devices: iphone ipad
+# A-PILLS captures: every pill in the composer row, title menu, Settings > Pills, minimap. Offline fixtures; nothing is sent.
+# std / cupola-light: all pills, title menu, Settings > Pills, long chat with minimap
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg cupola-light --fixture open-project-thread --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id message-draft --timeout 30
+shot a-pills-std-cupola-light-pills
+tap --id conversation-title-menu
+wait --label "Copy as Markdown" --timeout 5
+shot a-pills-std-cupola-light-title-menu
+tap --label "Copy as Markdown"
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg cupola-light --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-pills
+tap --id settings-pills
+wait --id pills-reset --gone --timeout 10
+shot a-pills-std-cupola-light-settings
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-held --fixture theme --arg cupola-light --fixture open-project-thread
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+shot a-pills-std-cupola-light-minimap
+# std / cupola-dark: all pills, title menu, Settings > Pills, long chat with minimap
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg cupola-dark --fixture open-project-thread --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id message-draft --timeout 30
+shot a-pills-std-cupola-dark-pills
+tap --id conversation-title-menu
+wait --label "Copy as Markdown" --timeout 5
+shot a-pills-std-cupola-dark-title-menu
+tap --label "Copy as Markdown"
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg cupola-dark --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-pills
+tap --id settings-pills
+wait --id pills-reset --gone --timeout 10
+shot a-pills-std-cupola-dark-settings
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-held --fixture theme --arg cupola-dark --fixture open-project-thread
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+shot a-pills-std-cupola-dark-minimap
+# std / nord: all pills, title menu, Settings > Pills, long chat with minimap
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg nord --fixture open-project-thread --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id message-draft --timeout 30
+shot a-pills-std-nord-pills
+tap --id conversation-title-menu
+wait --label "Copy as Markdown" --timeout 5
+shot a-pills-std-nord-title-menu
+tap --label "Copy as Markdown"
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg nord --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-pills
+tap --id settings-pills
+wait --id pills-reset --gone --timeout 10
+shot a-pills-std-nord-settings
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-held --fixture theme --arg nord --fixture open-project-thread
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+shot a-pills-std-nord-minimap
+# std / misty-forest: all pills, title menu, Settings > Pills, long chat with minimap
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg misty-forest --fixture open-project-thread --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id message-draft --timeout 30
+shot a-pills-std-misty-forest-pills
+tap --id conversation-title-menu
+wait --label "Copy as Markdown" --timeout 5
+shot a-pills-std-misty-forest-title-menu
+tap --label "Copy as Markdown"
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture rail-fixture --fixture project-subagents --fixture terminal-available --fixture project-pull-requests --fixture goal-fixture --fixture project-files-send --fixture theme --arg misty-forest --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-pills
+tap --id settings-pills
+wait --id pills-reset --gone --timeout 10
+shot a-pills-std-misty-forest-settings
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture minimap --fixture minimap-held --fixture theme --arg misty-forest --fixture open-project-thread
+wait --contains "Reply 500." --timeout 30
+swipe down --in conversation-scroll
+shot a-pills-std-misty-forest-minimap

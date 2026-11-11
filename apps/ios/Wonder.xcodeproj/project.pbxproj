@@ -1,0 +1,1916 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+        A33400000000000000000001 /* attachment-video.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = A33400000000000000000002 /* attachment-video.mp4 */; };
+		E33A00000000000000000001B /* SettingsSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = E33A00000000000000000001A /* SettingsSearch.swift */; };
+		E33A00000000000000000A5E2 /* UsageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E33A00000000000000000A5E1 /* UsageView.swift */; };
+		E33A00000000000000000B5C2 /* RescueViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E33A00000000000000000B5C1 /* RescueViews.swift */; };
+		5CE700000000000000000001 /* SketchSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CE700000000000000000002 /* SketchSheet.swift */; };
+		6E3100000000000000000001 /* NativeReplyUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E3100000000000000000002 /* NativeReplyUI.swift */; };
+		6E3100000000000000000003 /* HTMLVisualPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E3100000000000000000004 /* HTMLVisualPage.swift */; };
+        51A900000000000000000001 /* PreparedChatViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51A900000000000000000002 /* PreparedChatViews.swift */; };
+		B80A7C9FEC3145C794C23801 /* SidebarPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B80A7C9FEC3145C794C23802 /* SidebarPresenter.swift */; };
+		B74ABCDE0000000000000001 /* ProjectShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = B74ABCDE0000000000000002 /* ProjectShortcuts.swift */; };
+		AE3E42054D7C47D583296107 /* ActivityViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE3E42054D7C47D583296108 /* ActivityViews.swift */; };
+		F06261D4A65A4E17A2171101 /* TaskChecklistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F06261D4A65A4E17A2171102 /* TaskChecklistView.swift */; };
+		CEA100000000000000000001 /* ComposerEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA100000000000000000002 /* ComposerEditor.swift */; };
+		CEA100000000000000000021 /* ComposerPromptSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA100000000000000000022 /* ComposerPromptSuggestion.swift */; };
+		CEA100000000000000000041 /* ComposerCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA100000000000000000042 /* ComposerCompletion.swift */; };
+		CEB200000000000000000021 /* SelectedCodexSkills.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB200000000000000000022 /* SelectedCodexSkills.swift */; };
+		CEA100000000000000000031 /* DiagnosticPromptSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA100000000000000000032 /* DiagnosticPromptSuggestion.swift */; };
+		CEA100000000000000000043 /* DiagnosticComposerCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEA100000000000000000044 /* DiagnosticComposerCompletion.swift */; };
+		B700000000000000000000B1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B700000000000000000000F1 /* PrivacyInfo.xcprivacy */; };
+		B700000000000000000000B2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B700000000000000000000F2 /* PrivacyInfo.xcprivacy */; };
+		B700000000000000000000B3 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B700000000000000000000F3 /* PrivacyInfo.xcprivacy */; };
+		B700000000000000000000B4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B700000000000000000000F4 /* PrivacyInfo.xcprivacy */; };
+		000000000000000000000014 /* WonderApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000A /* WonderApp.swift */; };
+		000000000000000000000015 /* Identity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000B /* Identity.swift */; };
+		000000000000000000000016 /* ConnectionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000C /* ConnectionModel.swift */; };
+		A9E5278FF0B870F7F9E7FDE4 /* AttentionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67488570AF322377054E485F /* AttentionViews.swift */; };
+		3DF5D2E1CBCB7AA2BB8723F2 /* ComposerAttachments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C9F1E57215DC905D4E83E4A /* ComposerAttachments.swift */; };
+		FFA217F1E894F6D82FD8CD54 /* ConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6077F1DFFE45945858DBF7F /* ConversationView.swift */; };
+		1F9863110942CD73D82F013C /* DiffViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4BCB15E5B9100C61B484EC /* DiffViews.swift */; };
+		B28BB1FA9E067C4A41C9BB78 /* DocumentPreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1DD2927B0F309CDF206EFA /* DocumentPreviews.swift */; };
+		6448DC703DCF7D75CD195B79 /* MessageViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F96BCBFD34090F9917DC795 /* MessageViews.swift */; };
+		683B7492A796D5AE08EFD5F6 /* PhotoViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 305BE0DA727462982783F1C0 /* PhotoViewer.swift */; };
+		8C561C74266D254BC89D5C47 /* QueueViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AEE4A81778F67688D116504 /* QueueViews.swift */; };
+		FF6737C50FA01582BA7F3341 /* ToolActivityViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B88E3A96BCA8F6822448D574 /* ToolActivityViews.swift */; };
+		D4F05CE993A327C831F3C14E /* InlineMediaViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AEA04FBA2B21BC929D91837 /* InlineMediaViews.swift */; };
+		580850E9E79EEC7957386FC2 /* WorkspaceBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C467BF86DE9A84A10453D60 /* WorkspaceBrowser.swift */; };
+		C56E30B0DED477ECB8895FE4 /* WorkspacePreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E1A6666BC266F513F0C44D2 /* WorkspacePreviews.swift */; };
+		000000000000000000000018 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000E /* Assets.xcassets */; };
+		000000000000000000000023 /* WonderPairing in Frameworks */ = {isa = PBXBuildFile; productRef = 000000000000000000000022 /* WonderPairing */; };
+		000000000000000000000025 /* WonderComputerView in Frameworks */ = {isa = PBXBuildFile; productRef = 000000000000000000000024 /* WonderComputerView */; };
+		19676721D0C33BD9EDCB60A9 /* DiagnosticScenarios.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5AA3A14AB81C67C8DDCB7B6 /* DiagnosticScenarios.swift */; };
+		CBF83885753E42D5BF2FE0E1 /* DiagnosticProviderFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC1A0338C30D4B689D5A81CF /* DiagnosticProviderFixture.swift */; };
+		DE40DE40DE40DE40DE40DE01 /* DemoMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE40DE40DE40DE40DE40DE02 /* DemoMode.swift */; };
+		5E3A7D0C2B1F4E6A9C8D0E12 /* DiagnosticRewindFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3A7D0C2B1F4E6A9C8D0E13 /* DiagnosticRewindFixture.swift */; };
+		221AE19300F904CA9DEB5CED /* PushPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 909B485EDED5FBC663A6C8A5 /* PushPreview.swift */; };
+		26887CC3693F840C83461F90 /* PushPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 909B485EDED5FBC663A6C8A5 /* PushPreview.swift */; };
+		5099615A08B198A187DA2B1B /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E2F05DCDF1EF93891E66147 /* Foundation.framework */; };
+		680B8838AFFE7FC98AE82FCF /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E2F05DCDF1EF93891E66147 /* Foundation.framework */; };
+		683458BA65F7CAD5A0B9BC32 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B30AA7F72EB16CF2018A69 /* ShareViewController.swift */; };
+		D5000000000000000000A002 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5000000000000000000A001 /* ShareSheet.swift */; };
+		D5000000000000000000A003 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5000000000000000000A001 /* ShareSheet.swift */; };
+		D5000000000000000000A005 /* ShareSheetPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5000000000000000000A004 /* ShareSheetPreview.swift */; };
+		D5000000000000000000A007 /* ShareAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D5000000000000000000A006 /* ShareAssets.xcassets */; };
+		8965B6DD8CEBFECA966B332D /* WonderShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = BC9D631263C10B783E48F521 /* WonderShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		8B0ABAD4AE4743603CEBE1B6 /* PhoneIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 346332EBDE310F6CD014B601 /* PhoneIdentity.swift */; };
+		957A868C40FEB21B3429D722 /* Diagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F57D5EB13865B3F87CCC662 /* Diagnostics.swift */; };
+		9704A6C8BA26214D46834682 /* WonderDiagnosticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47E82AB093AAA04EBEBABC57 /* WonderDiagnosticsTests.swift */; };
+		97EB3739BD8610E06A7E97BC /* WonderPairing in Frameworks */ = {isa = PBXBuildFile; productRef = 90E35E164141A24FE33D9F29 /* WonderPairing */; };
+		A10000000000000000000002 /* ManagementViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* ManagementViews.swift */; };
+		A10000000000000000000004 /* MacFileAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000003 /* MacFileAccess.swift */; };
+		A10000000000000000000008 /* DictationViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* DictationViews.swift */; };
+		16F8BE3D0CF5437DA85A30D2 /* VoiceMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CEB53CAEF10479293B4F236 /* VoiceMode.swift */; };
+		E20000000000000000000F01 /* VoiceModelMatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000F02 /* VoiceModelMatch.swift */; };
+		A8BC43DD5230F4B345AFC0AD /* Voice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6B022814973213C4E5D056 /* Voice.swift */; };
+		FABF0FA9CF46D4C023228692 /* VoiceRealtime.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7EEFB193EFDA6200BE8694C /* VoiceRealtime.swift */; };
+		A10000000000000000000014 /* CameraCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* CameraCapture.swift */; };
+		A100000000000000000F0001 /* WonderTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000F0002 /* WonderTheme.swift */; };
+		A1000000000000000F0A0001 /* WonderTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000F0A0002 /* WonderTypography.swift */; };
+		A1000000000000000F0A0003 /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = A1000000000000000F0A0004 /* Fonts */; };
+		A100000000000000000F0003 /* CodeBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000F0004 /* CodeBlockView.swift */; };
+		A100000000000000000F0005 /* TextFileViewers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000F0006 /* TextFileViewers.swift */; };
+		A10000000000000000000017 /* ComputerSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000018 /* ComputerSessionView.swift */; };
+		A1000000000000000000001A /* WebRTC-LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000019 /* WebRTC-LICENSE.md */; };
+		CECA00000000000000000001 /* ComputerSharing-Linux.md in Resources */ = {isa = PBXBuildFile; fileRef = CECA00000000000000000003 /* ComputerSharing-Linux.md */; };
+		CECA00000000000000000002 /* ComputerSharing-Windows.md in Resources */ = {isa = PBXBuildFile; fileRef = CECA00000000000000000004 /* ComputerSharing-Windows.md */; };
+		A10000000000000000000093 /* ComputerInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000094 /* ComputerInput.swift */; };
+		51A0C0000000000000000001 /* SimulatorSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51A0C0000000000000000002 /* SimulatorSessionView.swift */; };
+		A535011EC173486375ACC652 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35514834A232D7BF80D47544 /* NotificationService.swift */; };
+		B20000000000000000000002 /* AppShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* AppShell.swift */; };
+		B20000000000000000000004 /* NewChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000003 /* NewChatView.swift */; };
+		B20000000000000000000006 /* ProjectViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000005 /* ProjectViews.swift */; };
+		B20000000000000000000008 /* ProjectsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000007 /* ProjectsModel.swift */; };
+		BA9F00000000000000000001 /* SubagentDock.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9F00000000000000000002 /* SubagentDock.swift */; };
+		C0A9E0000000000000000001 /* CompanionPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0A9E0000000000000000002 /* CompanionPane.swift */; };
+		BA9F00000000000000000101 /* CodeChangesSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9F00000000000000000102 /* CodeChangesSheet.swift */; };
+		BA9F00000000000000000901 /* BrowserPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9F00000000000000000902 /* BrowserPreview.swift */; };
+		04BC29B6DD00BCC88A35E840 /* DiffCommentEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE11C46D2792A2D81F9BE47 /* DiffCommentEditor.swift */; };
+		BA9F00000000000000000111 /* PullRequestDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9F00000000000000000112 /* PullRequestDetailView.swift */; };
+		BA9F00000000000000000121 /* DiagnosticPullRequestDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9F00000000000000000122 /* DiagnosticPullRequestDetails.swift */; };
+		BA9F00000000000000000003 /* PushNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9F00000000000000000004 /* PushNotifications.swift */; };
+		AC0C00000000000000000003 /* NotificationAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0C00000000000000000004 /* NotificationAccountView.swift */; };
+		AC0C00000000000000000001 /* WonderAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0C00000000000000000002 /* WonderAccount.swift */; };
+		AC0C00000000000000000007 /* ReleaseNotes.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0C00000000000000000008 /* ReleaseNotes.swift */; };
+		AC0C00000000000000000005 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0C00000000000000000006 /* OnboardingView.swift */; };
+		1AB0BA1E0000000000000001 /* InAppBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AB0BA1E0000000000000002 /* InAppBanner.swift */; };
+		BA9F00000000000000000005 /* ComposerApprovalSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9F00000000000000000006 /* ComposerApprovalSettings.swift */; };
+		C30000000000000000000001 /* AutomationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C30000000000000000000002 /* AutomationsView.swift */; };
+		C30000000000000000000003 /* AutomationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C30000000000000000000004 /* AutomationUITests.swift */; };
+		7E7A00000000000000000001 /* TerminalSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E7A00000000000000000011 /* TerminalSheet.swift */; };
+		7E7A00000000000000000002 /* DiagnosticTerminalFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E7A00000000000000000012 /* DiagnosticTerminalFixture.swift */; };
+		7E7A00000000000000000003 /* SwiftTerm-LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = 7E7A00000000000000000013 /* SwiftTerm-LICENSE.md */; };
+		7E7A00000000000000000004 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 7E7A00000000000000000021 /* SwiftTerm */; };
+		A1000000000000000AC00001 /* WebRTC-NOTICES.txt in Resources */ = {isa = PBXBuildFile; fileRef = A1000000000000000AC00002 /* WebRTC-NOTICES.txt */; };
+		F30000000000000000000009 /* WorkspacePreviewUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000015 /* WorkspacePreviewUITests.swift */; };
+		7E7A00000000000000000005 /* TerminalSessionModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E7A00000000000000000015 /* TerminalSessionModelTests.swift */; };
+		F3000000000000000000000A /* WorkspacePreviewPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000016 /* WorkspacePreviewPolicyTests.swift */; };
+		F30000000000000000000F01 /* ComputerDisplayViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30000000000000000000F02 /* ComputerDisplayViewTests.swift */; };
+		D10000000000000000000001 /* DeepLinkUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000000000000000000002 /* DeepLinkUITests.swift */; };
+		D10000000000000000000091 /* ScenarioDeviceUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000000000000000000092 /* ScenarioDeviceUITests.swift */; };
+		E10000000000000000000001 /* ProjectWidgetSnapshot.swift in Wonder Sources */ = {isa = PBXBuildFile; fileRef = E10000000000000000000008 /* ProjectWidgetSnapshot.swift */; };
+		E10000000000000000000002 /* ProjectWidgetSnapshot.swift in Widget Sources */ = {isa = PBXBuildFile; fileRef = E10000000000000000000008 /* ProjectWidgetSnapshot.swift */; };
+		E10000000000000000000003 /* WonderProjectWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10000000000000000000009 /* WonderProjectWidget.swift */; };
+		E10000000000000000000004 /* ProjectWidgetSnapshotPublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1000000000000000000000A /* ProjectWidgetSnapshotPublisher.swift */; };
+		E10000000000000000000005 /* ProjectWidgetSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1000000000000000000000B /* ProjectWidgetSnapshotTests.swift */; };
+		E10000000000000000000006 /* WonderWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = E1000000000000000000000C /* WonderWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E20000000000000000000001 /* AgentActivity.swift in Wonder Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000011 /* AgentActivity.swift */; };
+		E20000000000000000000002 /* AgentActivity.swift in Widget Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000011 /* AgentActivity.swift */; };
+		E20000000000000000000003 /* AgentLiveActivityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000012 /* AgentLiveActivityWidget.swift */; };
+		E20000000000000000000004 /* AgentLiveActivities.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000013 /* AgentLiveActivities.swift */; };
+		E20000000000000000000005 /* AgentLiveActivityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000014 /* AgentLiveActivityTests.swift */; };
+		E20000000000000000000021 /* VoiceActivity.swift in Wonder Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000031 /* VoiceActivity.swift */; };
+		E20000000000000000000022 /* VoiceActivity.swift in Widget Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000031 /* VoiceActivity.swift */; };
+		E20000000000000000000023 /* VoiceLiveActivityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000032 /* VoiceLiveActivityWidget.swift */; };
+		E20000000000000000000024 /* VoiceSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000033 /* VoiceSession.swift */; };
+		E20000000000000000000025 /* AudioSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000000000000000000034 /* AudioSession.swift */; };
+		BFCD92EE5E10E7535685F137 /* WonderUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6140834B9A9F3D15FF06833A /* WonderUITests.swift */; };
+		C811A5ED247214E881943599 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E2F05DCDF1EF93891E66147 /* Foundation.framework */; };
+		C892AA779665CB03113835C1 /* PhoneIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 346332EBDE310F6CD014B601 /* PhoneIdentity.swift */; };
+		E0A5EF4DFCCBEF6F54DBD6B7 /* WonderNotificationService.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = BFA70C66124A72503DDC9554 /* WonderNotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		621DB5870F423320FE01B4C0 /* WonderNotificationContent.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 1F670A2A40F7797DCD99C8CF /* WonderNotificationContent.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4B239CCB4EB86E01F9195824 /* NotificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF3B0C69EF028B7CB2472372 /* NotificationViewController.swift */; };
+		EADD9BCCE9AAE26688AFFB56 /* PushPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 909B485EDED5FBC663A6C8A5 /* PushPreview.swift */; };
+		37F265CD8506B4D6DC976332 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E2F05DCDF1EF93891E66147 /* Foundation.framework */; };
+		A792E4DCB7DCFBE5F7C41385 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 87D65A6D6DAB876E43FC8099 /* MainInterface.storyboard */; };
+		A8BA6784048079FB6EE651F1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A8BA6784048079FB6EE651F2 /* PrivacyInfo.xcprivacy */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		694FABCAC269D7E991465CA3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 000000000000000000000006;
+			remoteInfo = Wonder;
+		};
+		9D20F23E49E47E1D56751C78 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A67491E68CB3DB9929A9EBEE;
+			remoteInfo = WonderNotificationService;
+		};
+		F034F0AC1342DB51C656F881 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6BB589EAEEA42379EF5BCA0C;
+			remoteInfo = WonderShare;
+		};
+		FEEAD6978303FCD94DEC7F30 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 000000000000000000000006;
+			remoteInfo = Wonder;
+		};
+		E1000000000000000000000D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E10000000000000000000012;
+			remoteInfo = WonderWidget;
+		};
+		A7AE68EACB0A75AEC1D7ABF8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 815A0898111F5FD88ED01965;
+			remoteInfo = WonderNotificationContent;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		7176E2C72C9E2368ED91F62D /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				E0A5EF4DFCCBEF6F54DBD6B7 /* WonderNotificationService.appex in Embed App Extensions */,
+				8965B6DD8CEBFECA966B332D /* WonderShare.appex in Embed App Extensions */,
+				E10000000000000000000006 /* WonderWidget.appex in Embed App Extensions */,
+				621DB5870F423320FE01B4C0 /* WonderNotificationContent.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+        A33400000000000000000002 /* attachment-video.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "control/fixtures/attachment-video.mp4"; sourceTree = SOURCE_ROOT; };
+		E33A00000000000000000001A /* SettingsSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSearch.swift; sourceTree = "<group>"; };
+		E33A00000000000000000A5E1 /* UsageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageView.swift; sourceTree = "<group>"; };
+		E33A00000000000000000B5C1 /* RescueViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RescueViews.swift; sourceTree = "<group>"; };
+		5CE700000000000000000002 /* SketchSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchSheet.swift; sourceTree = "<group>"; };
+		6E3100000000000000000002 /* NativeReplyUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NativeReplyUI/NativeReplyUI.swift"; sourceTree = "<group>"; };
+		6E3100000000000000000004 /* HTMLVisualPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NativeReplyUI/HTMLVisualPage.swift"; sourceTree = "<group>"; };
+        51A900000000000000000002 /* PreparedChatViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "../Presentation/PreparedChatViews.swift"; sourceTree = "<group>"; };
+		B80A7C9FEC3145C794C23802 /* SidebarPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarPresenter.swift; sourceTree = "<group>"; };
+		B74ABCDE0000000000000002 /* ProjectShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectShortcuts.swift; sourceTree = "<group>"; };
+		AE3E42054D7C47D583296108 /* ActivityViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViews.swift; sourceTree = "<group>"; };
+		F06261D4A65A4E17A2171102 /* TaskChecklistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskChecklistView.swift; sourceTree = "<group>"; };
+		CEA100000000000000000002 /* ComposerEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerEditor.swift; sourceTree = "<group>"; };
+		CEA100000000000000000022 /* ComposerPromptSuggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerPromptSuggestion.swift; sourceTree = "<group>"; };
+		CEA100000000000000000042 /* ComposerCompletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerCompletion.swift; sourceTree = "<group>"; };
+		CEB200000000000000000022 /* SelectedCodexSkills.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedCodexSkills.swift; sourceTree = "<group>"; };
+		CEA100000000000000000032 /* DiagnosticPromptSuggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticPromptSuggestion.swift; sourceTree = "<group>"; };
+		CEA100000000000000000044 /* DiagnosticComposerCompletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticComposerCompletion.swift; sourceTree = "<group>"; };
+		B700000000000000000000F1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		B700000000000000000000F2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		B700000000000000000000F3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		B700000000000000000000F4 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		000000000000000000000005 /* Wonder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = Wonder.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		00000000000000000000000A /* WonderApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WonderApp.swift; sourceTree = "<group>"; };
+		00000000000000000000000B /* Identity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Identity.swift; sourceTree = "<group>"; };
+		00000000000000000000000C /* ConnectionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionModel.swift; sourceTree = "<group>"; };
+		67488570AF322377054E485F /* AttentionViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionViews.swift; sourceTree = "<group>"; };
+		8C9F1E57215DC905D4E83E4A /* ComposerAttachments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerAttachments.swift; sourceTree = "<group>"; };
+		B6077F1DFFE45945858DBF7F /* ConversationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationView.swift; sourceTree = "<group>"; };
+		6E4BCB15E5B9100C61B484EC /* DiffViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffViews.swift; sourceTree = "<group>"; };
+		9B1DD2927B0F309CDF206EFA /* DocumentPreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentPreviews.swift; sourceTree = "<group>"; };
+		6F96BCBFD34090F9917DC795 /* MessageViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageViews.swift; sourceTree = "<group>"; };
+		305BE0DA727462982783F1C0 /* PhotoViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoViewer.swift; sourceTree = "<group>"; };
+		9AEE4A81778F67688D116504 /* QueueViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueViews.swift; sourceTree = "<group>"; };
+		B88E3A96BCA8F6822448D574 /* ToolActivityViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolActivityViews.swift; sourceTree = "<group>"; };
+		7AEA04FBA2B21BC929D91837 /* InlineMediaViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineMediaViews.swift; sourceTree = "<group>"; };
+		2C467BF86DE9A84A10453D60 /* WorkspaceBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceBrowser.swift; sourceTree = "<group>"; };
+		3E1A6666BC266F513F0C44D2 /* WorkspacePreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspacePreviews.swift; sourceTree = "<group>"; };
+		00000000000000000000000E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		26AE55576767892982C94B4E /* WonderNotificationService.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = WonderNotificationService.entitlements; sourceTree = "<group>"; };
+		346332EBDE310F6CD014B601 /* PhoneIdentity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhoneIdentity.swift; sourceTree = "<group>"; };
+		35514834A232D7BF80D47544 /* NotificationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		3F57D5EB13865B3F87CCC662 /* Diagnostics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Diagnostics.swift; sourceTree = "<group>"; };
+		47E82AB093AAA04EBEBABC57 /* WonderDiagnosticsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WonderDiagnosticsTests.swift; sourceTree = "<group>"; };
+		49B30AA7F72EB16CF2018A69 /* ShareViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		D5000000000000000000A001 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
+		D5000000000000000000A004 /* ShareSheetPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheetPreview.swift; sourceTree = "<group>"; };
+		D5000000000000000000A006 /* ShareAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = ShareAssets.xcassets; sourceTree = "<group>"; };
+		4E2F05DCDF1EF93891E66147 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		6140834B9A9F3D15FF06833A /* WonderUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WonderUITests.swift; sourceTree = "<group>"; };
+		65E3D1A1343ACC28CEB0C089 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		8FF492D188DF8F08262C744B /* WonderDiagnosticsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WonderDiagnosticsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		909B485EDED5FBC663A6C8A5 /* PushPreview.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PushPreview.swift; sourceTree = "<group>"; };
+		A0A97AAF060C3698CD66A9EF /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A10000000000000000000001 /* ManagementViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagementViews.swift; sourceTree = "<group>"; };
+		A10000000000000000000003 /* MacFileAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacFileAccess.swift; sourceTree = "<group>"; };
+		A10000000000000000000007 /* DictationViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationViews.swift; sourceTree = "<group>"; };
+		6CEB53CAEF10479293B4F236 /* VoiceMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceMode.swift; sourceTree = "<group>"; };
+		E20000000000000000000F02 /* VoiceModelMatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VoiceModelMatch.swift; path = ../native/Sources/WonderVoice/VoiceModelMatch.swift; sourceTree = SOURCE_ROOT; };
+		0B6B022814973213C4E5D056 /* Voice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Voice.swift; path = ../native/Sources/WonderVoice/Voice.swift; sourceTree = SOURCE_ROOT; };
+		D7EEFB193EFDA6200BE8694C /* VoiceRealtime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VoiceRealtime.swift; path = ../native/Sources/WonderVoice/VoiceRealtime.swift; sourceTree = SOURCE_ROOT; };
+		A10000000000000000000013 /* CameraCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCapture.swift; sourceTree = "<group>"; };
+		A100000000000000000F0002 /* WonderTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WonderTheme.swift; sourceTree = "<group>"; };
+		A1000000000000000F0A0002 /* WonderTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WonderTypography.swift; sourceTree = "<group>"; };
+		A1000000000000000F0A0004 /* Fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fonts; sourceTree = "<group>"; };
+		A100000000000000000F0004 /* CodeBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeBlockView.swift; sourceTree = "<group>"; };
+		A100000000000000000F0006 /* TextFileViewers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFileViewers.swift; sourceTree = "<group>"; };
+		A10000000000000000000018 /* ComputerSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerSessionView.swift; sourceTree = "<group>"; };
+		A10000000000000000000019 /* WebRTC-LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = "WebRTC-LICENSE.md"; sourceTree = "<group>"; };
+		CECA00000000000000000003 /* ComputerSharing-Linux.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = "ComputerSharing-Linux.md"; path = "../../crates/wonderd/computer-helper/notices/ComputerSharing-Linux.md"; sourceTree = SOURCE_ROOT; };
+		CECA00000000000000000004 /* ComputerSharing-Windows.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = "ComputerSharing-Windows.md"; path = "../../crates/wonderd/computer-helper/notices/ComputerSharing-Windows.md"; sourceTree = SOURCE_ROOT; };
+		A10000000000000000000094 /* ComputerInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerInput.swift; sourceTree = "<group>"; };
+		51A0C0000000000000000002 /* SimulatorSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorSessionView.swift; sourceTree = "<group>"; };
+		A553489F83673E66720A931F /* WonderUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WonderUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC2C84E21DC79219A2F40F8C /* WonderShare.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = WonderShare.entitlements; sourceTree = "<group>"; };
+		B20000000000000000000001 /* AppShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShell.swift; sourceTree = "<group>"; };
+		B20000000000000000000003 /* NewChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewChatView.swift; sourceTree = "<group>"; };
+		B20000000000000000000005 /* ProjectViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectViews.swift; sourceTree = "<group>"; };
+		B20000000000000000000007 /* ProjectsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectsModel.swift; sourceTree = "<group>"; };
+		BA9F00000000000000000002 /* SubagentDock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubagentDock.swift; sourceTree = "<group>"; };
+		C0A9E0000000000000000002 /* CompanionPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionPane.swift; sourceTree = "<group>"; };
+		7E7A00000000000000000011 /* TerminalSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalSheet.swift; sourceTree = "<group>"; };
+		7E7A00000000000000000012 /* DiagnosticTerminalFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticTerminalFixture.swift; sourceTree = "<group>"; };
+		7E7A00000000000000000013 /* SwiftTerm-LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "SwiftTerm-LICENSE.md"; sourceTree = "<group>"; };
+		BA9F00000000000000000102 /* CodeChangesSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeChangesSheet.swift; sourceTree = "<group>"; };
+		BA9F00000000000000000902 /* BrowserPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserPreview.swift; sourceTree = "<group>"; };
+		2AE11C46D2792A2D81F9BE47 /* DiffCommentEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffCommentEditor.swift; sourceTree = "<group>"; };
+		BA9F00000000000000000112 /* PullRequestDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullRequestDetailView.swift; sourceTree = "<group>"; };
+		BA9F00000000000000000122 /* DiagnosticPullRequestDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticPullRequestDetails.swift; sourceTree = "<group>"; };
+		BA9F00000000000000000004 /* PushNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotifications.swift; sourceTree = "<group>"; };
+		AC0C00000000000000000004 /* NotificationAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationAccountView.swift; sourceTree = "<group>"; };
+		AC0C00000000000000000002 /* WonderAccount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WonderAccount.swift; sourceTree = "<group>"; };
+		AC0C00000000000000000008 /* ReleaseNotes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotes.swift; sourceTree = "<group>"; };
+		AC0C00000000000000000006 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		1AB0BA1E0000000000000002 /* InAppBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppBanner.swift; sourceTree = "<group>"; };
+		BA9F00000000000000000006 /* ComposerApprovalSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerApprovalSettings.swift; sourceTree = "<group>"; };
+		C30000000000000000000002 /* AutomationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationsView.swift; sourceTree = "<group>"; };
+		C30000000000000000000004 /* AutomationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationUITests.swift; sourceTree = "<group>"; };
+		A1000000000000000AC00002 /* WebRTC-NOTICES.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "WebRTC-NOTICES.txt"; sourceTree = "<group>"; };
+		F30000000000000000000015 /* WorkspacePreviewUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspacePreviewUITests.swift; sourceTree = "<group>"; };
+		7E7A00000000000000000015 /* TerminalSessionModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalSessionModelTests.swift; sourceTree = "<group>"; };
+		F30000000000000000000016 /* WorkspacePreviewPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspacePreviewPolicyTests.swift; sourceTree = "<group>"; };
+		F30000000000000000000F02 /* ComputerDisplayViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputerDisplayViewTests.swift; sourceTree = "<group>"; };
+		D10000000000000000000002 /* DeepLinkUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkUITests.swift; sourceTree = "<group>"; };
+		D10000000000000000000092 /* ScenarioDeviceUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenarioDeviceUITests.swift; sourceTree = "<group>"; };
+		E10000000000000000000008 /* ProjectWidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectWidgetSnapshot.swift; sourceTree = "<group>"; };
+		E10000000000000000000009 /* WonderProjectWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WonderProjectWidget.swift; sourceTree = "<group>"; };
+		E1000000000000000000000A /* ProjectWidgetSnapshotPublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectWidgetSnapshotPublisher.swift; sourceTree = "<group>"; };
+		E1000000000000000000000B /* ProjectWidgetSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectWidgetSnapshotTests.swift; sourceTree = "<group>"; };
+		E1000000000000000000000C /* WonderWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WonderWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1000000000000000000000E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E1000000000000000000000F /* WonderWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WonderWidget.entitlements; sourceTree = "<group>"; };
+		E20000000000000000000011 /* AgentActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentActivity.swift; sourceTree = "<group>"; };
+		E20000000000000000000012 /* AgentLiveActivityWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentLiveActivityWidget.swift; sourceTree = "<group>"; };
+		E20000000000000000000013 /* AgentLiveActivities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentLiveActivities.swift; sourceTree = "<group>"; };
+		E20000000000000000000014 /* AgentLiveActivityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentLiveActivityTests.swift; sourceTree = "<group>"; };
+		E20000000000000000000031 /* VoiceActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceActivity.swift; sourceTree = "<group>"; };
+		E20000000000000000000032 /* VoiceLiveActivityWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceLiveActivityWidget.swift; sourceTree = "<group>"; };
+		E20000000000000000000033 /* VoiceSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VoiceSession.swift; path = ../native/Sources/WonderVoice/VoiceSession.swift; sourceTree = SOURCE_ROOT; };
+		E20000000000000000000034 /* AudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AudioSession.swift; path = ../native/Sources/WonderVoice/AudioSession.swift; sourceTree = SOURCE_ROOT; };
+		BC9D631263C10B783E48F521 /* WonderShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WonderShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		BFA70C66124A72503DDC9554 /* WonderNotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WonderNotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F5AA3A14AB81C67C8DDCB7B6 /* DiagnosticScenarios.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DiagnosticScenarios.swift; sourceTree = "<group>"; };
+		AC1A0338C30D4B689D5A81CF /* DiagnosticProviderFixture.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DiagnosticProviderFixture.swift; sourceTree = "<group>"; };
+		DE40DE40DE40DE40DE40DE02 /* DemoMode.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DemoMode.swift; sourceTree = "<group>"; };
+		5E3A7D0C2B1F4E6A9C8D0E13 /* DiagnosticRewindFixture.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DiagnosticRewindFixture.swift; sourceTree = "<group>"; };
+		1F670A2A40F7797DCD99C8CF /* WonderNotificationContent.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WonderNotificationContent.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF3B0C69EF028B7CB2472372 /* NotificationViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotificationViewController.swift; sourceTree = "<group>"; };
+		87D65A6D6DAB876E43FC8099 /* MainInterface.storyboard */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file.storyboard; path = MainInterface.storyboard; sourceTree = "<group>"; };
+		FE0B9F236EA8A656BFFE1E03 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		607F4B03EDD39E8CBA0CB61D /* WonderNotificationContent.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = WonderNotificationContent.entitlements; sourceTree = "<group>"; };
+		A8BA6784048079FB6EE651F2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		00000000000000000000001F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000000023 /* WonderPairing in Frameworks */,
+				000000000000000000000025 /* WonderComputerView in Frameworks */,
+				7E7A00000000000000000004 /* SwiftTerm in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1180360C16B299337236549E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				97EB3739BD8610E06A7E97BC /* WonderPairing in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6131E66C91A45F24C017F565 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C811A5ED247214E881943599 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E2026C9A70D9D5686BE244EB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5099615A08B198A187DA2B1B /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E5E07E7ED64918016B704DAA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				680B8838AFFE7FC98AE82FCF /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10000000000000000000015 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C71D7358BA5AF0CFF1A87984 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				37F265CD8506B4D6DC976332 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		000000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000003 /* Wonder */,
+				000000000000000000000004 /* Products */,
+				9A83AAB81DC2FF3026491425 /* Frameworks */,
+				317DFB82E066B935EFF98DA5 /* WonderUITests */,
+				1B498291A91D7FCDFACE7033 /* WonderDiagnosticsTests */,
+				296AC4FB7739A5313CEA6FD9 /* PushShared */,
+				C518C0B5DCD7ECA8129E4916 /* WonderNotificationService */,
+				CE2104FC1D46538F31EBDB85 /* WonderShare */,
+				E10000000000000000000010 /* WonderWidget */,
+				D86A64728ABC25933B11B2A7 /* WonderNotificationContent */,
+			);
+			sourceTree = "<group>";
+		};
+		000000000000000000000003 /* Wonder */ = {
+			isa = PBXGroup;
+			children = (
+				51A900000000000000000002 /* PreparedChatViews.swift */,
+				E33A00000000000000000001A /* SettingsSearch.swift */,
+				E33A00000000000000000A5E1 /* UsageView.swift */,
+				E33A00000000000000000B5C1 /* RescueViews.swift */,
+				00000000000000000000000A /* WonderApp.swift */,
+				00000000000000000000000B /* Identity.swift */,
+				00000000000000000000000C /* ConnectionModel.swift */,
+				67488570AF322377054E485F /* AttentionViews.swift */,
+				8C9F1E57215DC905D4E83E4A /* ComposerAttachments.swift */,
+				5CE700000000000000000002 /* SketchSheet.swift */,
+				B6077F1DFFE45945858DBF7F /* ConversationView.swift */,
+				6E4BCB15E5B9100C61B484EC /* DiffViews.swift */,
+				9B1DD2927B0F309CDF206EFA /* DocumentPreviews.swift */,
+				6F96BCBFD34090F9917DC795 /* MessageViews.swift */,
+				6E3100000000000000000002 /* NativeReplyUI.swift */,
+				6E3100000000000000000004 /* HTMLVisualPage.swift */,
+				305BE0DA727462982783F1C0 /* PhotoViewer.swift */,
+				9AEE4A81778F67688D116504 /* QueueViews.swift */,
+				B88E3A96BCA8F6822448D574 /* ToolActivityViews.swift */,
+				7AEA04FBA2B21BC929D91837 /* InlineMediaViews.swift */,
+				2C467BF86DE9A84A10453D60 /* WorkspaceBrowser.swift */,
+				3E1A6666BC266F513F0C44D2 /* WorkspacePreviews.swift */,
+				B74ABCDE0000000000000002 /* ProjectShortcuts.swift */,
+				AE3E42054D7C47D583296108 /* ActivityViews.swift */,
+				B80A7C9FEC3145C794C23802 /* SidebarPresenter.swift */,
+				F06261D4A65A4E17A2171102 /* TaskChecklistView.swift */,
+				CEA100000000000000000002 /* ComposerEditor.swift */,
+				CEA100000000000000000022 /* ComposerPromptSuggestion.swift */,
+				CEA100000000000000000042 /* ComposerCompletion.swift */,
+				CEB200000000000000000022 /* SelectedCodexSkills.swift */,
+				CEA100000000000000000032 /* DiagnosticPromptSuggestion.swift */,
+				CEA100000000000000000044 /* DiagnosticComposerCompletion.swift */,
+				A1000000000000000AC00002 /* WebRTC-NOTICES.txt */,
+				BA9F00000000000000000002 /* SubagentDock.swift */,
+				C0A9E0000000000000000002 /* CompanionPane.swift */,
+				BA9F00000000000000000102 /* CodeChangesSheet.swift */,
+				BA9F00000000000000000902 /* BrowserPreview.swift */,
+				7E7A00000000000000000011 /* TerminalSheet.swift */,
+				7E7A00000000000000000012 /* DiagnosticTerminalFixture.swift */,
+				7E7A00000000000000000013 /* SwiftTerm-LICENSE.md */,
+				2AE11C46D2792A2D81F9BE47 /* DiffCommentEditor.swift */,
+				BA9F00000000000000000112 /* PullRequestDetailView.swift */,
+				BA9F00000000000000000122 /* DiagnosticPullRequestDetails.swift */,
+				BA9F00000000000000000004 /* PushNotifications.swift */,
+				AC0C00000000000000000004 /* NotificationAccountView.swift */,
+				AC0C00000000000000000002 /* WonderAccount.swift */,
+				AC0C00000000000000000008 /* ReleaseNotes.swift */,
+				AC0C00000000000000000006 /* OnboardingView.swift */,
+				1AB0BA1E0000000000000002 /* InAppBanner.swift */,
+				BA9F00000000000000000006 /* ComposerApprovalSettings.swift */,
+				C30000000000000000000002 /* AutomationsView.swift */,
+				A10000000000000000000013 /* CameraCapture.swift */,
+				A10000000000000000000018 /* ComputerSessionView.swift */,
+				A10000000000000000000094 /* ComputerInput.swift */,
+				51A0C0000000000000000002 /* SimulatorSessionView.swift */,
+				A10000000000000000000019 /* WebRTC-LICENSE.md */,
+				CECA00000000000000000003 /* ComputerSharing-Linux.md */,
+				CECA00000000000000000004 /* ComputerSharing-Windows.md */,
+				00000000000000000000000E /* Assets.xcassets */,
+				B700000000000000000000F1 /* PrivacyInfo.xcprivacy */,
+				A10000000000000000000001 /* ManagementViews.swift */,
+				A10000000000000000000003 /* MacFileAccess.swift */,
+				A10000000000000000000007 /* DictationViews.swift */,
+				6CEB53CAEF10479293B4F236 /* VoiceMode.swift */,
+				0B6B022814973213C4E5D056 /* Voice.swift */,
+				E20000000000000000000F02 /* VoiceModelMatch.swift */,
+				D7EEFB193EFDA6200BE8694C /* VoiceRealtime.swift */,
+				E20000000000000000000033 /* VoiceSession.swift */,
+				E20000000000000000000034 /* AudioSession.swift */,
+				B20000000000000000000007 /* ProjectsModel.swift */,
+				B20000000000000000000005 /* ProjectViews.swift */,
+				B20000000000000000000003 /* NewChatView.swift */,
+				D5000000000000000000A004 /* ShareSheetPreview.swift */,
+				B20000000000000000000001 /* AppShell.swift */,
+				E1000000000000000000000A /* ProjectWidgetSnapshotPublisher.swift */,
+				E20000000000000000000013 /* AgentLiveActivities.swift */,
+				A100000000000000000F0002 /* WonderTheme.swift */,
+				A1000000000000000F0A0002 /* WonderTypography.swift */,
+				A1000000000000000F0A0004 /* Fonts */,
+				A100000000000000000F0004 /* CodeBlockView.swift */,
+				A100000000000000000F0006 /* TextFileViewers.swift */,
+				3F57D5EB13865B3F87CCC662 /* Diagnostics.swift */,
+				F5AA3A14AB81C67C8DDCB7B6 /* DiagnosticScenarios.swift */,
+				AC1A0338C30D4B689D5A81CF /* DiagnosticProviderFixture.swift */,
+				DE40DE40DE40DE40DE40DE02 /* DemoMode.swift */,
+				5E3A7D0C2B1F4E6A9C8D0E13 /* DiagnosticRewindFixture.swift */,
+				346332EBDE310F6CD014B601 /* PhoneIdentity.swift */,
+			);
+			path = Wonder;
+			sourceTree = "<group>";
+		};
+		000000000000000000000004 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000005 /* Wonder.app */,
+				A553489F83673E66720A931F /* WonderUITests.xctest */,
+				8FF492D188DF8F08262C744B /* WonderDiagnosticsTests.xctest */,
+				BFA70C66124A72503DDC9554 /* WonderNotificationService.appex */,
+				BC9D631263C10B783E48F521 /* WonderShare.appex */,
+				E1000000000000000000000C /* WonderWidget.appex */,
+				1F670A2A40F7797DCD99C8CF /* WonderNotificationContent.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1B498291A91D7FCDFACE7033 /* WonderDiagnosticsTests */ = {
+			isa = PBXGroup;
+			children = (
+				47E82AB093AAA04EBEBABC57 /* WonderDiagnosticsTests.swift */,
+				E1000000000000000000000B /* ProjectWidgetSnapshotTests.swift */,
+				E20000000000000000000014 /* AgentLiveActivityTests.swift */,
+				F30000000000000000000016 /* WorkspacePreviewPolicyTests.swift */,
+				F30000000000000000000F02 /* ComputerDisplayViewTests.swift */,
+				7E7A00000000000000000015 /* TerminalSessionModelTests.swift */,
+			);
+			name = WonderDiagnosticsTests;
+			path = WonderDiagnosticsTests;
+			sourceTree = "<group>";
+		};
+		296AC4FB7739A5313CEA6FD9 /* PushShared */ = {
+			isa = PBXGroup;
+			children = (
+				909B485EDED5FBC663A6C8A5 /* PushPreview.swift */,
+			);
+			name = PushShared;
+			path = PushShared;
+			sourceTree = "<group>";
+		};
+		317DFB82E066B935EFF98DA5 /* WonderUITests */ = {
+			isa = PBXGroup;
+			children = (
+				6140834B9A9F3D15FF06833A /* WonderUITests.swift */,
+				C30000000000000000000004 /* AutomationUITests.swift */,
+				D10000000000000000000002 /* DeepLinkUITests.swift */,
+				D10000000000000000000092 /* ScenarioDeviceUITests.swift */,
+				F30000000000000000000015 /* WorkspacePreviewUITests.swift */,
+			);
+			name = WonderUITests;
+			path = WonderUITests;
+			sourceTree = "<group>";
+		};
+		648B7963A0C73488CB86E98A /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				4E2F05DCDF1EF93891E66147 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		9A83AAB81DC2FF3026491425 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				648B7963A0C73488CB86E98A /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C518C0B5DCD7ECA8129E4916 /* WonderNotificationService */ = {
+			isa = PBXGroup;
+			children = (
+				35514834A232D7BF80D47544 /* NotificationService.swift */,
+				65E3D1A1343ACC28CEB0C089 /* Info.plist */,
+				B700000000000000000000F4 /* PrivacyInfo.xcprivacy */,
+				26AE55576767892982C94B4E /* WonderNotificationService.entitlements */,
+			);
+			name = WonderNotificationService;
+			path = WonderNotificationService;
+			sourceTree = "<group>";
+		};
+		CE2104FC1D46538F31EBDB85 /* WonderShare */ = {
+			isa = PBXGroup;
+			children = (
+				49B30AA7F72EB16CF2018A69 /* ShareViewController.swift */,
+				D5000000000000000000A001 /* ShareSheet.swift */,
+				D5000000000000000000A006 /* ShareAssets.xcassets */,
+				A0A97AAF060C3698CD66A9EF /* Info.plist */,
+				B700000000000000000000F2 /* PrivacyInfo.xcprivacy */,
+				AC2C84E21DC79219A2F40F8C /* WonderShare.entitlements */,
+			);
+			name = WonderShare;
+			path = WonderShare;
+			sourceTree = "<group>";
+		};
+		E10000000000000000000010 /* WonderWidget */ = {
+			isa = PBXGroup;
+			children = (
+				E10000000000000000000008 /* ProjectWidgetSnapshot.swift */,
+				E10000000000000000000009 /* WonderProjectWidget.swift */,
+				E20000000000000000000011 /* AgentActivity.swift */,
+				E20000000000000000000012 /* AgentLiveActivityWidget.swift */,
+				E20000000000000000000031 /* VoiceActivity.swift */,
+				E20000000000000000000032 /* VoiceLiveActivityWidget.swift */,
+				E1000000000000000000000E /* Info.plist */,
+				B700000000000000000000F3 /* PrivacyInfo.xcprivacy */,
+				E1000000000000000000000F /* WonderWidget.entitlements */,
+			);
+			name = WonderWidget;
+			path = WonderWidget;
+			sourceTree = "<group>";
+		};
+		D86A64728ABC25933B11B2A7 /* WonderNotificationContent */ = {
+			isa = PBXGroup;
+			children = (
+				BF3B0C69EF028B7CB2472372 /* NotificationViewController.swift */,
+				87D65A6D6DAB876E43FC8099 /* MainInterface.storyboard */,
+				FE0B9F236EA8A656BFFE1E03 /* Info.plist */,
+				607F4B03EDD39E8CBA0CB61D /* WonderNotificationContent.entitlements */,
+				A8BA6784048079FB6EE651F2 /* PrivacyInfo.xcprivacy */,
+			);
+			name = WonderNotificationContent;
+			path = WonderNotificationContent;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		000000000000000000000006 /* Wonder */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00000000000000000000002C /* Build configuration list for PBXNativeTarget "Wonder" */;
+			buildPhases = (
+				00000000000000000000001E /* Sources */,
+				00000000000000000000001F /* Frameworks */,
+				000000000000000000000020 /* Resources */,
+				7176E2C72C9E2368ED91F62D /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D4C677FDC1238FF238B59ACA /* PBXTargetDependency */,
+				1827FA59B83879158B6527B4 /* PBXTargetDependency */,
+				E10000000000000000000017 /* PBXTargetDependency */,
+				48F04B90D725C643B4E58EDF /* PBXTargetDependency */,
+			);
+			name = Wonder;
+			packageProductDependencies = (
+				000000000000000000000022 /* WonderPairing */,
+				000000000000000000000024 /* WonderComputerView */,
+				7E7A00000000000000000021 /* SwiftTerm */,
+			);
+			productName = Wonder;
+			productReference = 000000000000000000000005 /* Wonder.app */;
+			productType = "com.apple.product-type.application";
+		};
+		5A8F66D832A5AA7BE3F3D34C /* WonderUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F8458E6CB6794FF6BDD66C96 /* Build configuration list for PBXNativeTarget "WonderUITests" */;
+			buildPhases = (
+				F91131F71B14CEB5383AF852 /* Sources */,
+				E2026C9A70D9D5686BE244EB /* Frameworks */,
+				20938B2C90E338745D27C17D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				916EAE41053F4F73234E84D9 /* PBXTargetDependency */,
+			);
+			name = WonderUITests;
+			productName = WonderUITests;
+			productReference = A553489F83673E66720A931F /* WonderUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		6BB589EAEEA42379EF5BCA0C /* WonderShare */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4812DE3666E45A32136D9624 /* Build configuration list for PBXNativeTarget "WonderShare" */;
+			buildPhases = (
+				EF67C941CA561376AA6904FD /* Sources */,
+				1180360C16B299337236549E /* Frameworks */,
+				5C81B237D021866F6AA09608 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WonderShare;
+			packageProductDependencies = (
+				90E35E164141A24FE33D9F29 /* WonderPairing */,
+			);
+			productName = WonderShare;
+			productReference = BC9D631263C10B783E48F521 /* WonderShare.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		A67491E68CB3DB9929A9EBEE /* WonderNotificationService */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B3B9FC9B7BB0054D6004EAB1 /* Build configuration list for PBXNativeTarget "WonderNotificationService" */;
+			buildPhases = (
+				50868AF765A3491498AF9D99 /* Sources */,
+				E5E07E7ED64918016B704DAA /* Frameworks */,
+				A286D7D94DD1D09AFE8EC476 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WonderNotificationService;
+			productName = WonderNotificationService;
+			productReference = BFA70C66124A72503DDC9554 /* WonderNotificationService.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		CE8362DBD6510DADD2E8CF36 /* WonderDiagnosticsTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A4D78CE01E2BA70C0F23549E /* Build configuration list for PBXNativeTarget "WonderDiagnosticsTests" */;
+			buildPhases = (
+				3DC6EB1C685F13BF9162DBAB /* Sources */,
+				6131E66C91A45F24C017F565 /* Frameworks */,
+				03CE238816B4DFB68B870851 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				658DA65665F7088B50996DD8 /* PBXTargetDependency */,
+			);
+			name = WonderDiagnosticsTests;
+			productName = WonderDiagnosticsTests;
+			productReference = 8FF492D188DF8F08262C744B /* WonderDiagnosticsTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		E10000000000000000000012 /* WonderWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E10000000000000000000018 /* Build configuration list for PBXNativeTarget "WonderWidget" */;
+			buildPhases = (
+				E10000000000000000000014 /* Sources */,
+				E10000000000000000000015 /* Frameworks */,
+				E10000000000000000000016 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = WonderWidget;
+			productName = WonderWidget;
+			productReference = E1000000000000000000000C /* WonderWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		815A0898111F5FD88ED01965 /* WonderNotificationContent */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ADADCDA876F92D08748A7B23 /* Build configuration list for PBXNativeTarget "WonderNotificationContent" */;
+			buildPhases = (
+				11888418BF36CFB739C6FE0B /* Sources */,
+				C71D7358BA5AF0CFF1A87984 /* Frameworks */,
+				3F89E72A0B791965ED3B9B76 /* Resources */,
+				0AC7C0DE0000000000000001 /* Verify notification content runtime linkage */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WonderNotificationContent;
+			productName = WonderNotificationContent;
+			productReference = 1F670A2A40F7797DCD99C8CF /* WonderNotificationContent.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		000000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 2660;
+			};
+			buildConfigurationList = 00000000000000000000002D /* Build configuration list for PBXProject "Wonder" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 000000000000000000000002;
+			packageReferences = (
+				000000000000000000000021 /* XCLocalSwiftPackageReference "native" */,
+				7E7A00000000000000000031 /* XCRemoteSwiftPackageReference "SwiftTerm" */,
+			);
+			productRefGroup = 000000000000000000000004 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				000000000000000000000006 /* Wonder */,
+				5A8F66D832A5AA7BE3F3D34C /* WonderUITests */,
+				CE8362DBD6510DADD2E8CF36 /* WonderDiagnosticsTests */,
+				A67491E68CB3DB9929A9EBEE /* WonderNotificationService */,
+				6BB589EAEEA42379EF5BCA0C /* WonderShare */,
+				E10000000000000000000012 /* WonderWidget */,
+				815A0898111F5FD88ED01965 /* WonderNotificationContent */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		000000000000000000000020 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+                A33400000000000000000001 /* attachment-video.mp4 in Resources */,
+				B700000000000000000000B1 /* PrivacyInfo.xcprivacy in Resources */,
+				A1000000000000000AC00001 /* WebRTC-NOTICES.txt in Resources */,
+				7E7A00000000000000000003 /* SwiftTerm-LICENSE.md in Resources */,
+				000000000000000000000018 /* Assets.xcassets in Resources */,
+				A1000000000000000F0A0003 /* Fonts in Resources */,
+				A1000000000000000000001A /* WebRTC-LICENSE.md in Resources */,
+				CECA00000000000000000001 /* ComputerSharing-Linux.md in Resources */,
+				CECA00000000000000000002 /* ComputerSharing-Windows.md in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		03CE238816B4DFB68B870851 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		20938B2C90E338745D27C17D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5C81B237D021866F6AA09608 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B700000000000000000000B2 /* PrivacyInfo.xcprivacy in Resources */,
+				D5000000000000000000A007 /* ShareAssets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A286D7D94DD1D09AFE8EC476 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B700000000000000000000B4 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10000000000000000000016 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B700000000000000000000B3 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3F89E72A0B791965ED3B9B76 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A792E4DCB7DCFBE5F7C41385 /* MainInterface.storyboard in Resources */,
+				A8BA6784048079FB6EE651F1 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0AC7C0DE0000000000000001 /* Verify notification content runtime linkage */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+			);
+			name = "Verify notification content runtime linkage";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/notification-content-linkage.checked",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -eu\nfor architecture in $(/usr/bin/xcrun lipo -archs \"$SCRIPT_INPUT_FILE_0\"); do\n    if ! /usr/bin/xcrun otool -arch \"$architecture\" -L \"$SCRIPT_INPUT_FILE_0\" | /usr/bin/grep -Fq '/System/Library/Frameworks/UserNotificationsUI.framework/UserNotificationsUI ('; then\n        echo \"error: WonderNotificationContent ($architecture) must load UserNotificationsUI for its extension context. Restore -Wl,-needed_framework,UserNotificationsUI in this target's OTHER_LDFLAGS.\" >&2\n        exit 1\n    fi\ndone\ntouch \"$SCRIPT_OUTPUT_FILE_0\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		00000000000000000000001E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				51A900000000000000000001 /* PreparedChatViews.swift in Sources */,
+				E33A00000000000000000001B /* SettingsSearch.swift in Sources */,
+				E33A00000000000000000A5E2 /* UsageView.swift in Sources */,
+				E33A00000000000000000B5C2 /* RescueViews.swift in Sources */,
+				000000000000000000000014 /* WonderApp.swift in Sources */,
+				000000000000000000000015 /* Identity.swift in Sources */,
+				E10000000000000000000001 /* ProjectWidgetSnapshot.swift in Wonder Sources */,
+				E10000000000000000000004 /* ProjectWidgetSnapshotPublisher.swift in Sources */,
+				E20000000000000000000001 /* AgentActivity.swift in Wonder Sources */,
+				E20000000000000000000004 /* AgentLiveActivities.swift in Sources */,
+				000000000000000000000016 /* ConnectionModel.swift in Sources */,
+				A9E5278FF0B870F7F9E7FDE4 /* AttentionViews.swift in Sources */,
+				3DF5D2E1CBCB7AA2BB8723F2 /* ComposerAttachments.swift in Sources */,
+				5CE700000000000000000001 /* SketchSheet.swift in Sources */,
+				FFA217F1E894F6D82FD8CD54 /* ConversationView.swift in Sources */,
+				1F9863110942CD73D82F013C /* DiffViews.swift in Sources */,
+				B28BB1FA9E067C4A41C9BB78 /* DocumentPreviews.swift in Sources */,
+				6448DC703DCF7D75CD195B79 /* MessageViews.swift in Sources */,
+				6E3100000000000000000001 /* NativeReplyUI.swift in Sources */,
+				6E3100000000000000000003 /* HTMLVisualPage.swift in Sources */,
+				683B7492A796D5AE08EFD5F6 /* PhotoViewer.swift in Sources */,
+				8C561C74266D254BC89D5C47 /* QueueViews.swift in Sources */,
+				FF6737C50FA01582BA7F3341 /* ToolActivityViews.swift in Sources */,
+				D4F05CE993A327C831F3C14E /* InlineMediaViews.swift in Sources */,
+				580850E9E79EEC7957386FC2 /* WorkspaceBrowser.swift in Sources */,
+				C56E30B0DED477ECB8895FE4 /* WorkspacePreviews.swift in Sources */,
+				B74ABCDE0000000000000001 /* ProjectShortcuts.swift in Sources */,
+				AE3E42054D7C47D583296107 /* ActivityViews.swift in Sources */,
+				B80A7C9FEC3145C794C23801 /* SidebarPresenter.swift in Sources */,
+				F06261D4A65A4E17A2171101 /* TaskChecklistView.swift in Sources */,
+				CEA100000000000000000001 /* ComposerEditor.swift in Sources */,
+				CEA100000000000000000021 /* ComposerPromptSuggestion.swift in Sources */,
+				CEA100000000000000000041 /* ComposerCompletion.swift in Sources */,
+				CEB200000000000000000021 /* SelectedCodexSkills.swift in Sources */,
+				CEA100000000000000000031 /* DiagnosticPromptSuggestion.swift in Sources */,
+				CEA100000000000000000043 /* DiagnosticComposerCompletion.swift in Sources */,
+				BA9F00000000000000000001 /* SubagentDock.swift in Sources */,
+				C0A9E0000000000000000001 /* CompanionPane.swift in Sources */,
+				BA9F00000000000000000101 /* CodeChangesSheet.swift in Sources */,
+				BA9F00000000000000000901 /* BrowserPreview.swift in Sources */,
+				7E7A00000000000000000001 /* TerminalSheet.swift in Sources */,
+				7E7A00000000000000000002 /* DiagnosticTerminalFixture.swift in Sources */,
+				04BC29B6DD00BCC88A35E840 /* DiffCommentEditor.swift in Sources */,
+				BA9F00000000000000000111 /* PullRequestDetailView.swift in Sources */,
+				BA9F00000000000000000121 /* DiagnosticPullRequestDetails.swift in Sources */,
+				BA9F00000000000000000003 /* PushNotifications.swift in Sources */,
+				AC0C00000000000000000003 /* NotificationAccountView.swift in Sources */,
+				AC0C00000000000000000001 /* WonderAccount.swift in Sources */,
+				AC0C00000000000000000007 /* ReleaseNotes.swift in Sources */,
+				AC0C00000000000000000005 /* OnboardingView.swift in Sources */,
+				1AB0BA1E0000000000000001 /* InAppBanner.swift in Sources */,
+				BA9F00000000000000000005 /* ComposerApprovalSettings.swift in Sources */,
+				C30000000000000000000001 /* AutomationsView.swift in Sources */,
+				A10000000000000000000014 /* CameraCapture.swift in Sources */,
+				A10000000000000000000017 /* ComputerSessionView.swift in Sources */,
+				A10000000000000000000093 /* ComputerInput.swift in Sources */,
+				51A0C0000000000000000001 /* SimulatorSessionView.swift in Sources */,
+				A10000000000000000000002 /* ManagementViews.swift in Sources */,
+				A10000000000000000000004 /* MacFileAccess.swift in Sources */,
+				A10000000000000000000008 /* DictationViews.swift in Sources */,
+				16F8BE3D0CF5437DA85A30D2 /* VoiceMode.swift in Sources */,
+				A8BC43DD5230F4B345AFC0AD /* Voice.swift in Sources */,
+				E20000000000000000000F01 /* VoiceModelMatch.swift in Sources */,
+				FABF0FA9CF46D4C023228692 /* VoiceRealtime.swift in Sources */,
+				E20000000000000000000024 /* VoiceSession.swift in Sources */,
+				E20000000000000000000025 /* AudioSession.swift in Sources */,
+				E20000000000000000000021 /* VoiceActivity.swift in Wonder Sources */,
+				B20000000000000000000008 /* ProjectsModel.swift in Sources */,
+				B20000000000000000000006 /* ProjectViews.swift in Sources */,
+				B20000000000000000000004 /* NewChatView.swift in Sources */,
+				D5000000000000000000A003 /* ShareSheet.swift in Sources */,
+				D5000000000000000000A005 /* ShareSheetPreview.swift in Sources */,
+				B20000000000000000000002 /* AppShell.swift in Sources */,
+				A100000000000000000F0001 /* WonderTheme.swift in Sources */,
+				A1000000000000000F0A0001 /* WonderTypography.swift in Sources */,
+				A100000000000000000F0003 /* CodeBlockView.swift in Sources */,
+				A100000000000000000F0005 /* TextFileViewers.swift in Sources */,
+				957A868C40FEB21B3429D722 /* Diagnostics.swift in Sources */,
+				19676721D0C33BD9EDCB60A9 /* DiagnosticScenarios.swift in Sources */,
+				CBF83885753E42D5BF2FE0E1 /* DiagnosticProviderFixture.swift in Sources */,
+				DE40DE40DE40DE40DE40DE01 /* DemoMode.swift in Sources */,
+				5E3A7D0C2B1F4E6A9C8D0E12 /* DiagnosticRewindFixture.swift in Sources */,
+				26887CC3693F840C83461F90 /* PushPreview.swift in Sources */,
+				8B0ABAD4AE4743603CEBE1B6 /* PhoneIdentity.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3DC6EB1C685F13BF9162DBAB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9704A6C8BA26214D46834682 /* WonderDiagnosticsTests.swift in Sources */,
+				E10000000000000000000005 /* ProjectWidgetSnapshotTests.swift in Sources */,
+				E20000000000000000000005 /* AgentLiveActivityTests.swift in Sources */,
+				F3000000000000000000000A /* WorkspacePreviewPolicyTests.swift in Sources */,
+				F30000000000000000000F01 /* ComputerDisplayViewTests.swift in Sources */,
+				7E7A00000000000000000005 /* TerminalSessionModelTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		50868AF765A3491498AF9D99 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				221AE19300F904CA9DEB5CED /* PushPreview.swift in Sources */,
+				A535011EC173486375ACC652 /* NotificationService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EF67C941CA561376AA6904FD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				683458BA65F7CAD5A0B9BC32 /* ShareViewController.swift in Sources */,
+				D5000000000000000000A002 /* ShareSheet.swift in Sources */,
+				C892AA779665CB03113835C1 /* PhoneIdentity.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F91131F71B14CEB5383AF852 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BFCD92EE5E10E7535685F137 /* WonderUITests.swift in Sources */,
+				F30000000000000000000009 /* WorkspacePreviewUITests.swift in Sources */,
+				C30000000000000000000003 /* AutomationUITests.swift in Sources */,
+				D10000000000000000000001 /* DeepLinkUITests.swift in Sources */,
+				D10000000000000000000091 /* ScenarioDeviceUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10000000000000000000014 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E10000000000000000000002 /* ProjectWidgetSnapshot.swift in Widget Sources */,
+				E10000000000000000000003 /* WonderProjectWidget.swift in Sources */,
+				E20000000000000000000002 /* AgentActivity.swift in Widget Sources */,
+				E20000000000000000000003 /* AgentLiveActivityWidget.swift in Sources */,
+				E20000000000000000000022 /* VoiceActivity.swift in Widget Sources */,
+				E20000000000000000000023 /* VoiceLiveActivityWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		11888418BF36CFB739C6FE0B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4B239CCB4EB86E01F9195824 /* NotificationViewController.swift in Sources */,
+				EADD9BCCE9AAE26688AFFB56 /* PushPreview.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1827FA59B83879158B6527B4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = WonderShare;
+			target = 6BB589EAEEA42379EF5BCA0C /* WonderShare */;
+			targetProxy = F034F0AC1342DB51C656F881 /* PBXContainerItemProxy */;
+		};
+		658DA65665F7088B50996DD8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Wonder;
+			target = 000000000000000000000006 /* Wonder */;
+			targetProxy = 694FABCAC269D7E991465CA3 /* PBXContainerItemProxy */;
+		};
+		916EAE41053F4F73234E84D9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Wonder;
+			target = 000000000000000000000006 /* Wonder */;
+			targetProxy = FEEAD6978303FCD94DEC7F30 /* PBXContainerItemProxy */;
+		};
+		D4C677FDC1238FF238B59ACA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = WonderNotificationService;
+			target = A67491E68CB3DB9929A9EBEE /* WonderNotificationService */;
+			targetProxy = 9D20F23E49E47E1D56751C78 /* PBXContainerItemProxy */;
+		};
+		E10000000000000000000017 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = WonderWidget;
+			target = E10000000000000000000012 /* WonderWidget */;
+			targetProxy = E1000000000000000000000D /* PBXContainerItemProxy */;
+		};
+		48F04B90D725C643B4E58EDF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = WonderNotificationContent;
+			target = 815A0898111F5FD88ED01965 /* WonderNotificationContent */;
+			targetProxy = A7AE68EACB0A75AEC1D7ABF8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		000000000000000000000028 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Wonder/Wonder.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Wonder/BuildInfo.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "$(WONDER_APP_DISPLAY_NAME)";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Cupola uses the camera to take photos, record video for messages, and scan a pairing code shown on your computer.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Cupola uses Face ID to confirm saving a secret to your Mac’s Project vault.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Cupola connects directly to your computers on this network and shows their screens securely.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Cupola saves images you choose to your photo library.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cupola uses the microphone to record video sound, turn your speech into draft text on this device, and in Voice to talk with your agents through your own OpenAI account.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Cupola turns your voice into text on this device to add words to your draft.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(WONDER_APP_BUNDLE_IDENTIFIER)";
+				PRODUCT_NAME = Wonder;
+				PROVISIONING_PROFILE_SPECIFIER = "$(WONDER_MAIN_PROFILE)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WONDER_APNS_ENVIRONMENT = sandbox;
+				WONDER_APP_BUNDLE_IDENTIFIER = com.saimun.wonder.native;
+				WONDER_APP_DISPLAY_NAME = Cupola;
+				WONDER_WIDGET_APP_GROUP = group.com.saimun.wonder.native;
+				WONDER_BUILD_PROFILE = debug;
+				WONDER_DISTRIBUTION_CHANNEL = production;
+				WONDER_DEEP_LINK_SCHEME = wonder;
+			};
+			name = Debug;
+		};
+		000000000000000000000029 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Wonder/Wonder.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Wonder/BuildInfo.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "$(WONDER_APP_DISPLAY_NAME)";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Cupola uses the camera to take photos, record video for messages, and scan a pairing code shown on your computer.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Cupola uses Face ID to confirm saving a secret to your Mac’s Project vault.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Cupola connects directly to your computers on this network and shows their screens securely.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Cupola saves images you choose to your photo library.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cupola uses the microphone to record video sound, turn your speech into draft text on this device, and in Voice to talk with your agents through your own OpenAI account.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Cupola turns your voice into text on this device to add words to your draft.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(WONDER_APP_BUNDLE_IDENTIFIER)";
+				PRODUCT_NAME = Wonder;
+				PROVISIONING_PROFILE_SPECIFIER = "$(WONDER_MAIN_PROFILE)";
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WONDER_APNS_ENVIRONMENT = production;
+				WONDER_APP_BUNDLE_IDENTIFIER = com.swaymun.wonder;
+				WONDER_APP_DISPLAY_NAME = Cupola;
+				WONDER_WIDGET_APP_GROUP = group.com.swaymun.wonder;
+				WONDER_BUILD_PROFILE = release;
+                EXCLUDED_SOURCE_FILE_NAMES = "attachment-video.mp4";
+				WONDER_DISTRIBUTION_CHANNEL = production;
+				WONDER_DEEP_LINK_SCHEME = wonder;
+			};
+			name = Release;
+		};
+		00000000000000000000002A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		00000000000000000000002B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Release;
+		};
+		15EC1B06625128E5C6819197 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.swaymun.wonder.WonderDiagnosticsTests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Wonder.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Wonder";
+			};
+			name = Debug;
+		};
+		302FE45BC1FE03BC5CBB8806 /* Diagnostics */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.swaymun.wonder.WonderUITests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Wonder;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Diagnostics;
+		};
+		49E65EE47265D4ECFD7D2F36 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.swaymun.wonder.WonderDiagnosticsTests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Wonder.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Wonder";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		4E0C2F5943567B990F23037F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WonderNotificationService/WonderNotificationService.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WonderNotificationService/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(WONDER_APP_BUNDLE_IDENTIFIER).NotificationService";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(WONDER_PUSH_PROFILE)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WONDER_APP_BUNDLE_IDENTIFIER = com.saimun.wonder.native;
+				WONDER_APP_DISPLAY_NAME = Cupola;
+				WONDER_DISTRIBUTION_CHANNEL = production;
+			};
+			name = Debug;
+		};
+		52B55C8558EB26DD82690AE4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WonderShare/WonderShare.entitlements;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) WONDER_SHARE_EXTENSION";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WonderShare/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(WONDER_APP_BUNDLE_IDENTIFIER).Share";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(WONDER_SHARE_PROFILE)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WONDER_APP_BUNDLE_IDENTIFIER = com.saimun.wonder.native;
+				WONDER_APP_DISPLAY_NAME = Cupola;
+				WONDER_DISTRIBUTION_CHANNEL = production;
+			};
+			name = Debug;
+		};
+		6BB8DE8E1AB5C394581919A9 /* Diagnostics */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WonderShare/WonderShare.entitlements;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) WONDER_SHARE_EXTENSION";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WonderShare/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(WONDER_APP_BUNDLE_IDENTIFIER).Share";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(WONDER_SHARE_PROFILE)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				WONDER_APP_BUNDLE_IDENTIFIER = com.swaymun.wonder;
+				WONDER_APP_DISPLAY_NAME = Cupola;
+				WONDER_DISTRIBUTION_CHANNEL = production;
+			};
+			name = Diagnostics;
+		};
+		6F0A655F076446D5B602A837 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.swaymun.wonder.WonderUITests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Wonder;
+			};
+			name = Debug;
+		};
+		6F2D7801E53DA5718136AAC9 /* Diagnostics */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.swaymun.wonder.WonderDiagnosticsTests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Wonder.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Wonder";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Diagnostics;
+		};
+		83527B3593BC8E6DC873F62F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.swaymun.wonder.WonderUITests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Wonder;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		868359E420EC27D77554D072 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WonderShare/WonderShare.entitlements;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) WONDER_SHARE_EXTENSION";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WonderShare/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(WONDER_APP_BUNDLE_IDENTIFIER).Share";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(WONDER_SHARE_PROFILE)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				WONDER_APP_BUNDLE_IDENTIFIER = com.swaymun.wonder;
+				WONDER_APP_DISPLAY_NAME = Cupola;
+				WONDER_DISTRIBUTION_CHANNEL = production;
+			};
+			name = Release;
+		};
+		9702982DC2AAD13322FBFA2F /* Diagnostics */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Wonder/Wonder.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Wonder/BuildInfo.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "$(WONDER_APP_DISPLAY_NAME)";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Cupola uses the camera to take photos, record video for messages, and scan a pairing code shown on your computer.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Cupola uses Face ID to confirm saving a secret to your Mac’s Project vault.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Cupola connects directly to your computers on this network and shows their screens securely.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Cupola saves images you choose to your photo library.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cupola uses the microphone to record video sound, turn your speech into draft text on this device, and in Voice to talk with your agents through your own OpenAI account.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Cupola turns your voice into text on this device to add words to your draft.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(WONDER_APP_BUNDLE_IDENTIFIER)";
+				PRODUCT_NAME = Wonder;
+				PROVISIONING_PROFILE_SPECIFIER = "$(WONDER_MAIN_PROFILE)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = WONDER_DIAGNOSTICS;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WONDER_APNS_ENVIRONMENT = sandbox;
+				WONDER_APP_BUNDLE_IDENTIFIER = com.swaymun.wonder;
+				WONDER_APP_DISPLAY_NAME = Cupola;
+				WONDER_WIDGET_APP_GROUP = group.com.swaymun.wonder;
+				WONDER_BUILD_PROFILE = diagnostics;
+				WONDER_DISTRIBUTION_CHANNEL = production;
+				WONDER_DEEP_LINK_SCHEME = wonder;
+			};
+			name = Diagnostics;
+		};
+		9A4270F4D5CCB3A395EAEAFE /* Diagnostics */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Diagnostics;
+		};
+		DA4654B8EE4C43FAE19A1B00 /* Diagnostics */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WonderNotificationService/WonderNotificationService.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WonderNotificationService/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(WONDER_APP_BUNDLE_IDENTIFIER).NotificationService";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(WONDER_PUSH_PROFILE)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				WONDER_APP_BUNDLE_IDENTIFIER = com.swaymun.wonder;
+				WONDER_APP_DISPLAY_NAME = Cupola;
+				WONDER_DISTRIBUTION_CHANNEL = production;
+			};
+			name = Diagnostics;
+		};
+		DE06F14176AFA0D7266BB24C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WonderNotificationService/WonderNotificationService.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WonderNotificationService/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(WONDER_APP_BUNDLE_IDENTIFIER).NotificationService";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(WONDER_PUSH_PROFILE)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				WONDER_APP_BUNDLE_IDENTIFIER = com.swaymun.wonder;
+				WONDER_APP_DISPLAY_NAME = Cupola;
+				WONDER_DISTRIBUTION_CHANNEL = production;
+			};
+			name = Release;
+		};
+		E10000000000000000000020 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = WonderWidget/WonderWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WonderWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks");
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(WONDER_APP_BUNDLE_IDENTIFIER).Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(WONDER_WIDGET_PROFILE)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WONDER_APP_BUNDLE_IDENTIFIER = com.saimun.wonder.native;
+				WONDER_APP_DISPLAY_NAME = Cupola;
+				WONDER_WIDGET_APP_GROUP = group.com.saimun.wonder.native;
+			};
+			name = Debug;
+		};
+		E10000000000000000000021 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = WonderWidget/WonderWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WonderWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks");
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(WONDER_APP_BUNDLE_IDENTIFIER).Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(WONDER_WIDGET_PROFILE)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				WONDER_APP_BUNDLE_IDENTIFIER = com.swaymun.wonder;
+				WONDER_APP_DISPLAY_NAME = Cupola;
+				WONDER_WIDGET_APP_GROUP = group.com.swaymun.wonder;
+			};
+			name = Release;
+		};
+		E10000000000000000000022 /* Diagnostics */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = WonderWidget/WonderWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WonderWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks");
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(WONDER_APP_BUNDLE_IDENTIFIER).Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(WONDER_WIDGET_PROFILE)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				WONDER_APP_BUNDLE_IDENTIFIER = com.swaymun.wonder;
+				WONDER_APP_DISPLAY_NAME = Cupola;
+				WONDER_WIDGET_APP_GROUP = group.com.swaymun.wonder;
+			};
+			name = Diagnostics;
+		};
+		E31D0CACF83FBDFBF3CF0E0E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WonderNotificationContent/WonderNotificationContent.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WonderNotificationContent/Info.plist;
+				OTHER_LDFLAGS = ("$(inherited)", "-Wl,-needed_framework,UserNotificationsUI");
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(WONDER_APP_BUNDLE_IDENTIFIER).NotificationContent";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(WONDER_CONTENT_PROFILE)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				WONDER_APP_BUNDLE_IDENTIFIER = com.swaymun.wonder;
+				WONDER_APP_DISPLAY_NAME = Cupola;
+				WONDER_DISTRIBUTION_CHANNEL = production;
+			};
+			name = Release;
+		};
+		F5F0B3BF04F6524EDA042A9B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WonderNotificationContent/WonderNotificationContent.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WonderNotificationContent/Info.plist;
+				OTHER_LDFLAGS = ("$(inherited)", "-Wl,-needed_framework,UserNotificationsUI");
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(WONDER_APP_BUNDLE_IDENTIFIER).NotificationContent";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(WONDER_CONTENT_PROFILE)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WONDER_APP_BUNDLE_IDENTIFIER = com.saimun.wonder.native;
+				WONDER_APP_DISPLAY_NAME = Cupola;
+				WONDER_DISTRIBUTION_CHANNEL = production;
+			};
+			name = Debug;
+		};
+		AC7DAF98EEE054BBC97A028F /* Diagnostics */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WonderNotificationContent/WonderNotificationContent.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WonderNotificationContent/Info.plist;
+				OTHER_LDFLAGS = ("$(inherited)", "-Wl,-needed_framework,UserNotificationsUI");
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(WONDER_APP_BUNDLE_IDENTIFIER).NotificationContent";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "$(WONDER_CONTENT_PROFILE)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				WONDER_APP_BUNDLE_IDENTIFIER = com.swaymun.wonder;
+				WONDER_APP_DISPLAY_NAME = Cupola;
+				WONDER_DISTRIBUTION_CHANNEL = production;
+			};
+			name = Diagnostics;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		00000000000000000000002C /* Build configuration list for PBXNativeTarget "Wonder" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000000000028 /* Debug */,
+				000000000000000000000029 /* Release */,
+				9702982DC2AAD13322FBFA2F /* Diagnostics */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00000000000000000000002D /* Build configuration list for PBXProject "Wonder" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00000000000000000000002A /* Debug */,
+				00000000000000000000002B /* Release */,
+				9A4270F4D5CCB3A395EAEAFE /* Diagnostics */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4812DE3666E45A32136D9624 /* Build configuration list for PBXNativeTarget "WonderShare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				868359E420EC27D77554D072 /* Release */,
+				52B55C8558EB26DD82690AE4 /* Debug */,
+				6BB8DE8E1AB5C394581919A9 /* Diagnostics */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A4D78CE01E2BA70C0F23549E /* Build configuration list for PBXNativeTarget "WonderDiagnosticsTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				49E65EE47265D4ECFD7D2F36 /* Release */,
+				15EC1B06625128E5C6819197 /* Debug */,
+				6F2D7801E53DA5718136AAC9 /* Diagnostics */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B3B9FC9B7BB0054D6004EAB1 /* Build configuration list for PBXNativeTarget "WonderNotificationService" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DE06F14176AFA0D7266BB24C /* Release */,
+				4E0C2F5943567B990F23037F /* Debug */,
+				DA4654B8EE4C43FAE19A1B00 /* Diagnostics */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F8458E6CB6794FF6BDD66C96 /* Build configuration list for PBXNativeTarget "WonderUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				83527B3593BC8E6DC873F62F /* Release */,
+				6F0A655F076446D5B602A837 /* Debug */,
+				302FE45BC1FE03BC5CBB8806 /* Diagnostics */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E10000000000000000000018 /* Build configuration list for PBXNativeTarget "WonderWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E10000000000000000000020 /* Debug */,
+				E10000000000000000000021 /* Release */,
+				E10000000000000000000022 /* Diagnostics */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		ADADCDA876F92D08748A7B23 /* Build configuration list for PBXNativeTarget "WonderNotificationContent" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E31D0CACF83FBDFBF3CF0E0E /* Release */,
+				F5F0B3BF04F6524EDA042A9B /* Debug */,
+				AC7DAF98EEE054BBC97A028F /* Diagnostics */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		000000000000000000000021 /* XCLocalSwiftPackageReference "native" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../native;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7E7A00000000000000000031 /* XCRemoteSwiftPackageReference "SwiftTerm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm.git";
+			requirement = {kind = exactVersion; version = 1.18.0; };
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		000000000000000000000022 /* WonderPairing */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 000000000000000000000021 /* XCLocalSwiftPackageReference "native" */;
+			productName = WonderPairing;
+		};
+		000000000000000000000024 /* WonderComputerView */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 000000000000000000000021 /* XCLocalSwiftPackageReference "native" */;
+			productName = WonderComputerView;
+		};
+		90E35E164141A24FE33D9F29 /* WonderPairing */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 000000000000000000000021 /* XCLocalSwiftPackageReference "native" */;
+			productName = WonderPairing;
+		};
+		7E7A00000000000000000021 /* SwiftTerm */ = {isa = XCSwiftPackageProductDependency; package = 7E7A00000000000000000031 /* XCRemoteSwiftPackageReference "SwiftTerm" */; productName = SwiftTerm; };
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 000000000000000000000001 /* Project object */;
+}

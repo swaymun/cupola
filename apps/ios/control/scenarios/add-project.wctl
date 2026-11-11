@@ -1,0 +1,36 @@
+# nightly-ipad: Add Project opens full screen in the chat column beside the sidebar; typing a folder name
+# Add Project at the top of the sidebar (beside Cupola's icon and New chat, in
+# By Project and All Chats) opens one full screen in the chat column: New folder,
+# Existing folder, and folders Codex or Claude Code already use. A new folder takes
+# the project's name; a name already used there is refused in the computer's words;
+# a suggestion is added in place. Creating a folder starts a new chat in its
+# project. Nothing is sent to an agent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-cupola --timeout 20
+wait --id sidebar-new-chat --timeout 5
+shot add-project-sidebar-header
+tap --id sidebar-add-project
+wait --id add-project-new-folder --timeout 10
+wait --id add-project-existing-folder --timeout 5
+wait --id add-project-suggestion:Website --timeout 15
+shot add-project-choices
+tap --id add-project-suggestion:Website
+wait --label Added --timeout 10
+wait --id add-project-new-folder --timeout 5
+tap --id add-project-new-folder
+wait --id new-folder-name --timeout 10
+type "Taken"
+tap --id new-folder-create --type Button
+wait --contains "already exists there" --timeout 10
+shot add-project-name-taken
+tap --id new-folder-name
+type " site"
+tap --id new-folder-create --type Button
+wait --id add-project-new-folder --gone --timeout 10
+wait --id new-chat-draft --timeout 10
+sidebar open
+wait --id project-row:created-taken-site --timeout 15
+wait --id project-row:created-website --timeout 5
+shot add-project-created

@@ -1,0 +1,62 @@
+# devices: iphone ipad duo
+# nightly-ipad: the extension form sheet accepts a movie file provider and shows its poster metadata.
+# The extension’s production loader reads our owned two-second clip; sends use only the synthetic peer.
+launch --fixture share-sheet --arg=-diagnostics-share-video
+wait --id share-attachment-remove --timeout 30
+wait --contains "Screen Recording.mp4" --timeout 30
+wait --contains "0:02" --timeout 30
+shot share-video-preview
+tap --id share-attachment-remove
+wait --id share-attachment-remove --gone --timeout 10
+shot share-video-removed
+
+# The real Share model uploads a generated 12 MiB MP4 to the isolated HTTP peer.
+# The peer verifies offsets/hash, DELETE cleanup and a fresh retry identity before accepting the message.
+launch --fixture share-sheet --arg=-diagnostics-share-video --arg=-diagnostics-share-large-video
+wait --contains "0:02" --timeout 30
+wait --contains "12.6 MB" --timeout 10
+tap --id share-destination --type Button
+wait --id share-target:thread:codex:share --timeout 15
+tap --id share-target:thread:codex:share
+tap --id share-send --type Button
+wait --contains "1 MB of" --timeout 30
+shot share-video-uploading
+tap --id share-cancel
+wait --contains "Upload cancelled" --timeout 15
+shot share-video-cancelled
+swipe up
+tap --id share-retry --type Button
+wait --contains "1 MB of" --timeout 30
+shot share-video-retrying
+signal video-upload
+wait --id share-queued --timeout 30
+shot share-video-queued
+
+# A movie with an alternate still representation stays a video in a new chat.
+# The peer refuses the message unless its attachment is the verified MP4 bytes,
+# MIME and original filename, and creates the selected Claude Sonnet thread.
+launch --fixture share-sheet --fixture share-video --fixture share-video-with-image --fixture share-expect-choice
+wait --contains "Screen Recording.mp4" --timeout 30
+wait --contains "0:02" --timeout 30
+tap --id share-destination --type Button
+wait --id share-new-thread --timeout 15
+tap --id share-new-thread
+wait --id share-new-family --timeout 10
+tap --label "Claude" --timeout 5
+wait --id share-new-model --contains "Claude Opus" --timeout 10
+tap --id share-new-model
+tap --label "Claude Sonnet" --timeout 5
+wait --id share-new-model --contains "Claude Sonnet" --timeout 5
+shot share-video-new-thread
+tap --id share-send --type Button
+wait --id share-progress --timeout 10
+signal video-upload
+wait --id share-sent --timeout 30
+shot share-video-sent
+
+# Sparse disk fixture is one byte over the shared 1 GiB limit. Its body must
+# never be read or uploaded; the sheet names the rejected file and exact limit.
+launch --fixture share-sheet --fixture share-video --fixture share-oversized-video
+wait --id share-item-error --contains "Screen Recording.mp4 is too large. The video limit is 1 GB (1,024 MB)." --timeout 30
+wait --id share-attachment-remove --gone --timeout 10
+shot share-video-too-large

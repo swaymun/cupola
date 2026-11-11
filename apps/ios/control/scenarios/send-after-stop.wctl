@@ -1,0 +1,29 @@
+# After a reply was stopped, a new message is sent at once: it shows in the
+# conversation from its first frame and never as Queued (the fixture holds the
+# moments before the receipt and before dispatch starts it until signalled).
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-held --fixture send-stopped
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 15
+tap --id message-draft --type TextArea
+type "Ship the build"
+wait --label "Send message" --timeout 10
+tap --id send-message
+wait --label "Sending message" --timeout 3
+wait --contains "Queued message" --never 3
+signal receipt
+wait --label "Sending message" --gone --timeout 10
+wait --contains "Queued message" --never 2
+# Reopening reads the Mac's queue while dispatch has not started the message.
+# New chat starts from a project in the sidebar.
+sidebar open
+tap --id project-row:read-project
+wait --id new-chat-draft --timeout 10
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 10
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Queued message" --never 3
+wait --contains "Ship the build" --timeout 3
+shot send-after-stop

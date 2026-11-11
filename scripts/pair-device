@@ -1,0 +1,513 @@
+#!/usr/bin/env python3
+"""Pair Cupola through its real Add computer UI, without a human step.
+
+This test harness approves with `cupola pair --yes`, which exists only in
+dev-pairing builds (never in released packages). Released CLIs instead require
+the person's phone verification text: `pair --approve <deviceId> --code <text>`.
+No pairing deep link,
+production install, profile creation, provider prompt or chat mutation is used.
+"""
+import argparse
+import base64
+import datetime
+import fcntl
+import hashlib
+import json
+import os
+from pathlib import Path
+import plistlib
+import queue
+import re
+import shlex
+import shutil
+import signal
+import subprocess
+import sys
+import threading
+import time
+import uuid
+
+ROOT = Path(__file__).resolve().parent.parent
+TEST = "WonderUITests/WonderUITests/"
+BUNDLE = "com.swaymun.wonder"
+PROFILE_BUNDLES = {
+    "WONDER_MAIN_PROFILE": BUNDLE,
+    "WONDER_PUSH_PROFILE": BUNDLE + ".NotificationService",
+    "WONDER_SHARE_PROFILE": BUNDLE + ".Share",
+    "WONDER_WIDGET_PROFILE": BUNDLE + ".Widget",
+    "WONDER_CONTENT_PROFILE": BUNDLE + ".NotificationContent",
+}
+
+
+class Failure(Exception):
+    exit_code = 1
+
+
+class LeaseBusy(Failure):
+    exit_code = 75
+
+
+def run(command, *, timeout=30, **kwargs):
+    result = subprocess.run(command, text=True, capture_output=True, timeout=timeout, **kwargs)
+    if result.returncode:
+        # Commands never contain pairing links or loopback capabilities.
+        raise Failure(f"command failed ({result.returncode}): {shlex.join(command)}\n{(result.stderr or result.stdout)[-2000:]}")
+    return result.stdout
+
+
+def ps_quote(value):
+    return "'" + str(value).replace("'", "''") + "'"
+
+
+def lock_device(device):
+    directory = Path.home() / "Library/Caches/wonder-pair-device"
+    directory.mkdir(parents=True, exist_ok=True)
+    handle = (directory / (hashlib.sha256(device.encode()).hexdigest() + ".lock")).open("a")
+    try:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        handle.close()
+        raise LeaseBusy(f"app: device {device} is already being paired by another command")
+    return handle
+
+
+def host_cli(args):
+    if args.host_cli:
+        return args.host_cli
+    if args.host != "local":
+        return remote_host_cli(args)
+    # An installed `wonder` is a release build with no blind approval. Build the
+    # dev host (feature dev-pairing) from this checkout without installing or
+    # restarting the companion.
+    target = ROOT / ".local/build/auto-pair-cli"
+    env = dict(os.environ, CARGO_TARGET_DIR=str(target))
+    env["CARGO_BUILD_JOBS"] = str(min(4, max(1, int(env.get("CARGO_BUILD_JOBS", "4")))))
+    with (args.evidence / "cli-build.log").open("w") as log:
+        result = subprocess.run(["cargo", "build", "-p", "wonderd", "--features", "dev-pairing", "--bin", "cupola"],
+                                cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=args.build_timeout)
+    if result.returncode:
+        raise Failure("host: local CLI build failed; see cli-build.log")
+    return str(target / "debug/cupola")
+
+
+def remote_host_build(host, source):
+    """Build in the selected VM checkout; never use or replace its installation."""
+    build = ["build", "--locked", "-p", "wonderd", "--features", "dev-pairing", "--bin", "cupola", "--bin", "wonderd"]
+    if host.platform == "windows":
+        source = ps_quote(source) if source else "(Join-Path $HOME 'Wonder')"
+        script = ("$ErrorActionPreference='Stop'; Set-Location " + source + "; "
+                  "if (-not $env:CARGO_BUILD_JOBS -or [int]$env:CARGO_BUILD_JOBS -gt 4) {$env:CARGO_BUILD_JOBS='4'}; "
+                  "$env:CARGO_TARGET_DIR=(Join-Path (Get-Location) '.local/build/auto-pair-cli'); "
+                  "$env:PATH=(Join-Path $HOME '.cargo/bin')+';'+$env:PATH; "
+                  "$env:WONDER_WIN_ARCH=if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') {'aarch64'} else {'x86_64'}; "
+                  "& (Join-Path $env:ProgramFiles 'Git/bin/bash.exe') 'scripts/windows/cargo-windows' " +
+                  " ".join(ps_quote(a) for a in build) + "; if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}; "
+                  "Write-Output ('WONDER_DEV_CLI='+ (Join-Path $env:CARGO_TARGET_DIR ($env:WONDER_WIN_ARCH+'-pc-windows-gnullvm/debug/cupola.exe')))")
+        encoded = base64.b64encode(script.encode("utf-16le")).decode()
+        return [*host.ssh, "powershell -NoProfile -NonInteractive -OutputFormat Text -EncodedCommand " + encoded]
+    source = shlex.quote(source) if source else '"$HOME/Wonder"'
+    script = ('set -eu; export PATH="$HOME/.cargo/bin:$PATH"; cd ' + source + '; '
+              'export CARGO_BUILD_JOBS=${CARGO_BUILD_JOBS:-4}; '
+              'if [ "$CARGO_BUILD_JOBS" -gt 4 ]; then export CARGO_BUILD_JOBS=4; fi; '
+              'export CARGO_TARGET_DIR="$PWD/.local/build/auto-pair-cli"; ' +
+              shlex.join(["cargo", *build]) + '; printf "\\nWONDER_DEV_CLI=%s/debug/cupola\\n" "$CARGO_TARGET_DIR"')
+    return [*host.ssh, "sh -c " + shlex.quote(script)]
+
+
+def remote_host_cli(args):
+    host = Host(args.host, args.host_platform, "cupola")
+    result = subprocess.run(remote_host_build(host, args.host_source), text=True, capture_output=True,
+                            timeout=args.build_timeout)
+    (args.evidence / "cli-build.log").write_text(result.stdout + result.stderr)
+    if result.returncode:
+        raise Failure("host: VM dev-pairing CLI build failed; select a current checkout with --host-source; see cli-build.log")
+    paths = [line.removeprefix("WONDER_DEV_CLI=") for line in result.stdout.splitlines() if line.startswith("WONDER_DEV_CLI=")]
+    if len(paths) != 1:
+        raise Failure("host: VM build did not identify its dev-pairing CLI; see cli-build.log")
+    return paths[0]
+
+
+def select_profiles(profiles, device, now):
+    selected = {}
+    for key, bundle in PROFILE_BUNDLES.items():
+        eligible = [p for p in profiles if device in p.get("ProvisionedDevices", [])
+                    and p.get("ExpirationDate", datetime.datetime.min) > now
+                    and p.get("Entitlements", {}).get("application-identifier") == "8KKNVD7758." + bundle
+                    and p.get("Entitlements", {}).get("get-task-allow") is True]
+        if eligible:
+            selected[key] = max(eligible, key=lambda p: p.get("CreationDate", datetime.datetime.min))["Name"]
+    return selected
+
+
+def physical_profiles(args):
+    missing = set(PROFILE_BUNDLES) - {k for k in PROFILE_BUNDLES if os.environ.get(k)}
+    if missing:
+        profiles = []
+        for directory in [Path.home() / "Library/Developer/Xcode/UserData/Provisioning Profiles",
+                          Path.home() / "Library/MobileDevice/Provisioning Profiles"]:
+            for path in directory.glob("*.mobileprovision"):
+                decoded = subprocess.run(["security", "cms", "-D", "-i", str(path)], capture_output=True, timeout=10)
+                if decoded.returncode == 0:
+                    profiles.append(plistlib.loads(decoded.stdout))
+        selected = select_profiles(profiles, args.device, datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None))
+        for key in missing:
+            if key in selected:
+                os.environ[key] = selected[key]
+        missing -= selected.keys()
+    if missing:
+        raise Failure("app: no installed Cupola development profile for this device: " + ", ".join(sorted(missing))
+                      + "; set the existing values from apps/ios/TESTING.md (no profiles were created)")
+    os.environ["WONDER_APP_SIGNING_STYLE"] = "Manual"
+    (args.evidence / "signing-profiles.json").write_text(json.dumps({key: os.environ[key] for key in PROFILE_BUNDLES}, indent=2) + "\n")
+
+
+class Host:
+    def __init__(self, name, platform, cli, data_dir=None):
+        if not re.fullmatch(r"[A-Za-z0-9_.@:-]+", name) or name.startswith("-"):
+            raise Failure("host: use a local host or an SSH name")
+        self.name, self.cli, self.data_dir = name, cli, data_dir
+        self.local = name == "local"
+        self.ssh = ["ssh", "-T", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", name]
+        if platform == "auto":
+            if self.local:
+                platform = "posix"
+            else:
+                probe = subprocess.run([*self.ssh, "uname -s"], capture_output=True, text=True, timeout=20)
+                if probe.returncode == 255:
+                    raise Failure("host: SSH connection failed: " + probe.stderr[-1000:])
+                platform = "posix" if probe.returncode == 0 else "windows"
+        self.platform = platform
+
+    def command(self, *args):
+        argv = [self.cli, "--json", *args]
+        if self.local:
+            return (["env", "WONDER_DATA_DIR=" + self.data_dir] if self.data_dir else []) + argv
+        if self.platform == "windows":
+            script = "$ErrorActionPreference='Stop'; $ProgressPreference='SilentlyContinue'; "
+            script += "[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false); "
+            if self.data_dir:
+                script += "$env:WONDER_DATA_DIR=" + ps_quote(self.data_dir) + "; "
+            script += "& " + " ".join(ps_quote(a) for a in argv) + "; exit $LASTEXITCODE"
+            encoded = base64.b64encode(script.encode("utf-16le")).decode()
+            return [*self.ssh, "powershell -NoProfile -NonInteractive -OutputFormat Text -EncodedCommand " + encoded]
+        return [*self.ssh, shlex.join((["env", "WONDER_DATA_DIR=" + self.data_dir] if self.data_dir else []) + argv)]
+
+    def call(self, *args):
+        try:
+            return json.loads(run(self.command(*args)))
+        except (Failure, OSError, ValueError, subprocess.TimeoutExpired) as error:
+            raise Failure(f"host: {args[0]} failed: {error}") from error
+
+
+def terminate(process):
+    if process is None or process.poll() is not None:
+        return
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return
+    try:
+        process.wait(timeout=8)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        process.wait(timeout=5)
+
+
+def read_events(process, events):
+    try:
+        for line in process.stdout:
+            try:
+                events.put(json.loads(line))
+            except ValueError:
+                events.put({"error": {"message": "host emitted invalid NDJSON"}})
+    finally:
+        events.put(None)
+
+
+def xcode_command(args, action):
+    command = ["xcodebuild", action, "-project", str(ROOT / "apps/ios/Wonder.xcodeproj"),
+               "-scheme", "Diagnostics", "-configuration", "Diagnostics",
+               "-destination", "id=" + args.device, "-derivedDataPath", str(args.derived_data),
+               "-parallel-testing-enabled", "NO", "-maximum-concurrent-test-simulator-destinations", "1"]
+    if action == "build-for-testing":
+        test = "testPairWithCodeForLiveRun" if args.method == "code" else "testPairForLiveRun"
+        command.extend(["-jobs", "4", "ONLY_ACTIVE_ARCH=YES", "-only-testing:" + TEST + test])
+        # Let target-specific settings keep XCTest runners automatically signed.
+        # Do not set global CODE_SIGN_STYLE or allow provisioning updates.
+        for key in ["WONDER_APP_SIGNING_STYLE", "WONDER_MAIN_PROFILE", "WONDER_PUSH_PROFILE",
+                    "WONDER_SHARE_PROFILE", "WONDER_WIDGET_PROFILE", "WONDER_CONTENT_PROFILE"]:
+            if os.environ.get(key):
+                command.append(key + "=" + os.environ[key])
+    return command
+
+
+def testing_configuration(source, destination, environment, test):
+    data = plistlib.loads(source.read_bytes())
+    targets = []
+    # Xcode 16+ stores TestTargets inside TestConfigurations. Older xctestrun
+    # files key the targets directly. Preserve all other signing/test metadata.
+    if "TestConfigurations" in data:
+        for config in data["TestConfigurations"]:
+            targets.extend(config.get("TestTargets", []))
+    else:
+        targets = [v for v in data.values() if isinstance(v, dict) and v.get("IsUITestBundle")]
+    count = 0
+    for target in targets:
+        if target.get("IsUITestBundle"):
+            app_path = target.get("UITargetAppPath", "").replace("__TESTROOT__", str(source.parent))
+            info = Path(app_path) / "Info.plist"
+            bundle_id = plistlib.loads(info.read_bytes()).get("CFBundleIdentifier") if info.is_file() else None
+            if bundle_id != BUNDLE or target.get("UITargetAppBundleIdentifier", BUNDLE) != BUNDLE:
+                raise Failure("app: xctestrun must target Cupola (com.swaymun.wonder)")
+            existing = target.setdefault("EnvironmentVariables", {})
+            for key in list(existing):
+                if key.startswith("WONDER_PAIRING_"):
+                    del existing[key]
+            existing.update(environment)
+            # The plist target already names the bundle; its identifiers are
+            # Class/method, whereas xcodebuild's filter is Target/Class/method.
+            target["OnlyTestIdentifiers"] = [test.split("/", 1)[1]]
+            target["SkipTestIdentifiers"] = []
+            target["SystemAttachmentLifetime"] = "keepAlways"
+            target["UserAttachmentLifetime"] = "keepAlways"
+            count += 1
+    if count != 1:
+        raise Failure(f"app: expected exactly one Cupola UI target, found {count}")
+    destination.write_bytes(plistlib.dumps(data))
+
+
+def test_summary(result):
+    summary = json.loads(run(["xcrun", "xcresulttool", "get", "test-results", "summary", "--path", str(result), "--format", "json"]))
+    if summary.get("passedTests") != 1 or summary.get("failedTests", 0) or summary.get("skippedTests", 0) or summary.get("totalTestCount") != 1:
+        raise Failure("app: expected one executed, passing pairing test (a skip is not success): " + json.dumps(summary))
+    return summary
+
+
+def pair(args):
+    args.evidence.mkdir(parents=True, exist_ok=False)
+    os.chmod(args.evidence, 0o700)
+    offer_id, host_process, app_process, recording = None, None, None, None
+    device_lock = None
+    lease = False
+    host = None
+    summary = {"host": args.host, "device": args.device, "status": "failed"}
+    try:
+        device_lock = lock_device(args.device)
+        # A UUID is a simulator; the supported USB UDIDs have a shorter hardware
+        # prefix and are never sent to simulator commands.
+        try:
+            uuid.UUID(args.device)
+            simulator = True
+        except ValueError:
+            simulator = False
+        summary["surface"] = "simulator" if simulator else "physical"
+        if simulator:
+            result = subprocess.run([str(ROOT / "scripts/wonderctl"), "lock", "acquire", "--minutes", "30", "--note", "pair-device"], capture_output=True, text=True)
+            if result.returncode:
+                error = LeaseBusy if result.returncode == 75 else Failure
+                raise error(f"simulator lease: {result.stderr or result.stdout}")
+            lease = True
+        elif not args.xctestrun:
+            physical_profiles(args)
+        host = Host(args.host, args.host_platform, host_cli(args), args.host_data_dir)
+        status = host.call("status").get("host") or {}
+        host_id = status.get("hostInstallationId")
+        if not host_id:
+            raise Failure("host: status did not identify a running computer")
+        summary["hostInstallationId"] = host_id
+        summary["hostName"] = status.get("hostName")
+        print(f"Preparing Cupola on {summary['surface']} {args.device}; host {status.get('hostName', args.host)}", flush=True)
+        if args.xctestrun:
+            source = args.xctestrun.resolve()
+        else:
+            args.derived_data.mkdir(parents=True, exist_ok=True)
+            if not simulator:
+                os.environ["WONDER_APP_SIGNING_STYLE"] = "Manual"
+            with (args.evidence / "build.log").open("w") as log:
+                result = subprocess.run(xcode_command(args, "build-for-testing"), stdout=log, stderr=subprocess.STDOUT, timeout=args.build_timeout)
+            if result.returncode:
+                raise Failure("app: build/signing failed; see build.log (no profiles were created)")
+            products = args.derived_data / "Build/Products"
+            candidates = sorted(products.glob("Diagnostics_*.xctestrun"), key=lambda p: p.stat().st_mtime)
+            if not candidates:
+                raise Failure("app: build did not produce a Diagnostics xctestrun")
+            source = candidates[-1]
+        # Check before creating an offer, so build/install/signing cannot consume
+        # its five-minute lifetime. Keep the patched file beside the original:
+        # __TESTROOT__ in an xctestrun is relative to that directory.
+        test = TEST + ("testPairWithCodeForLiveRun" if args.method == "code" else "testPairForLiveRun")
+        patched = source.with_name("auto-pair-" + uuid.uuid4().hex + ".xctestrun")
+        testing_configuration(source, patched, {}, test)
+        if not simulator and not args.xctestrun:
+            app = source.parent / "Diagnostics-iphoneos/Wonder.app"
+            info = plistlib.loads((app / "Info.plist").read_bytes())
+            if info.get("CFBundleIdentifier") != BUNDLE:
+                raise Failure("app: refusing to install a bundle other than Cupola")
+            run(["xcrun", "devicectl", "device", "install", "app", "--device", args.device, str(app)], timeout=120)
+        if simulator:
+            # The wonderctl lease above serializes this xcodebuild and its
+            # simulator I/O with all other agent/nightly simulator work.
+            state = json.loads(run(["xcrun", "simctl", "list", "devices", "available", "--json"]))
+            device = next((d for devices in state["devices"].values() for d in devices if d["udid"] == args.device), None)
+            if not device:
+                raise Failure("app: simulator UDID is unavailable")
+            if device["state"] != "Booted":
+                run(["xcrun", "simctl", "boot", args.device])
+            run(["xcrun", "simctl", "bootstatus", args.device, "-b"], timeout=120)
+            recording = subprocess.Popen(["xcrun", "simctl", "io", args.device, "recordVideo", str(args.evidence / "pairing.mp4")], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        with (args.evidence / "host.stderr.log").open("w") as host_log, (args.evidence / "app.log").open("w") as app_log:
+            # --yes is explicit, scoped to the private offer this process owns.
+            host_process = subprocess.Popen(host.command("pair", "--yes", "--watch-stdin", "--timeout", str(args.timeout), *(["--route", args.route] if args.route else [])), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=host_log, text=True, bufsize=1, start_new_session=True)
+            events = queue.Queue()
+            threading.Thread(target=read_events, args=(host_process, events), daemon=True).start()
+            deadline = time.monotonic() + args.timeout
+            connected, app_passed, verification = None, False, None
+            with (args.evidence / "host-events.ndjson").open("w") as event_log:
+                while time.monotonic() < deadline:
+                    try:
+                        event = events.get(timeout=0.2)
+                    except queue.Empty:
+                        event = "waiting"
+                    if event is None and not connected:
+                        raise Failure("host: pair exited before confirming a phone; see host.stderr.log")
+                    if isinstance(event, dict):
+                        # The offer URL/code are private, short-lived credentials.
+                        # Persist only evidence that cannot claim the offer.
+                        safe = {k: v for k, v in event.items() if k not in {"url", "code", "verificationText"}}
+                        event_log.write(json.dumps(safe) + "\n"); event_log.flush()
+                        if "error" in event:
+                            raise Failure("host: " + event["error"].get("message", str(event)))
+                        if event.get("event") == "offer":
+                            offer_id = event.get("offerId")
+                            if not offer_id or app_process:
+                                raise Failure("host: missing or repeated offer")
+                            environment = {"WONDER_PAIRING_HOST_ID": host_id}
+                            if args.method == "code":
+                                environment.update(WONDER_PAIRING_ADDRESS=event["origin"], WONDER_PAIRING_CODE=event["code"])
+                            else:
+                                environment["WONDER_PAIRING_LINK"] = event["url"]
+                            testing_configuration(source, patched, environment, test)
+                            app_process = subprocess.Popen(["xcodebuild", "test-without-building", "-xctestrun", str(patched), "-destination", "id=" + args.device, "-only-testing:" + test, "-parallel-testing-enabled", "NO", "-resultBundlePath", str(args.evidence / "pairing.xcresult")], stdout=app_log, stderr=subprocess.STDOUT, start_new_session=True)
+                            print("Offer received; pairing through Add computer…", flush=True)
+                        elif event.get("event") == "verification":
+                            verification = event
+                            print("Phone claimed the offer.", flush=True)
+                        elif event.get("event") == "connected":
+                            connected = event
+                    if app_process and app_process.poll() is not None:
+                        if app_process.returncode:
+                            raise Failure("app: pairing test failed; see app.log and pairing.xcresult")
+                        if not app_passed:
+                            summary["test"] = test_summary(args.evidence / "pairing.xcresult")
+                            app_passed = True
+                    if connected and app_passed:
+                        if not verification or verification.get("deviceId") != connected.get("deviceId") or verification.get("hostInstallationId") != host_id:
+                            raise Failure("host: missing or mismatched phone verification event")
+                        devices = host.call("devices").get("devices", [])
+                        device = next((d for d in devices if d.get("id") == connected.get("deviceId") and not d.get("revokedAt")), None)
+                        if not device:
+                            raise Failure("host: confirmed phone is absent or revoked in devices list")
+                        host_process.wait(timeout=15)
+                        if host_process.returncode:
+                            raise Failure("host: pair failed after confirming; offer cleanup may have failed")
+                        summary.update(status="paired", deviceId=connected["deviceId"], hostDevice=device)
+                        print("Paired: host devices list and the app's saved computer row both verified.", flush=True)
+                        return
+                missing = "app" if not app_passed else "host"
+                raise Failure(f"{missing}: pairing timed out after {args.timeout}s")
+    except (Failure, OSError, ValueError, KeyError, subprocess.TimeoutExpired) as error:
+        summary["error"] = str(error)
+        if isinstance(error, Failure):
+            raise
+        raise Failure(str(error)) from error
+    finally:
+        # Stop XCTest first so a late phone claim cannot race cancellation.
+        terminate(app_process)
+        if host_process and host_process.stdin:
+            host_process.stdin.close()
+            try:
+                host_process.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                summary["hostProcessCleanup"] = "failed: pair did not exit after input closed"
+                summary["status"] = "failed"
+            finally:
+                terminate(host_process)
+        if offer_id and host:
+            try:
+                cancelled = host.call("pair", "--cancel", offer_id)
+                if cancelled.get("event") != "cancelled" or cancelled.get("offerId") != offer_id:
+                    raise Failure("host did not acknowledge exact offer cancellation")
+                summary["offerCleanup"] = "cancelled"
+            except Exception as error:
+                summary["offerCleanup"] = "failed: " + str(error)
+                summary["status"] = "failed"
+                print("host cleanup FAILED: " + str(error), file=sys.stderr)
+        if 'patched' in locals():
+            patched.unlink(missing_ok=True)
+        if recording and recording.poll() is None:
+            try:
+                os.killpg(recording.pid, signal.SIGINT)
+            except ProcessLookupError:
+                pass
+            try:
+                recording.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                terminate(recording)
+        if lease:
+            try:
+                run([str(ROOT / "scripts/wonderctl"), "lock", "release"])
+            except Exception as error:
+                summary["leaseCleanup"] = str(error)
+                summary["status"] = "failed"
+        if device_lock:
+            device_lock.close()
+        (args.evidence / "result.json").write_text(json.dumps(summary, indent=2) + "\n")
+        if summary["status"] == "failed" and "error" not in summary:
+            raise Failure("host or simulator cleanup failed; see result.json")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--host", required=True, help="local or an SSH name (linux-build-host / windows-build-host)")
+    parser.add_argument("--device", required=True, help="simulator UDID or USB device UDID; Testing only")
+    parser.add_argument("--host-platform", choices=["auto", "posix", "windows"], default="auto")
+    parser.add_argument("--host-cli", help="explicit dev-pairing executable; otherwise build from source on the host")
+    parser.add_argument("--host-source", help="remote checkout to build (default: the SSH user's default source folder); never installs or restarts the host")
+    parser.add_argument("--host-data-dir", help="optional existing host data directory, passed only on that host")
+    parser.add_argument("--method", choices=["link", "code"], default="link")
+    parser.add_argument("--route", choices=["tailscale", "home"], help="route the offer names (default: the host's main route)")
+    parser.add_argument("--timeout", type=int, default=240, help="pairing seconds after the offer, maximum 290")
+    parser.add_argument("--build-timeout", type=int, default=900)
+    parser.add_argument("--derived-data", type=Path, help="build cache (default: separate simulator/device directories under .local/build)")
+    parser.add_argument("--xctestrun", type=Path, help="reuse an already built/signed Diagnostics xctestrun")
+    parser.add_argument("--evidence", type=Path, default=ROOT / ".local/evidence/auto-pair" / datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    args = parser.parse_args()
+    if not 1 <= args.timeout <= 290:
+        parser.error("--timeout must be 1–290 seconds, within the offer lifetime")
+    args.evidence = args.evidence.resolve()
+    if args.derived_data is None:
+        try:
+            uuid.UUID(args.device)
+            cache = "auto-pair"
+        except ValueError:
+            cache = "auto-pair-device"
+        args.derived_data = ROOT / ".local/build" / cache
+    args.derived_data = args.derived_data.resolve()
+    def interrupted(signum, frame):
+        raise Failure(f"interrupted by signal {signum}")
+    signal.signal(signal.SIGTERM, interrupted)
+    signal.signal(signal.SIGINT, interrupted)
+    try:
+        pair(args)
+    except (Failure, OSError) as error:
+        print(f"pair-device: {error}\nEvidence: {args.evidence}", file=sys.stderr)
+        return getattr(error, "exit_code", 1)
+    print(f"Evidence: {args.evidence}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

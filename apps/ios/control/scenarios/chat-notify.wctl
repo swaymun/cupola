@@ -1,0 +1,33 @@
+# devices: iphone ipad
+# visual-review: Notifications live once in the chat's header menu (Follow / Default / Mute,
+# one line each); the header and the Chats row show a small bell; a refused save says so and
+# restores the old choice. Owned fixture computer; no send or live provider call.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture open-project-thread --fixture notify-fixture --fixture notify-fail-mute
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+driver off
+tap --id conversation-title-menu
+wait --label "Notifications: Default" --timeout 10
+tap --label "Notifications: Default"
+wait --label "Follow" --timeout 10
+wait --label "Default" --timeout 5
+wait --label "Mute" --timeout 5
+shot chat-notify-menu
+# Follow is kept: the header shows a bell.
+tap --label "Follow"
+wait --id header-notification-follow --timeout 10
+shot chat-notify-followed
+# Mute is refused by the computer: the old choice returns and the message says why.
+tap --id conversation-title-menu
+wait --label "Notifications: Follow" --timeout 10
+tap --label "Notifications: Follow"
+wait --label "Mute" --timeout 10
+tap --label "Mute"
+wait --id chat-notice --contains "Still Follow" --timeout 10
+wait --id header-notification-follow --timeout 10
+assert --id header-notification-mute --gone
+shot chat-notify-rolled-back
+# The Chats row shows the same bell, with its own spoken label.
+sidebar open
+wait --id sidebar-notification --timeout 10
+shot chat-notify-sidebar

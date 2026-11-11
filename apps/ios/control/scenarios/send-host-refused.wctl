@@ -1,0 +1,37 @@
+# The Mac refuses a composer send with a lasting 422 (model no longer offered):
+# the phone stops retrying, the words return to the draft with the reason, and
+# the composer is usable again. The same send answered 503 stays pending and retries.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-host-422
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 15
+tap --id message-draft --type TextArea
+type "What"
+tap --id send-message
+driver on
+assert --path composer.text --equals '"What"' --timeout 15
+assert --path composer.recovery --equals '"Your computer couldn’t use this message. Edit it, then try again."' --timeout 5
+assert --path userMessageCounts.What --equals 0 --timeout 5
+assert --path fixtureSends.messages --equals 0
+driver off
+shot send-host-refused-422
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-host-503
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 15
+tap --id message-draft --type TextArea
+type "What"
+tap --id send-message
+driver on
+assert --path composer.recovery --equals '""' --timeout 6
+assert --path composer.text --equals '""' --timeout 5
+driver off
+shot send-host-retrying-503

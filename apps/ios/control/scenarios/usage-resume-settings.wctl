@@ -1,0 +1,45 @@
+# Host response fixture only; no messages, providers or owner chats are changed.
+# Host tests own the behavior (`usage_resume`, `update_handoff` restart
+# continuation, `continuation_settings_round_trip_and_thread_defaults_are_refused`).
+# This checks what the phone shows: a thread a usage limit stopped says when it
+# resumes in its row and in the chat, Cancel clears it, Settings has the Send
+# default and the computer's continuation switches, and a Project's editor has
+# no new-thread defaults (new chats follow the Project's last-used model).
+# The fixture starts with the thread's resume two hours out; the fixture resets
+# the Send default so no earlier run's choice matters and the picker can change it.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-resume
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --contains "Resumes" --timeout 20
+shot usage-resume-row
+tap --id pinned-thread:codex:read-fixture
+wait --id usage-resume --contains "Usage limit reached" --timeout 15
+wait --id usage-resume-cancel --timeout 5
+shot usage-resume-banner
+tap --id usage-resume-cancel
+wait --id usage-resume --gone --timeout 10
+shot usage-resume-cancelled
+sidebar open
+tap --id sidebar-settings
+reveal up --id settings-follow-up
+wait --id settings-follow-up --contains "Steer" --timeout 10
+tap --id settings-follow-up
+tap --label "Queue"
+wait --id settings-follow-up --contains "Queue" --timeout 10
+shot follow-up-default
+reveal down --id settings-computer:diagnostic-host
+tap --id settings-computer:diagnostic-host
+swipe up --in connection-settings
+wait --id continue-after-limit --contains "1" --timeout 10
+wait --id continue-after-restart --contains "1" --timeout 10
+wait --contains "continues where it stopped"
+shot continuing-work-settings
+back
+back
+sidebar open
+hold --id project-row:read-project
+tap --label "Edit Project"
+swipe up
+wait --id project-save --timeout 10
+wait --id project-defaults-own --never 1
+shot project-editor-no-thread-defaults

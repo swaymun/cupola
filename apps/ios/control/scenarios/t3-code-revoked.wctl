@@ -1,0 +1,32 @@
+# Settings > computer > Connected apps: after the owner removed Cupola in
+# T3 Code, the row says so and Reconnect T3 Code asks first ("Reconnect T3
+# Code?"); Not now keeps it removed, Reconnect connects as Connect does.
+# Connected says T3 Code's permission requests are approved in T3 Code.
+# Host response fixture only: no T3 Code, browser or messages.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture t3-code --fixture t3-code-revoked
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+tap --id settings-computer:diagnostic-host
+swipe up
+wait --id connection-connected-apps --timeout 10
+tap --id connection-connected-apps
+wait --id t3code-status --contains "Removed in T3 Code" --timeout 10
+wait --id t3code-connect --contains "Reconnect T3 Code" --timeout 5
+shot t3-revoked
+tap --id t3code-connect
+wait --contains "Reconnect T3 Code?" --timeout 5
+shot t3-revoked-ask
+# On iPhone the dialog is a popover without a Not now row; tapping outside it
+# cancels, as Not now does.
+tap --xy 300,780
+wait --contains "Reconnect T3 Code?" --gone --timeout 5
+wait --id t3code-status --contains "Removed in T3 Code" --timeout 5
+tap --id t3code-connect
+wait --id t3code-reconnect-confirm --timeout 5
+tap --id t3code-reconnect-confirm
+wait --id t3code-status --contains "Approve Cupola in your browser on" --timeout 5
+wait --id t3code-status --contains "Connected" --timeout 15
+wait --id t3code-status --contains "permission requests in T3 Code" --timeout 5
+shot t3-revoked-reconnected

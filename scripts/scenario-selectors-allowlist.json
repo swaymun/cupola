@@ -1,0 +1,198 @@
+[
+  {
+    "scenario": "live-activity-dismissal.wctl",
+    "kind": "id",
+    "value": "activity-content-view",
+    "origin": "system",
+    "reason": "SpringBoard's ActivityKit Lock Screen content view, observed with AXe on an owned iOS 26.5 iPhone simulator. The scenario waits for and swipes the actual system-hosted Live Activity, outside the app's Swift accessibility IDs."
+  },
+  {
+    "scenario": "live-activity-dismissal.wctl",
+    "kind": "label",
+    "value": "Allow",
+    "origin": "system",
+    "reason": "iOS's first-lock \"Allow Live Activities from Cupola?\" card, shown once per fresh simulator clone and hosted by SpringBoard; its Allow button is not in the app's Swift sources."
+  },
+  {
+    "scenario": "live-activity-dismissal.wctl",
+    "kind": "label",
+    "value": "Clear",
+    "origin": "system",
+    "reason": "The Clear swipe action iOS 26 reveals on a swiped Lock Screen Live Activity, hosted by SpringBoard (swipe-action-button-identifier); not in the app's Swift sources."
+  },
+  {
+    "scenario": "approval-dock.wctl",
+    "kind": "contains",
+    "value": "Content: # Upscale notes (3 lines)",
+    "reason": "The approval card's argument line: the fixture tool's content argument (its first line) with a line count, formatted at run time from the fixture JSON."
+  },
+  {
+    "scenario": "companion-pane.wctl",
+    "kind": "contains",
+    "value": "wonder-app % pwd",
+    "reason": "Terminal output: the fixture's recorded prompt (wrapped in ANSI colour codes) followed by what the scenario typed."
+  },
+  {
+    "scenario": "composer-completion.wctl",
+    "kind": "contains",
+    "value": "/review .*",
+    "pattern": true,
+    "reason": "Draft text the completion inserts: the fixture's command name and file path, joined in the composer."
+  },
+  {
+    "scenario": "connection-rename.wctl",
+    "kind": "contains",
+    "value": "Synthetic fixtureWork computer",
+    "reason": "The fixture name followed by the typed name: what the field would hold if typing appended instead of replacing."
+  },
+  {
+    "scenario": "default-models.wctl",
+    "kind": "label",
+    "value": "Low",
+    "reason": "Effort labels are the fixture's effort ids capitalized at run time (DiagnosticProviderFixture: $0.capitalized)."
+  },
+  {
+    "scenario": "font-picker.wctl",
+    "kind": "contains",
+    "value": "SIL OPEN FONT LICENSE",
+    "reason": "License text comes from the bundled OFL files in apps/ios/Wonder/Fonts, not Swift."
+  },
+  {
+    "scenario": "terminal.wctl",
+    "kind": "contains",
+    "value": "(wonder-app % )?(pwd|plain)\\S*|pwd\\^C",
+    "pattern": true,
+    "reason": "Terminal output: the fixture's recorded prompt (wrapped in ANSI colour codes) followed by what the scenario typed."
+  },
+  {
+    "scenario": "visual-tool.wctl",
+    "kind": "contains",
+    "value": "Winter hours",
+    "reason": "Text of the visual fixture apps/ios/SnapshotTests/Fixtures/visual-tool-components.json, which DiagnosticShownVisualFixture reads at run time."
+  },
+  {
+    "scenario": "browser-full-screen.wctl",
+    "kind": "contains",
+    "value": "Load [12]; style: header rgb\\(47, 93, 80\\)",
+    "pattern": true,
+    "reason": "The fixture page load counter and computed stylesheet color, read by BrowserPreviewModel.pageProbeDetailScript."
+  },
+  {
+    "scenario": "loopback-link-full-screen.wctl",
+    "kind": "label",
+    "value": "Recipes · 1280 px wide",
+    "reason": "The actual WebKit fixture document title and desktop viewport width, read by BrowserPreviewModel after the native Request desktop site menu action."
+  },
+  {
+    "scenario": "loopback-link-full-screen-ipad.wctl",
+    "kind": "label",
+    "value": "Recipes · 1280 px wide",
+    "reason": "The actual WebKit fixture document title and desktop viewport width, read by BrowserPreviewModel after the native Request desktop site menu action."
+  },
+  {
+    "scenario": "terminal-symbols.wctl",
+    "kind": "label",
+    "value": "Pipe  |",
+    "reason": "TerminalKeysBar constructs this UIAction title from the (symbol, label) tuple as label + two spaces + symbol; native menu assertion verifies the composed title."
+  },
+  {
+    "scenario": "terminal-symbols.wctl",
+    "kind": "contains",
+    "value": "wonder-app % |",
+    "reason": "Local terminal fixture output: recorded ANSI-colored prompt followed by the Pipe menu action input. No host shell is contacted."
+  },
+  {
+    "scenario": "pull-requests.wctl",
+    "kind": "contains",
+    "value": "Pull requests (1)",
+    "reason": "The title menu's entry composes the title and the open count at run time (ConversationView.pullRequestMenuTitle); the fixture has one open pull request."
+  },
+  {
+    "scenario": "computer-full-screen-keyboard.wctl",
+    "kind": "id",
+    "value": "delete",
+    "origin": "system",
+    "reason": "Apple software keyboard delete key observed in native AXe trees on owned iPhone and iPad simulator lanes. This common OS identifier proves the native keyboard is visible after switching from the custom deck."
+  },
+  {
+    "scenario": "live-activity-states.wctl",
+    "kind": "label",
+    "value": "Live Activity: needsApproval 3 (active): 2 agents working · 1 needs input; compact 1, rows: Fix login crash is needsApproval, Refactor sync engine is running, Write release notes is running",
+    "reason": "The Live Activity probe's rows suffix: the sample chat titles showFixture builds (AgentLiveActivities.swift) joined at run time with each row's status, so the whole label is not one Swift literal."
+  },
+  {
+    "scenario": "live-activity-states.wctl",
+    "kind": "label",
+    "value": "Live Activity: running 6 (active): 6 agents working; compact 6, rows: Fix login crash is running, Refactor sync engine is running, Write release notes is running, Review pull request 214 is running, +2 more",
+    "reason": "The Live Activity probe's rows suffix: the sample chat titles showFixture builds (AgentLiveActivities.swift) joined at run time with each row's status, so the whole label is not one Swift literal."
+  },
+  {
+    "scenario": "render-sanitize.wctl",
+    "kind": "contains",
+    "value": "Fish & chips",
+    "reason": "Rendered Markdown decodes the &amp; entity from the synthetic render-sanitize fixture; the raw source intentionally retains the entity."
+  },
+  {
+    "scenario": "composer-mentions.wctl",
+    "kind": "contains",
+    "value": " @\"docs/Release notes.md\"",
+    "reason": "Draft insertion assembled from the synthetic host catalog or provider file-mention format; verified after selection."
+  },
+  {
+    "scenario": "composer-mentions.wctl",
+    "kind": "contains",
+    "value": "\"docs/Release notes.md\"",
+    "reason": "Draft insertion assembled from the synthetic host catalog or provider file-mention format; verified after selection."
+  },
+  {
+    "scenario": "composer-mentions.wctl",
+    "kind": "contains",
+    "value": "/review ",
+    "reason": "Draft insertion assembled from the synthetic host catalog or provider file-mention format; verified after selection."
+  },
+  {
+    "scenario": "composer-mentions.wctl",
+    "kind": "contains",
+    "value": "/compact ",
+    "reason": "Draft insertion assembled from the synthetic host catalog or provider file-mention format; verified after selection."
+  },
+  {
+    "scenario": "composer-mentions-keyboard.wctl",
+    "kind": "contains",
+    "value": "/review ",
+    "reason": "Draft insertion assembled from the synthetic host catalog or provider file-mention format; verified after selection."
+  },
+  {
+    "scenario": "composer-mentions-keyboard.wctl",
+    "kind": "contains",
+    "value": "/compact ",
+    "reason": "Draft insertion assembled from the synthetic host catalog or provider file-mention format; verified after selection."
+  },
+  {
+    "scenario": "browser-full-screen.wctl",
+    "kind": "contains",
+    "value": "Saved recipes · ",
+    "reason": "The page probe's label joins the fixture page title (\"Saved recipes\", DiagnosticScenarios.swift) with a run-time suffix, so the scenario's prefix is not one Swift literal."
+  },
+  {
+    "scenario": "settings-navigation.wctl",
+    "kind": "id",
+    "value": "BackButton",
+    "origin": "system",
+    "reason": "UIKit's navigation-bar Back button, shown when the stacked Duo pose has no vertical bar and a pushed Settings page keeps the system Back; observed with AXe on the Duo simulator."
+  },
+  {
+    "scenario": "sheet-no-grabber.wctl",
+    "kind": "label",
+    "value": "Sheet Grabber",
+    "origin": "system",
+    "reason": "UIKit's own sheet drag indicator carries this accessibility label; Cupola hides it on every sheet, so the check asserts the system grabber is absent. The label is not in the app's Swift sources."
+  },
+  {
+    "scenario": "cover-pills.wctl",
+    "kind": "label",
+    "value": "Sheet Grabber",
+    "origin": "system",
+    "reason": "UIKit's own sheet drag indicator carries this accessibility label; Cupola hides it on every sheet, so the check asserts the system grabber is absent. The label is not in the app's Swift sources."
+  }
+]

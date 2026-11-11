@@ -1,0 +1,96 @@
+# devices: duo
+# Duo input is gated by #387. Launch fixtures select the real shell states;
+# native AX frames verify the rendered order. Voice uses the offline driver.
+# Inner-display shots explicitly select primary-1, rather than the inactive cover.
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture voice-preview --fixture open-project-thread --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+driver off
+wait --id project-composer-access --timeout 30
+order --axis x --ids project-composer-access,dictate-message,voice-start
+wait --id composer-actions
+shot composer-controls-duo-cover
+driver on
+tap --id voice-start
+assert --path voice.active --equals true
+assert --path voice.chatID --equals '"fixture-parent-conversation"'
+assert --path voice.historyUnchanged --equals true
+assert --path fixtureSends.bodies --equals '[]'
+driver off
+wait --id voice-panel --timeout 10
+wait --id voice-confirmation-summary
+wait --id voice-agent-caption --gone --timeout 3
+order --axis y --ids voice-confirmation-confirm,voice-end
+order --axis x --ids voice-mute,voice-end
+shot composer-controls-duo-voice
+# Native Cancel proves the visible control is reachable; reveal counted the retained timeline as an occluder.
+tap --id voice-confirmation-cancel
+wait --id voice-confirmation --gone --timeout 5
+driver on
+tap --id voice-end
+assert --path voice.active --equals false
+driver off
+wait --id voice-panel --gone --timeout 5
+wait --id message-draft
+launch --fixture read-preview --fixture send-preview --fixture phone-approval-preview --arg command
+wait --id question-dock-open --timeout 20
+order --axis x --ids project-composer-access,dictate-message,voice-start
+shot composer-controls-duo-approval
+launch --fixture read-preview --fixture send-preview --fixture question-preview
+wait --id question-dock-open --timeout 20
+order --axis x --ids project-composer-access,dictate-message,voice-start
+shot composer-controls-duo-question
+# Cover at AX5: attachment, input, model/effort and Send targets do not overlap.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture voice-preview --fixture open-project-thread --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+driver off
+wait --id project-composer-access --timeout 30
+order --axis x --ids composer-actions,project-composer-access,dictate-message,voice-start,send-message
+order --axis y --ids project-composer-model,project-composer-access
+order --axis y --ids project-composer-model,project-composer-effort,project-composer-access
+wait --id conversation-loading --gone --timeout 15
+shot composer-controls-duo-cover-ax5
+hinge 180
+orient portrait
+wait --id project-composer-access --timeout 20
+order --axis x --ids composer-actions,project-composer-access,dictate-message,voice-start,send-message
+order --axis y --ids project-composer-model,project-composer-access
+order --axis y --ids project-composer-model,project-composer-effort,project-composer-access
+wait --id conversation-loading --gone --timeout 15
+tree --json
+shot composer-controls-duo-inner-ax5 --display primary-1
+launch --fixture read-preview --fixture send-preview --fixture phone-approval-preview --arg command
+wait --id question-dock-open --timeout 20
+order --axis x --ids project-composer-access,dictate-message,voice-start
+shot composer-controls-duo-inner-approval --display primary-1
+launch --fixture read-preview --fixture send-preview --fixture question-preview
+wait --id question-dock-open --timeout 20
+order --axis x --ids project-composer-access,dictate-message,voice-start
+shot composer-controls-duo-inner-question --display primary-1
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture voice-preview --fixture open-project-thread --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+driver off
+wait --id project-composer-access --timeout 30
+order --axis x --ids project-composer-access,dictate-message,voice-start
+shot composer-controls-duo-inner --display primary-1
+# New chat gets the same input group on the inner display and folded cover.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture fresh-agent-defaults --fixture send-states --fixture voice-preview --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+driver off
+wait --id new-chat-access --timeout 30
+order --axis x --ids new-chat-attach,new-chat-access,dictate-message,voice-start,new-chat-send
+order --axis y --ids project-agent-picker,new-chat-access
+order --axis y --ids project-agent-picker,new-chat-effort,new-chat-access
+wait --id new-chat-send --timeout 10
+tree --json
+shot composer-controls-duo-inner-new-chat-ax5 --display primary-1
+hinge 0
+orient portrait
+wait --id new-chat-access --timeout 20
+order --axis x --ids new-chat-attach,new-chat-access,dictate-message,voice-start,new-chat-send
+order --axis y --ids project-agent-picker,new-chat-access
+order --axis y --ids project-agent-picker,new-chat-effort,new-chat-access
+wait --id new-chat-send --timeout 10
+tree --json
+shot composer-controls-duo-cover-new-chat-ax5

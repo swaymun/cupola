@@ -1,0 +1,25 @@
+cask "cupola" do
+  version "@VERSION@"
+@MAC_ARCH_STANZAS@
+
+  url "@BASE_URL@/@MAC_FILE@"
+  name "Cupola"
+  desc "Persistent agent conversations on your computer, connected to your iPhone"
+  homepage "https://github.com/swaymun/cupola"
+
+  depends_on macos: :sonoma
+@MAC_ARCH_REQUIREMENT@
+  conflicts_with cask: "wonder"
+
+  app "Cupola.app"
+  binary "#{appdir}/Cupola.app/Contents/MacOS/cupola"
+
+  caveats do
+    <<~EOS
+      Set up with `cupola init`, then `cupola service install` (starts Cupola now and at every login) and `cupola pair`.
+      Use `brew upgrade --cask cupola` to update a Homebrew installation,
+      then `cupola service restart` if you installed the login service.
+      Conversations, pairing and provider sign-ins are kept on uninstall.
+    EOS
+  end
+end

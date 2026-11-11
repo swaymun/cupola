@@ -1,0 +1,129 @@
+# Conversation hides a reply's Working group (commentary, tool calls and thinking) and
+# keeps its replies. The Mac owns the choice: the second launch starts the fixture
+# Mac at Conversation, and the third saves it for Codex (the thread's provider) from the phone,
+# which the open conversation then honors. Held fixture only; nothing is sent. Thinking
+# shows a thinking summary and a folded command run (thinking-detail); tool images,
+# video and audio staying visible are covered by ActivityLayoutTests (no fixture holds them).
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture open-project-thread
+wait --contains "The layout keeps the message composer available." --timeout 30
+wait --id activity-group:thinking-turn/measured-thinking --gone --timeout 10
+wait --id thinking-status:thinking-turn/measured-thinking --gone --timeout 5
+shot chat-detail-everything
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture open-project-thread --fixture conversation-only
+wait --contains "The layout keeps the message composer available." --timeout 30
+wait --id activity-group:thinking-turn/measured-thinking --gone --timeout 10
+wait --id thinking-status:thinking-turn/measured-thinking --gone --timeout 5
+shot chat-detail-conversation-only
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id connection-rename --timeout 10
+wait --id settings-provider:claude --timeout 10
+tap --id settings-provider:claude
+swipe up
+wait --id provider-chat-detail:claude:conversation --contains "Selected" --timeout 10
+wait --id provider-chat-detail:claude:thinking --timeout 5
+shot chat-detail-settings
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture open-project-thread
+wait --contains "The layout keeps the message composer available." --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id connection-rename --timeout 10
+wait --id settings-provider:codex --timeout 10
+tap --id settings-provider:codex
+swipe up
+wait --id provider-chat-detail:codex:everything --contains "Selected" --timeout 10
+tap --id provider-chat-detail:codex:conversation
+wait --id provider-chat-detail:codex:conversation --contains "Selected" --timeout 10
+wait --id provider-chat-detail-saving:codex --gone --timeout 10
+shot chat-detail-saved-from-phone
+back
+back
+back
+wait --contains "The layout keeps the message composer available." --timeout 10
+wait --id activity-group:thinking-turn/measured-thinking --gone --timeout 10
+shot chat-detail-phone-choice-applied
+
+# Thinking: the Mac serves the thought's summary, which shows under its time in the
+# opened Working group, and finished commands one after another fold into
+# "Ran 3 commands", which opens to list each one.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture thinking-detail --fixture open-project-thread
+wait --id activity-group:thinking-turn/measured-thinking --timeout 30
+tap --id activity-group:thinking-turn/measured-thinking
+wait --id thinking-status:thinking-turn/measured-thinking --contains "Thought for 12s" --timeout 10
+wait --id thinking-summary:thinking-turn/measured-thinking --timeout 5
+wait --id command-run:thinking-turn/fixture-command-1 --contains "Ran 3 commands" --timeout 5
+wait --contains "rg composer Sources" --gone --timeout 5
+shot chat-detail-thinking
+tap --id command-run:thinking-turn/fixture-command-1
+wait --contains "rg composer Sources" --timeout 5
+shot chat-detail-command-run-open
+
+# Commentary & tools must govern streamed reasoning too, even display text
+# without a summary. A marker in the same frame proves each upsert arrived.
+# The pending question stays reachable throughout. No model sends.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture stream-reasoning --fixture question-resolution --fixture open-project-thread --arg=-diagnostics-requests-stay-closed
+wait --id activity-group:thinking-turn/measured-thinking --timeout 30
+wait --contains "printf fixture" --timeout 10
+signal reasoning-text
+wait --contains "The streamed reasoning update arrived." --timeout 10
+wait --contains "Streamed private thinking" --gone --timeout 5
+wait --id thinking-status:thinking-turn/measured-thinking --gone --timeout 5
+wait --id thinking-summary:thinking-turn/measured-thinking --gone --timeout 5
+wait --id question-dock-open --timeout 10
+shot chat-detail-streaming-commentary
+signal reasoning-finish
+wait --contains "The streamed reasoning finished." --timeout 10
+wait --contains "Streamed private thinking" --gone --timeout 5
+wait --contains "Thought for" --gone --timeout 5
+wait --id thinking-status:thinking-turn/measured-thinking --gone --timeout 5
+wait --id question-dock-open --timeout 10
+shot chat-detail-finished-commentary
+tap --id question-dock-open
+wait --contains "Which day works best?" --timeout 10
+shot chat-detail-streaming-question
+tap --id question-dock-open
+wait --contains "The streamed reasoning finished." --timeout 10
+
+# Changing the level reprojects the very same streamed item from the cache.
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id settings-provider:codex --timeout 10
+tap --id settings-provider:codex
+swipe up
+tap --id provider-chat-detail:codex:thinking
+wait --id provider-chat-detail:codex:thinking --contains "Selected" --timeout 10
+wait --id provider-chat-detail-saving:codex --gone --timeout 10
+back
+back
+back
+wait --id thinking-summary:thinking-turn/measured-thinking --contains "Streamed private thinking" --timeout 10
+wait --contains "Thought for" --timeout 10
+shot chat-detail-stream-cache-thinking
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id settings-provider:codex --timeout 10
+tap --id settings-provider:codex
+swipe up
+tap --id provider-chat-detail:codex:everything
+wait --id provider-chat-detail:codex:everything --contains "Selected" --timeout 10
+wait --id provider-chat-detail-saving:codex --gone --timeout 10
+back
+back
+back
+wait --contains "The streamed reasoning finished." --timeout 10
+wait --contains "Streamed private thinking" --gone --timeout 5
+wait --contains "Thought for" --gone --timeout 5
+wait --id question-dock-open --timeout 10
+shot chat-detail-stream-cache-commentary

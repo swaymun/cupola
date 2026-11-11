@@ -1,0 +1,33 @@
+# Duo only; outside the feature map until #387 closes. Offline transport only.
+# Contract (UX-DUO-4): unfolded, the Terminal's key panel is one composer-height
+# row with the chat composer's radius and fill, ending on the composer's bottom
+# edge across the split, with and without the software keyboard. Check each shot:
+#   python3 apps/ios/control/scenarios/measure-tool-panel-baseline.py SHOT.png \
+#     --composer-x <point inside the composer> --panel-x <point inside the panel> --scale 3
+# The Terminal takes focus on open, so the first launch hides the keyboard
+# through the diagnostics signal (the unfolded Duo has no native tap, #387);
+# the second leaves it up.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture project-git-preview --fixture terminal-preview --fixture companion-terminal --arg=-diagnostics-ux3-terminal --arg=-wonder.companionPane.flipped --arg=NO --arg=-wonder.companionPane.fraction.portrait --arg=0.5 --arg=-wonder.companionPane.fraction.landscape --arg=0.5
+hinge 180
+orient portrait
+driver off
+wait --id companion-pane --timeout 30
+wait --id terminal-output --contains "build.sh" --timeout 10
+wait --id terminal-key-ctrl --timeout 10
+wait --id message-draft --timeout 5
+# Product call (VFIX-3e28ad2d): a Terminal opened while folded moves to the unfolded
+# companion pane without the keyboard; one tap on the terminal brings it back.
+tap --id terminal-output
+wait --label "space" --timeout 15
+signal ux3-keyboard-first
+wait --label "space" --gone --timeout 10
+shot duo-ux4-unfolded-terminal --display primary-1
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture project-git-preview --fixture terminal-preview --fixture companion-terminal --fixture no-hardware-keyboard --arg=-wonder.companionPane.flipped --arg=NO --arg=-wonder.companionPane.fraction.portrait --arg=0.5 --arg=-wonder.companionPane.fraction.landscape --arg=0.5
+driver off
+wait --id companion-pane --timeout 30
+wait --id terminal-output --contains "build.sh" --timeout 10
+wait --label "space" --timeout 15
+wait --id terminal-key-ctrl --timeout 10
+shot duo-ux4-unfolded-terminal-keyboard --display primary-1

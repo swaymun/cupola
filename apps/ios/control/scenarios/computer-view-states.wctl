@@ -1,0 +1,117 @@
+# nightly-ipad: the computer view opens fitted on iPad; explicit Fill and zoom still work
+# The computer view says why once with Try again (Take over when another device is
+# viewing it), opens fitted to the screen, names
+# quality only when the view struggles, notes a hidden shared window, and raises the
+# keyboard while the computer's typing focus is in a text field. Synthetic fixtures;
+# nothing reaches a computer.
+# Capture opening without a tap, including on Duo while its input canary is gated.
+driver on
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --arg=-computer.fillsViewport --arg unset
+signal computer-retry-ready
+driver off
+wait --id computer-session-more --contains "100 percent" --timeout 30
+driver on
+assert --path computer.hasPicture --equals true --timeout 10
+driver off
+# Away from the Duo's side bar and fold pane the picture stays centred.
+wait --id computer-viewport-appearances --contains "top: false;" --timeout 10
+driver on
+assert --path computer.hasPicture --equals true --timeout 15
+driver off
+shot computer-default-first-frame
+driver on
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-view-failed-once --fixture computer-text-focus --arg=-computer.fillsViewport --arg unset
+signal computer-retry-ready
+driver off
+wait --id computer-session-notice --contains "interrupted screen sharing" --timeout 30
+wait --id computer-session-retry
+wait --id computer-session-live-status --contains "Couldn"
+shot computer-view-failed
+tap --id computer-session-retry
+wait --id computer-session-notice --gone --timeout 15
+driver on
+assert --path computer.hasPicture --equals true --timeout 15
+driver off
+wait --id computer-session-live-status --contains "Live"
+driver on
+assert --path computer.hasPicture --equals true --timeout 10
+driver off
+wait --id computer-session-more --contains "100 percent"
+shot computer-view-first-fit
+wait --id computer-session-control-active --timeout 15
+wait --id computer-session-keyboard --contains "Hide keyboard" --timeout 10
+shot computer-view-text-focus
+signal computer-text-focus-left
+wait --id computer-session-keyboard --contains "Show keyboard" --timeout 10
+wait --id computer-session-control-active
+wait --id computer-session-close --label "Close"
+wait --id computer-session-more --timeout 10
+# Another device is viewing the computer: the view names it and offers Take over;
+# Try again stays an ordinary open; Take over opens the view here.
+driver on
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-viewer-busy
+signal computer-retry-ready
+driver off
+wait --id computer-session-notice --contains "being viewed on iPad" --timeout 30
+wait --id computer-session-recovery --contains "Take over to view it here"
+wait --id computer-session-alternative --label "Try again"
+shot computer-view-viewer-busy
+tap --id computer-session-alternative
+wait --id computer-session-notice --contains "being viewed on iPad" --timeout 15
+tap --id computer-session-take-over
+wait --id computer-session-notice --gone --timeout 15
+driver on
+assert --path computer.hasPicture --equals true --timeout 15
+driver off
+wait --id computer-session-live-status --contains "Live"
+driver on
+assert --path computer.hasPicture --equals true --timeout 10
+driver off
+shot computer-view-taken-over
+driver on
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-window-hidden --arg=-computer.fillsViewport --arg unset
+signal computer-retry-ready
+driver off
+wait --id computer-session-window-hidden --timeout 30
+shot computer-view-window-hidden
+# Largest text: the header grows so the Live status under the name stays whole
+# above the picture; the control action still reads Give control back.
+driver on
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+signal computer-retry-ready
+driver on
+assert --path computer.hasPicture --equals true --timeout 15
+driver off
+wait --id computer-session-live-status --contains "Live" --timeout 30
+driver on
+assert --path computer.hasPicture --equals true --timeout 10
+driver off
+shot computer-view-header-large-text
+wait --id computer-session-control-active --timeout 15
+shot computer-view-control-large-text
+wait --id computer-session-more --timeout 10
+# Leaving Cupola pauses the view instead of closing it: returning reopens the
+# picture on the same view, says control ended and never takes it again.
+driver on
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --arg=-computer.fillsViewport --arg unset
+signal computer-retry-ready
+driver on
+assert --path computer.hasPicture --equals true --timeout 15
+driver off
+wait --id computer-session-live-status --contains "Live" --timeout 30
+driver on
+assert --path computer.hasPicture --equals true --timeout 10
+driver off
+wait --id computer-session-control-active --timeout 15
+button home
+activate
+wait --id computer-session-control-active --timeout 20
+driver on
+assert --path computer.hasPicture --equals true --timeout 15
+driver off
+wait --id computer-session-live-status --contains "Live" --timeout 15
+driver on
+assert --path computer.hasPicture --equals true --timeout 10
+driver off
+wait --id computer-session-more --timeout 10
+shot computer-view-after-background

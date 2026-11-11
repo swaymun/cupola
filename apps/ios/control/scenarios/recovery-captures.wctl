@@ -1,0 +1,163 @@
+# Settled native recovery captures. Each failure owns its launch state.
+# Run after the action suites; this checks rendered notices, including dark appearance.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --arg=-diagnostics-recovery-case --arg=expired
+driver off
+wait --id new-chat-draft --contains "Keep my recovery draft" --timeout 15
+wait --id new-chat-t3-note --contains "authorization expired" --timeout 30
+shot recovery-after-new-expired
+sidebar open
+tap --id sidebar-settings
+reveal up --id settings-computer:diagnostic-host --max-drags 2
+tap --id settings-computer:diagnostic-host
+wait --id connection-state --timeout 30
+wait --id computer-new-chat-default-loading --gone --timeout 15
+reveal up --id connection-connected-apps --max-drags 6
+tap --id connection-connected-apps
+wait --id t3code-status --contains "Sign-in expired" --timeout 15
+shot recovery-after-settings-expired
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --arg=-diagnostics-recovery-case --arg=unreachable
+driver off
+wait --id new-chat-draft --contains "Keep my recovery draft" --timeout 15
+wait --id new-chat-t3-note --contains "isn’t reachable" --timeout 30
+shot recovery-after-new-unreachable
+sidebar open
+tap --id sidebar-settings
+reveal up --id settings-computer:diagnostic-host --max-drags 2
+tap --id settings-computer:diagnostic-host
+wait --id connection-state --timeout 30
+wait --id computer-new-chat-default-loading --gone --timeout 15
+reveal up --id connection-connected-apps --max-drags 6
+tap --id connection-connected-apps
+wait --id t3code-status --contains "T3 Code not reachable" --timeout 15
+shot recovery-after-settings-unreachable
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --arg=-diagnostics-recovery-case --arg=signed-out
+driver off
+wait --id new-chat-draft --contains "Keep my recovery draft" --timeout 15
+wait --id new-chat-provider-recovery --contains "signed out" --timeout 30
+shot recovery-after-new-signed-out
+sidebar open
+tap --id sidebar-settings
+reveal up --id settings-computer:diagnostic-host --max-drags 2
+tap --id settings-computer:diagnostic-host
+wait --id connection-state --timeout 30
+reveal up --id settings-provider:claude --max-drags 6
+tap --id settings-provider:claude
+wait --contains "Sign in to Claude on Synthetic fixture" --timeout 15
+shot recovery-after-settings-signed-out
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --arg=-diagnostics-recovery-case --arg=model
+driver off
+wait --id new-chat-draft --contains "Keep my recovery draft" --timeout 15
+wait --id new-chat-provider-recovery --contains "no longer available" --timeout 30
+shot recovery-after-new-model
+sidebar open
+tap --id sidebar-settings
+tap --id settings-default-models
+tap --id provider-default-model:claude
+wait --id default-model-claude --timeout 15
+wait --id default-model-unavailable --timeout 15
+shot recovery-after-settings-model
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --arg=-diagnostics-recovery-case --arg=offline --fixture mac-offline
+signal mac-gone
+driver off
+button home
+activate
+driver off
+wait --id new-chat-draft --contains "Keep my recovery draft" --timeout 15
+wait --id new-chat-offline --timeout 30
+wait --contains "Messages you send wait here and go out" --never 4
+shot recovery-after-new-offline
+sidebar open
+tap --id sidebar-settings
+reveal up --id settings-computer:diagnostic-host --max-drags 2
+tap --id settings-computer:diagnostic-host
+wait --id connection-state --timeout 30
+wait --id connection-status --timeout 20
+shot recovery-after-settings-offline
+driver on
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --arg=-diagnostics-recovery-case --arg=expired --fixture send-held-by-app --fixture t3-code --fixture t3-code-expired
+driver off
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 30
+tap --id pinned-thread:claude:read-fixture
+driver on
+assert --path route --equals '"conversation"' --timeout 30
+assert --path composer.text --equals '"Keep my recovery draft"' --timeout 15
+driver off
+wait --id message-draft --timeout 15
+wait --id open-elsewhere --contains "sign-in to T3 Code ended" --timeout 30
+shot recovery-after-existing-expired
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --arg=-diagnostics-recovery-case --arg=unreachable --fixture send-held-by-app --fixture t3-code --fixture t3-code-unreachable
+driver off
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 30
+tap --id pinned-thread:claude:read-fixture
+driver on
+assert --path route --equals '"conversation"' --timeout 30
+assert --path composer.text --equals '"Keep my recovery draft"' --timeout 15
+driver off
+wait --id message-draft --timeout 15
+wait --id open-elsewhere --contains "isn’t answering" --timeout 30
+shot recovery-after-existing-unreachable
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --arg=-diagnostics-recovery-case --arg=signed-out
+driver off
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 30
+tap --id pinned-thread:claude:read-fixture
+driver on
+assert --path route --equals '"conversation"' --timeout 30
+assert --path composer.text --equals '"Keep my recovery draft"' --timeout 15
+driver off
+wait --id message-draft --timeout 15
+driver on
+send
+wait --id composer-action-issue --contains "signed out" --timeout 15
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+driver off
+shot recovery-after-existing-signed-out
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --arg=-diagnostics-recovery-case --arg=model
+driver off
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 30
+tap --id pinned-thread:claude:read-fixture
+driver on
+assert --path route --equals '"conversation"' --timeout 30
+assert --path composer.text --equals '"Keep my recovery draft"' --timeout 15
+driver off
+wait --id message-draft --timeout 15
+driver on
+send
+wait --id composer-action-issue --contains "no longer available" --timeout 15
+assert --path composer.text --equals '"Keep my recovery draft"'
+assert --path composer.attachmentCount --equals 1
+driver off
+shot recovery-after-existing-model
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --arg=-diagnostics-recovery-case --arg=offline --fixture mac-offline
+driver off
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 30
+tap --id pinned-thread:claude:read-fixture
+driver on
+assert --path route --equals '"conversation"' --timeout 30
+signal mac-gone
+driver off
+button home
+activate
+wait --id message-draft --contains "Keep my recovery draft" --timeout 30
+driver on
+assert --path composer.text --equals '"Keep my recovery draft"' --timeout 15
+driver off
+wait --id message-draft --timeout 15
+wait --id composer-mac-unreachable --timeout 30
+shot recovery-after-existing-offline
+driver on

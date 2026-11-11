@@ -1,0 +1,62 @@
+# devices: duo
+# CONTEXT-PERSIST on the Duo (folded, unfolded wide, unfolded tall): the saved context reading shows after a
+# process kill while the activity check fails (503), opened without a tap (Duo taps are gated, #387), and a
+# provider with no reading shows its ring and says so; a window the provider never gave shows the model's
+# typical one, labeled. Offline fixtures; nothing is sent.
+
+# Harness quirk (UX-DUO-3): folded steps show the home screen unless the hinge opens once first.
+hinge 180
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture durable-store --fixture durable-store-reset
+wait --id message-draft --timeout 30
+wait --id context-usage-ring --contains "33 percent used" --timeout 15
+wait --id context-usage-window --never 2
+terminate
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage-offline --fixture durable-store --arg=-diagnostics-context-usage-open
+wait --id context-usage-window --contains "33 percent used, 84,210 of 258,400 tokens" --timeout 20
+shot context-persist-duo-folded-after-relaunch
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage-unreported --fixture durable-store --fixture durable-store-reset --arg=-diagnostics-context-usage-open
+wait --id message-draft --timeout 30
+wait --id context-usage-window --contains "has not reported this chat" --timeout 15
+shot context-persist-duo-folded-unreported
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage-typical --fixture durable-store --fixture durable-store-reset --arg=-diagnostics-context-usage-open
+wait --id message-draft --timeout 30
+wait --id context-usage-window --contains "8 percent used, 84,210 of 1,000,000 tokens, typical window for this model" --timeout 15
+shot context-persist-duo-folded-typical
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture durable-store --fixture durable-store-reset
+wait --id message-draft --timeout 30
+wait --id context-usage-ring --contains "33 percent used" --timeout 15
+wait --id context-usage-window --never 2
+terminate
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage-offline --fixture durable-store --arg=-diagnostics-context-usage-open
+wait --id context-usage-window --contains "33 percent used, 84,210 of 258,400 tokens" --timeout 20
+shot context-persist-duo-wide-after-relaunch --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage-unreported --fixture durable-store --fixture durable-store-reset --arg=-diagnostics-context-usage-open
+wait --id message-draft --timeout 30
+wait --id context-usage-window --contains "has not reported this chat" --timeout 15
+shot context-persist-duo-wide-unreported --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage-typical --fixture durable-store --fixture durable-store-reset --arg=-diagnostics-context-usage-open
+wait --id message-draft --timeout 30
+wait --id context-usage-window --contains "8 percent used, 84,210 of 1,000,000 tokens, typical window for this model" --timeout 15
+shot context-persist-duo-wide-typical --display primary-1
+hinge 180
+orient landscape-left
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage --fixture durable-store --fixture durable-store-reset
+wait --id message-draft --timeout 30
+wait --id context-usage-ring --contains "33 percent used" --timeout 15
+wait --id context-usage-window --never 2
+terminate
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage-offline --fixture durable-store --arg=-diagnostics-context-usage-open
+wait --id context-usage-window --contains "33 percent used, 84,210 of 258,400 tokens" --timeout 20
+shot context-persist-duo-tall-after-relaunch --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage-unreported --fixture durable-store --fixture durable-store-reset --arg=-diagnostics-context-usage-open
+wait --id message-draft --timeout 30
+wait --id context-usage-window --contains "has not reported this chat" --timeout 15
+shot context-persist-duo-tall-unreported --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture context-usage-typical --fixture durable-store --fixture durable-store-reset --arg=-diagnostics-context-usage-open
+wait --id message-draft --timeout 30
+wait --id context-usage-window --contains "8 percent used, 84,210 of 1,000,000 tokens, typical window for this model" --timeout 15
+shot context-persist-duo-tall-typical --display primary-1

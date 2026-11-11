@@ -1,0 +1,30 @@
+# Unfolded iPhone Duo only: run by hand with
+#   scripts/wonderctl --device duo run apps/ios/control/duo-unfolded/grouped-margins.wctl
+# Not in the feature map: the Duo's input is gated on #387, and `shot` captures the
+# folded cover display, so capture the inner display after each step with
+#   xcrun simctl io <duo udid> screenshot --display=primary-1 FILE
+# Grouped lists (Files, Settings) keep a 16 pt gap between their cards and the
+# system's vertical bar; before, the cards ran into it. Compare against the same
+# screens on iPhone and iPad, whose system margins are unchanged. The Chats
+# sidebar is a plain list, not a grouped one: capture it to check, but it is not
+# owned by the grouped style. Launch fixtures select each layout; the one tap
+# (Settings) comes last. Nothing is sent.
+hinge 180
+# With the bar down the side, as bar-pills.wctl.
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture project-subagents --fixture open-project-thread --fixture companion-files --arg=-wonder.sidebar.hidden --arg=NO --arg=-wonder.companionPane.flipped --arg=NO
+wait --id companion-pane --timeout 30
+wait --id workspace-file-list --timeout 10
+# Capture primary-1: the Files cards end 16 pt before the bar.
+tree --json
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture open-project-thread --fixture sidebar-open --arg=-wonder.sidebar.hidden --arg=NO
+wait --id sidebar-settings --timeout 30
+# Capture primary-1: the Chats sidebar beside the bar.
+tree --json
+tap --id sidebar-settings
+wait --id settings-done --timeout 10
+# Capture primary-1: the Settings cards end 16 pt before the bar.
+tree --json
+# Leave the shared Duo folded for the input canary.
+hinge 0
+orient portrait

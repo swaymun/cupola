@@ -1,0 +1,92 @@
+# devices: duo
+# A simulator view keeps streaming when the viewing Duo turns and folds/unfolds, and
+# its chosen rotation survives closing and reopening. Fixtures stand in for the computer;
+# `simulator.sessionBuilds` counts session models, so a rebuild shows as a second one.
+driver on
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture companion-simulators --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --arg=-diagnostics-simulator-phone-duo --arg=-wonder.sidebar.hidden --arg=YES --arg=-diagnostics-simulator-open-duo
+driver off
+wait --id simulator-screen --label "iPhone Duo screen" --timeout 30
+driver on
+assert --path simulator.showing --equals true --timeout 15
+driver off
+driver on
+assert --path simulator.sessionBuilds --equals 1
+driver off
+shot sim-stream-unfolded-portrait --display primary-1
+# Turn the inner display sideways: same view, still showing.
+driver on
+orient landscape-left
+driver off
+wait --id simulator-screen --label "iPhone Duo screen" --timeout 15
+driver on
+assert --path simulator.showing --equals true --timeout 15
+driver off
+driver on
+assert --path simulator.sessionBuilds --equals 1
+driver off
+shot sim-stream-unfolded-landscape --display primary-1
+driver on
+orient portrait
+driver off
+driver on
+assert --path simulator.sessionBuilds --equals 1
+driver off
+# Rotation chosen in the view is remembered across close and reopen.
+driver on
+tap --id simulator-rotate
+driver off
+driver on
+assert --path simulator.quarterTurns --equals 1 --timeout 10
+driver off
+driver on
+tap --id simulator-choose-another
+driver off
+wait --id simulator-picker-list --timeout 10
+driver on
+tap --id simulator-reopen-duo
+driver off
+wait --id simulator-screen --label "iPhone Duo screen" --timeout 15
+driver on
+assert --path simulator.quarterTurns --equals 1 --timeout 10
+driver off
+shot sim-stream-rotation-restored --display primary-1
+driver on
+tap --id simulator-rotate
+driver off
+driver on
+tap --id simulator-rotate
+driver off
+driver on
+tap --id simulator-rotate
+driver off
+driver on
+assert --path simulator.quarterTurns --equals 0 --timeout 10
+driver off
+# Fold: the stream follows to the cover.
+driver on
+hinge 0
+orient portrait
+driver off
+wait --id simulator-screen --label "iPhone Duo screen" --timeout 15
+driver on
+assert --path simulator.showing --equals true --timeout 20
+driver off
+driver on
+assert --path simulator.sessionBuilds --equals 2
+assert --path simulator.quarterTurns --equals 0
+driver off
+shot sim-stream-folded
+driver on
+hinge 180
+orient portrait
+driver off
+wait --id simulator-screen --label "iPhone Duo screen" --timeout 15
+driver on
+assert --path simulator.showing --equals true --timeout 20
+driver off
+driver on
+assert --path simulator.sessionBuilds --equals 2
+driver off
+shot sim-stream-unfolded-again --display primary-1

@@ -1,0 +1,128 @@
+# Offline control-row contract; no paired host input or model calls.
+# The shared package tests own exact emitted keys; helper tests own native encoding.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-clipboard-off --fixture no-hardware-keyboard
+wait --id computer-session-more --timeout 30
+tap --id computer-session-more
+wait --id computer-session-share-clipboard
+shot computer-clipboard-menu-off
+tap --id computer-session-share-clipboard
+wait --id computer-session-clipboard-message --contains "unavailable in this preview"
+# The saved switch survives a view relaunch; turning it off must work as well.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture no-hardware-keyboard
+wait --id computer-session-more --timeout 30
+tap --id computer-session-more
+wait --id computer-session-share-clipboard
+shot computer-clipboard-menu-persisted
+tap --id computer-session-share-clipboard
+wait --id computer-session-clipboard-message --gone --timeout 10
+wait --id computer-session-control-active --timeout 15
+# The shortcut row is in the controls row: present without the keyboard, and it stays when the keyboard rises and falls.
+wait --id computer-session-shortcuts-row --timeout 10
+shot computer-platform-mac-rows-no-keyboard
+tap --id computer-session-keyboard
+wait --id computer-session-shortcuts-row --timeout 10
+shot computer-platform-mac-rows-keyboard
+wait --id computer-session-shortcut-applications
+wait --id computer-session-shortcut-app-switcher --contains "Command Tab"
+wait --id computer-session-input-limitation --gone
+shot computer-platform-mac-control
+tap --id computer-session-shortcut-app-switcher
+wait --id computer-session-shortcut-app-switcher --contains "Open, Command held"
+swipe left --in computer-session-shortcuts-row
+tap --id computer-session-key-tab
+wait --id computer-session-shortcut-app-switcher --contains "Open, Command held"
+shot computer-platform-mac-switcher
+swipe right --in computer-session-shortcuts-row
+tap --id computer-session-key-escape
+wait --id computer-session-shortcut-app-switcher --contains Closed
+tap --id computer-session-shortcut-app-switcher
+tap --id computer-session-shortcut-app-switcher
+wait --id computer-session-shortcut-app-switcher --contains Closed
+wait --id computer-session-more --timeout 15
+
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-windows-host --fixture no-hardware-keyboard
+wait --id computer-session-more --timeout 30
+wait --id computer-session-control-active --timeout 15
+tap --id computer-session-keyboard
+wait --id computer-session-shortcuts-row --timeout 10
+wait --id computer-session-shortcut-win --contains Start
+wait --id computer-session-modifier-ctrl
+wait --id computer-session-modifier-alt
+swipe left --in computer-session-shortcuts-row
+swipe right --in computer-session-shortcuts-row
+wait --id computer-session-input-limitation --contains Ctrl-Alt-Del
+wait --id computer-session-input-limitation --contains UAC
+shot computer-platform-windows-control
+tap --id computer-session-shortcut-app-switcher
+wait --id computer-session-shortcut-app-switcher --contains "Open, Alt held"
+swipe left --in computer-session-shortcuts-row
+tap --id computer-session-key-tab
+wait --id computer-session-shortcut-app-switcher --contains "Open, Alt held"
+shot computer-platform-windows-switcher
+swipe right --in computer-session-shortcuts-row
+tap --id computer-session-key-escape
+wait --id computer-session-shortcut-app-switcher --contains Closed
+tap --id computer-session-shortcut-app-switcher
+tap --id computer-session-shortcut-app-switcher
+wait --id computer-session-shortcut-app-switcher --contains Closed
+tap --id computer-session-shortcut-win
+swipe left --in computer-session-shortcuts-row
+tap --id computer-session-modifier-ctrl
+wait --id computer-session-modifier-ctrl --contains "Held for the next key"
+shot computer-platform-windows-modifier
+type c
+wait --id computer-session-modifier-ctrl --contains "Held for the next key" --gone
+wait --id computer-session-modifier-ctrl
+tap --id computer-session-modifier-ctrl
+wait --id computer-session-modifier-ctrl --contains "Held for the next key"
+tap --id computer-session-key-tab
+wait --id computer-session-modifier-ctrl --contains "Held for the next key" --gone
+wait --id computer-session-modifier-ctrl
+tap --id computer-session-modifier-ctrl
+wait --id computer-session-modifier-ctrl --contains "Held for the next key"
+swipe right --in computer-session-shortcuts-row
+tap --id computer-session-clipboard
+tap --id computer-session-copy-from-mac
+wait --id computer-session-modifier-ctrl --contains "Held for the next key" --gone
+wait --id computer-session-modifier-ctrl
+tap --id computer-session-modifier-alt
+wait --id computer-session-modifier-alt --contains "Held for the next key"
+wait --id computer-session-more --timeout 15
+wait --id computer-session-control-active --timeout 15
+tap --id computer-session-keyboard
+wait --id computer-session-shortcuts-row --timeout 10
+wait --id computer-session-modifier-alt --contains "Held for the next key" --gone
+wait --id computer-session-modifier-alt
+wait --id computer-session-more --timeout 15
+
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture linux-host --fixture no-hardware-keyboard
+wait --id computer-session-more --timeout 30
+wait --id computer-session-control-active --timeout 15
+tap --id computer-session-keyboard
+wait --id computer-session-shortcuts-row --timeout 10
+wait --id computer-session-modifier-super
+wait --id computer-session-modifier-ctrl
+wait --id computer-session-modifier-alt
+wait --id computer-session-shortcut-activities
+wait --id computer-session-input-limitation --gone
+shot computer-platform-linux-control
+tap --id computer-session-shortcut-app-switcher
+wait --id computer-session-shortcut-app-switcher --contains "Open, Alt held"
+swipe left --in computer-session-shortcuts-row
+tap --id computer-session-key-tab
+wait --id computer-session-shortcut-app-switcher --contains "Open, Alt held"
+shot computer-platform-linux-switcher
+swipe right --in computer-session-shortcuts-row
+tap --id computer-session-key-escape
+wait --id computer-session-shortcut-app-switcher --contains Closed
+tap --id computer-session-shortcut-activities
+swipe left --in computer-session-shortcuts-row
+swipe right --in computer-session-shortcuts-row
+tap --id computer-session-modifier-super
+wait --id computer-session-modifier-super --contains "Held for the next key"
+swipe left --in computer-session-shortcuts-row
+tap --id computer-session-key-tab
+swipe right --in computer-session-shortcuts-row
+wait --id computer-session-modifier-super --contains "Held for the next key" --gone
+wait --id computer-session-modifier-super
+wait --id computer-session-more --timeout 15

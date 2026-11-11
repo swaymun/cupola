@@ -1,0 +1,15 @@
+# A thread that opened more pull requests than the Mac lists says so: the Git
+# pill counts every one, and Code changes explains that only the newest are
+# shown and the rest are on GitHub. The fixture stands in for the Mac.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-pull-requests --fixture project-pull-requests-many
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --timeout 15
+tap --id conversation-title-menu
+wait --contains "Pull requests" --timeout 5
+tap --contains "Pull requests"
+wait --id pull-request-row:128 --timeout 10
+wait --id pull-requests-limit --timeout 5
+shot pull-requests-limit

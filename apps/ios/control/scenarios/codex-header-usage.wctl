@@ -1,0 +1,30 @@
+# A Codex thread's header line under the title names the Project, with no usage
+# figure and, with one computer paired, no computer name (check the shot);
+# VoiceOver still names the computer. The header has no usage control (not even
+# a gauge): every window Codex reports, named by its length (5 hours, Weekly), is on the Usage page beside Settings. No
+# provider icon beside the name and no New chat button in the header. The
+# title's chevron reads "Chat options" to VoiceOver, not the symbol's name.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture usage-fixture
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-composer-model --timeout 15
+wait --label "Read status fixture, Read status Project, Codex, chat options"
+# The header's chevron is named "Chat options". (Other chevrons on screen, such as
+# the composer's model picker, are hidden from VoiceOver but still listed by AXe.)
+wait --label "Chat options" --timeout 5
+wait --id new-chat --gone
+wait --id context-usage-ring --gone --timeout 5
+# VoiceOver names the computer; usage stays out of the header once it loads.
+wait --id conversation-title-menu --contains "On Synthetic fixture" --timeout 10
+wait --id conversation-title-menu --contains "this week" --never 5
+shot codex-header-weekly
+sidebar open
+wait --id sidebar-usage --timeout 15
+tap --id sidebar-usage
+wait --id usage-page --timeout 15
+wait --id codex-usage-window:five-hours --timeout 15
+wait --id codex-usage-window:weekly --timeout 10
+wait --label "5 hours"
+shot codex-usage-page

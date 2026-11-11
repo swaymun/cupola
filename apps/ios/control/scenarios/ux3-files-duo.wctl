@@ -1,0 +1,29 @@
+# devices: duo
+# Native Duo taps are gated (#387). Launch into the real file reader and send
+# fixture signals to its existing expand/collapse actions; captures own visuals.
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture companion-files --fixture workspace-viewer-preview --fixture ux3-markdown
+wait --id workspace-markdown-preview --timeout 25
+shot ux3-duo-file-inline --display primary-1
+signal ux3-expand
+wait --id workspace-preview-collapse --timeout 10
+shot ux3-duo-file-expanded --display primary-1
+signal ux3-collapse
+wait --id workspace-preview-title --contains guide.md --timeout 10
+wait --id workspace-preview-collapse --gone --timeout 10
+shot ux3-duo-file-restored --display primary-1
+signal ux3-back
+wait --id workspace-file-list --timeout 10
+shot ux3-duo-files-half-screen --display primary-1
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture companion-files --fixture workspace-viewer-preview --fixture ux3-markdown
+wait --id workspace-markdown-preview --timeout 25
+shot ux3-duo-folded-file-inline
+signal ux3-expand
+wait --id workspace-preview-collapse --timeout 10
+shot ux3-duo-folded-file-expanded
+signal ux3-collapse
+wait --id workspace-preview-title --contains guide.md --timeout 10
+shot ux3-duo-folded-file-restored

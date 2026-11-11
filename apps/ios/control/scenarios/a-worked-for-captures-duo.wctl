@@ -1,0 +1,135 @@
+# devices: duo
+# A-WORKED-FOR captures on the Duo (no expand tap: Duo touch input is not qualified, #387; iPhone/iPad cover it): folded cover, then the unfolded inner display. Offline fixtures; nothing is sent.
+hinge 0
+orient portrait
+# folded / cupola-light: finished turn, folded then expanded
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture turn-collapse --fixture theme --arg cupola-light --fixture open-project-thread
+wait --contains "One file changed" --timeout 15
+shot a-worked-for-folded-cupola-light-finished-folded
+# folded / cupola-light: running turn mid-step, then finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture current-step-finishes --fixture theme --arg cupola-light --fixture open-project-thread
+wait --id conversation-title-menu --contains "Searching for isWorking" --timeout 15
+shot a-worked-for-folded-cupola-light-running
+signal current-step-finish
+wait --contains "Searching for isWorking" --gone --timeout 30
+shot a-worked-for-folded-cupola-light-current-step-finish
+# folded / cupola-light: stopped turn
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-stopped --fixture open-project-thread --fixture theme --arg cupola-light --fixture open-project-thread
+wait --contains "The layout keeps the message composer available." --timeout 30
+shot a-worked-for-folded-cupola-light-stopped
+# folded / cupola-light: agent tasks finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch --fixture theme --arg cupola-light --fixture open-project-thread
+wait --id agent-tasks-finished --timeout 20
+shot a-worked-for-folded-cupola-light-tasks-finished
+
+# folded / cupola-dark: finished turn, folded then expanded
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture turn-collapse --fixture theme --arg cupola-dark --fixture open-project-thread
+wait --contains "One file changed" --timeout 15
+shot a-worked-for-folded-cupola-dark-finished-folded
+# folded / cupola-dark: running turn mid-step, then finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture current-step-finishes --fixture theme --arg cupola-dark --fixture open-project-thread
+wait --id conversation-title-menu --contains "Searching for isWorking" --timeout 15
+shot a-worked-for-folded-cupola-dark-running
+signal current-step-finish
+wait --contains "Searching for isWorking" --gone --timeout 30
+shot a-worked-for-folded-cupola-dark-current-step-finish
+# folded / cupola-dark: stopped turn
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-stopped --fixture open-project-thread --fixture theme --arg cupola-dark --fixture open-project-thread
+wait --contains "The layout keeps the message composer available." --timeout 30
+shot a-worked-for-folded-cupola-dark-stopped
+# folded / cupola-dark: agent tasks finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch --fixture theme --arg cupola-dark --fixture open-project-thread
+wait --id agent-tasks-finished --timeout 20
+shot a-worked-for-folded-cupola-dark-tasks-finished
+
+# folded / nord: finished turn, folded then expanded
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture turn-collapse --fixture theme --arg nord --fixture open-project-thread
+wait --contains "One file changed" --timeout 15
+shot a-worked-for-folded-nord-finished-folded
+# folded / nord: running turn mid-step, then finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture current-step-finishes --fixture theme --arg nord --fixture open-project-thread
+wait --id conversation-title-menu --contains "Searching for isWorking" --timeout 15
+shot a-worked-for-folded-nord-running
+signal current-step-finish
+wait --contains "Searching for isWorking" --gone --timeout 30
+shot a-worked-for-folded-nord-current-step-finish
+# folded / nord: stopped turn
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-stopped --fixture open-project-thread --fixture theme --arg nord --fixture open-project-thread
+wait --contains "The layout keeps the message composer available." --timeout 30
+shot a-worked-for-folded-nord-stopped
+# folded / nord: agent tasks finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch --fixture theme --arg nord --fixture open-project-thread
+wait --id agent-tasks-finished --timeout 20
+shot a-worked-for-folded-nord-tasks-finished
+
+# folded / misty-forest: finished turn, folded then expanded
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture turn-collapse --fixture theme --arg misty-forest --fixture open-project-thread
+wait --contains "One file changed" --timeout 15
+shot a-worked-for-folded-misty-forest-finished-folded
+
+hinge 180
+orient portrait
+# unfolded / cupola-light: finished turn, folded then expanded
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture turn-collapse --fixture theme --arg cupola-light --fixture open-project-thread
+wait --contains "One file changed" --timeout 15
+shot a-worked-for-unfolded-cupola-light-finished-folded --display primary-1
+# unfolded / cupola-light: running turn mid-step, then finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture current-step-finishes --fixture theme --arg cupola-light --fixture open-project-thread
+wait --id conversation-title-menu --contains "Searching for isWorking" --timeout 15
+shot a-worked-for-unfolded-cupola-light-running --display primary-1
+signal current-step-finish
+wait --contains "Searching for isWorking" --gone --timeout 30
+shot a-worked-for-unfolded-cupola-light-current-step-finish --display primary-1
+# unfolded / cupola-light: stopped turn
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-stopped --fixture open-project-thread --fixture theme --arg cupola-light --fixture open-project-thread
+wait --contains "The layout keeps the message composer available." --timeout 30
+shot a-worked-for-unfolded-cupola-light-stopped --display primary-1
+# unfolded / cupola-light: agent tasks finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch --fixture theme --arg cupola-light --fixture open-project-thread
+wait --id agent-tasks-finished --timeout 20
+shot a-worked-for-unfolded-cupola-light-tasks-finished --display primary-1
+
+# unfolded / cupola-dark: finished turn, folded then expanded
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture turn-collapse --fixture theme --arg cupola-dark --fixture open-project-thread
+wait --contains "One file changed" --timeout 15
+shot a-worked-for-unfolded-cupola-dark-finished-folded --display primary-1
+# unfolded / cupola-dark: running turn mid-step, then finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture current-step-finishes --fixture theme --arg cupola-dark --fixture open-project-thread
+wait --id conversation-title-menu --contains "Searching for isWorking" --timeout 15
+shot a-worked-for-unfolded-cupola-dark-running --display primary-1
+signal current-step-finish
+wait --contains "Searching for isWorking" --gone --timeout 30
+shot a-worked-for-unfolded-cupola-dark-current-step-finish --display primary-1
+# unfolded / cupola-dark: stopped turn
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-stopped --fixture open-project-thread --fixture theme --arg cupola-dark --fixture open-project-thread
+wait --contains "The layout keeps the message composer available." --timeout 30
+shot a-worked-for-unfolded-cupola-dark-stopped --display primary-1
+# unfolded / cupola-dark: agent tasks finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch --fixture theme --arg cupola-dark --fixture open-project-thread
+wait --id agent-tasks-finished --timeout 20
+shot a-worked-for-unfolded-cupola-dark-tasks-finished --display primary-1
+
+# unfolded / nord: finished turn, folded then expanded
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture turn-collapse --fixture theme --arg nord --fixture open-project-thread
+wait --contains "One file changed" --timeout 15
+shot a-worked-for-unfolded-nord-finished-folded --display primary-1
+# unfolded / nord: running turn mid-step, then finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture current-step-finishes --fixture theme --arg nord --fixture open-project-thread
+wait --id conversation-title-menu --contains "Searching for isWorking" --timeout 15
+shot a-worked-for-unfolded-nord-running --display primary-1
+signal current-step-finish
+wait --contains "Searching for isWorking" --gone --timeout 30
+shot a-worked-for-unfolded-nord-current-step-finish --display primary-1
+# unfolded / nord: stopped turn
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-stopped --fixture open-project-thread --fixture theme --arg nord --fixture open-project-thread
+wait --contains "The layout keeps the message composer available." --timeout 30
+shot a-worked-for-unfolded-nord-stopped --display primary-1
+# unfolded / nord: agent tasks finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch --fixture theme --arg nord --fixture open-project-thread
+wait --id agent-tasks-finished --timeout 20
+shot a-worked-for-unfolded-nord-tasks-finished --display primary-1
+
+# unfolded / misty-forest: finished turn, folded then expanded
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture turn-collapse --fixture theme --arg misty-forest --fixture open-project-thread
+wait --contains "One file changed" --timeout 15
+shot a-worked-for-unfolded-misty-forest-finished-folded --display primary-1

@@ -1,0 +1,17 @@
+# devices: iphone ipad duo
+# Empty versus decoded picture: the recovery renderer hides an empty Metal view.
+# Source: ComputerSessionView's computer.hasPicture Diagnostics state and
+# ComputerVideoView. Existing synthetic reconnect fixture supplies a decoded frame.
+# No host, model or personal content; captures distinguish the page from video.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture companion-computer --fixture computer-session-fixture --fixture computer-session-available-fixture --arg=-diagnostics-theme --arg=cupola-light --arg=-AppleInterfaceStyle --arg=Light
+assert --path computer.hasPicture --equals false --timeout 20
+driver off
+wait --id computer-session-container --timeout 20
+shot rail-computer-empty-picture
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture companion-computer --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --arg=-diagnostics-theme --arg=cupola-light --arg=-AppleInterfaceStyle --arg=Light
+assert --path computer.hasPicture --equals true --timeout 20
+driver off
+wait --id computer-session-container --timeout 20
+shot rail-computer-decoded-picture

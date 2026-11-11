@@ -1,0 +1,32 @@
+# UX6: account recovery must remain reachable with no paired computer.
+# Empty in-memory library and local account stand-in: no Keychain, Apple, APNs,
+# computer pairing or notification-service requests.
+launch --fixture ux6-settings-fixture --fixture account-fixture --fixture account-signed-in
+wait --id settings-add-computer --timeout 30
+wait --id settings-notifications --gone --timeout 2
+wait --id account-provider --timeout 5
+shot ux6-signed-in-no-computer
+tap --id account-provider
+wait --id account-sign-out --timeout 5
+wait --id account-delete --timeout 5
+wait --id account-privacy --timeout 5
+tree --json
+shot ux6-signed-in-no-computer-menu
+tap --id account-sign-out
+wait --label "Sign out?" --timeout 5
+tap --label "Sign out" --type Button --nth 1
+wait --id account-sign-in-apple --timeout 10
+wait --id account-provider --gone --timeout 2
+wait --id account-privacy --timeout 5
+shot ux6-no-computer-signed-out
+
+# Deletion also stays reachable in the same empty-library state.
+launch --fixture ux6-settings-fixture --fixture account-fixture --fixture account-signed-in
+wait --id account-provider --timeout 30
+tap --id account-provider
+tap --id account-delete
+wait --label "Delete your Cupola account?" --timeout 5
+tap --label "Delete" --type Button
+wait --id account-sign-in-apple --timeout 10
+wait --id account-provider --gone --timeout 2
+shot ux6-no-computer-deleted

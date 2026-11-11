@@ -1,0 +1,21 @@
+# Automations: rows show as soon as the list arrives, before their chat names
+# and recent runs (held 12 s by the fixture); each row opens its chat; a
+# schedule saved in another time zone names that zone instead of calling it
+# custom, and Change schedule switches to this device's zone by name.
+launch --fixture automations-fixture --fixture automations-slow-details
+wait --id automation-row:fixture-morning-schedule --timeout 10
+wait --label "Open chat: Project thread" --timeout 2
+shot automations-rows-before-details
+wait --label "Open chat: Roadmap · Plan launch" --timeout 30
+tap --id automation-open-chat:fixture-morning-schedule
+wait --id automations-fixture-opened --timeout 5
+wait --contains "fixture-project-thread" --timeout 2
+launch --fixture automations-fixture --fixture automations-existing-project --fixture automations-other-zone
+wait --id automation-edit:fixture-project-schedule --timeout 15
+tap --id automation-edit:fixture-project-schedule
+wait --id project-automation-saved-schedule --timeout 10
+wait --contains "every day at" --timeout 2
+shot automations-other-zone
+tap --id project-automation-change-schedule
+wait --id project-automation-zone --timeout 5
+shot automations-local-zone

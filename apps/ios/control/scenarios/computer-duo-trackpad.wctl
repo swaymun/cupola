@@ -1,0 +1,56 @@
+# nightly-ipad: a half-folded screen puts the computer above the fold and the trackpad, keyboard and Apps launcher below
+# The laptop pose uses the ordinary middle fold: the controls and pad must both fit
+# below it, and each native modifier remains at least a 44 pt touch target.
+# Offline fixture: no paired host input or model calls.
+# The Duo simulator's real hinge (wonderctl --device duo hinge 90, orient
+# landscape-left) belongs to the Duo canary until #387 closes.
+# The pad modifier path: selecting Command must leave the pad/selection
+# visible and the click consumes it. Raising the keyboard releases a second
+# pad latch before the row is hidden.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-fold --fixture no-hardware-keyboard --fixture computer-reconnect
+wait --id computer-session-trackpad --timeout 30
+wait --id computer-session-control-active --timeout 15
+tap --id computer-session-modifier-command
+wait --id computer-session-modifier-command --contains "Held for the next key or click" --timeout 5
+wait --id computer-session-trackpad --timeout 5
+tap --id computer-session-trackpad
+wait --id computer-session-modifier-command --contains "Held for the next key or click" --gone --timeout 5
+tap --id computer-session-modifier-command
+wait --id computer-session-modifier-command --contains "Held for the next key or click" --timeout 5
+tap --id computer-session-keyboard
+wait --id computer-viewport-appearances --contains "releases: 1;" --timeout 5
+wait --id computer-session-modifier-command --contains "Held for the next key or click" --gone --timeout 5
+shot computer-pad-modifier-keyboard-raised
+# Fresh fixture makes the key action counts independent of pointer clicks.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-fold --fixture no-hardware-keyboard --fixture computer-reconnect
+wait --id computer-session-trackpad --timeout 30
+wait --id computer-session-more
+shot computer-duo-before-control
+wait --id computer-session-control-active --timeout 15
+# Raise the system keyboard: the shortcut row (above the pad when the controls do not fit) and the pad remain live together below the simulated fold.
+tap --id computer-session-keyboard
+wait --id computer-viewport-appearances --contains "laptop: true;" --timeout 10
+wait --id computer-session-key-escape --timeout 10
+wait --id computer-session-trackpad
+shot computer-duo-keyboard-and-pad
+# fixtureSentInput counts individual actions: initial pointer move (1), Escape (2).
+tap --id computer-session-key-escape
+wait --id computer-viewport-appearances --contains "sent: 2;" --timeout 5
+tap --id computer-session-keyboard
+wait --id computer-session-trackpad
+shot computer-duo-keyboard-hidden
+# Apps is on the shortcut row.
+tap --id computer-session-keyboard
+wait --id computer-session-shortcuts-row --timeout 10
+tap --id computer-session-shortcut-applications
+wait --id computer-apps --timeout 10
+wait --id computer-app-com.apple.calculator
+shot computer-duo-apps
+# The search field is not focused on open; typing first would go to the computer.
+tap --contains "Search apps on" --type TextField
+type "term"
+wait --id computer-app-com.apple.Terminal
+wait --id computer-app-com.apple.calculator --gone
+tap --id computer-app-com.apple.Terminal
+wait --id computer-apps --gone --timeout 10
+wait --id computer-session-control-active

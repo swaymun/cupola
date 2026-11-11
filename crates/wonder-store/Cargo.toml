@@ -1,0 +1,29 @@
+[package]
+name = "wonder-store"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+# Fixture writers and read-backs that only tests call; never in a release build.
+test-support = []
+
+[dependencies]
+hex.workspace = true
+sha2.workspace = true
+sqlx.workspace = true
+time.workspace = true
+uuid.workspace = true
+tokio.workspace = true
+serde_json.workspace = true
+serde.workspace = true
+wonder-api = { path = "../wonder-api" }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[dev-dependencies]
+tempfile.workspace = true

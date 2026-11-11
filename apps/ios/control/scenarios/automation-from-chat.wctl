@@ -1,0 +1,12 @@
+# Schedules an agent made from a chat (wonder_schedule) appear in Automations with
+# when and how often they run in plain words.
+# Offline fixture: two agent-made rules, a weekday 9:00 rule and "every 2 hours",
+# both saved in UTC; the Mac's confirmation sentence is owned by the wonderd
+# schedule tests. Nothing runs and no agent is contacted.
+launch --fixture automations-fixture --fixture automations-from-chat
+wait --id automation-row:agent-automation:fixture-project-thread:a1 --timeout 15
+wait --id automation-repeat:agent-automation:fixture-project-thread:a1 --contains "On weekdays at 9:00" --timeout 5
+wait --id automation-repeat:agent-automation:fixture-project-thread:b2 --contains "Every 2 hours" --timeout 5
+wait --label "Check CI"
+wait --label "Look at deploys"
+shot automation-from-chat

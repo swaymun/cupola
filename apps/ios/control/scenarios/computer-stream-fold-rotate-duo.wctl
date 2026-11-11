@@ -1,0 +1,36 @@
+# devices: duo
+# The computer view keeps its picture and control when the viewing Duo turns and
+# folds/unfolds: `computer.sessionBuilds` stays at one (a rebuild would show as a second
+# session), the picture keeps arriving and control is never dropped.
+driver on
+hinge 180
+orient portrait
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-dock --fixture computer-fold --fixture computer-control-active --fixture no-hardware-keyboard
+assert --path computer.hasPicture --equals true --timeout 30
+assert --path computer.controlling --equals true --timeout 15
+assert --path computer.sessionBuilds --equals 1
+driver off
+shot computer-stream-unfolded --display primary-1
+driver on
+orient landscape-left
+assert --path computer.hasPicture --equals true --timeout 15
+assert --path computer.controlling --equals true
+assert --path computer.sessionBuilds --equals 1
+driver off
+shot computer-stream-turned --display primary-1
+driver on
+orient portrait
+hinge 0
+assert --path computer.hasPicture --equals true --timeout 20
+assert --path computer.controlling --equals true --timeout 10
+assert --path computer.sessionBuilds --equals 1
+driver off
+shot computer-stream-folded
+driver on
+hinge 180
+orient portrait
+assert --path computer.hasPicture --equals true --timeout 20
+assert --path computer.controlling --equals true --timeout 10
+assert --path computer.sessionBuilds --equals 1
+driver off
+shot computer-stream-unfolded-again --display primary-1

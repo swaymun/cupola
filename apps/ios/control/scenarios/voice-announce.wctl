@@ -1,0 +1,48 @@
+# Voice speaks up about the chat it is pinned to: a finished reply, an approval
+# or a question waiting, as one short plain sentence that offers to read it.
+# Scripted offline voice fixture (-diagnostics-voice-preview): `signal
+# voice-announce-<event>` stands in for the chat's event stream; the announcer
+# and its rules are the real ones, the line it would say lands in the visible
+# transcript instead of OpenAI audio. No microphone, network or model work.
+# The 3 s gap replaces the 20 s rate limit so the scenario stays short.
+# Holds: another chat's event (-other) never speaks; a reply waits behind the
+# proposal on screen; two events while muted wait for Unmute and share one
+# sentence. VoiceAnnounceTests own the timing rules; the Settings switch is in
+# voice-settings.wctl.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture voice-preview --fixture open-project-thread --arg=-diagnostics-voice-announce-gap --arg=3
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+tap --id voice-start
+assert --path voice.active --equals 'true'
+assert --path voice.announced --equals '[]'
+driver off
+wait --id voice-panel --timeout 5
+wait --id voice-confirmation-message --contains "Run the voice tests"
+driver on
+signal voice-announce-other
+signal voice-announce-reply
+tap --id voice-confirmation-cancel
+driver off
+wait --id voice-agent-caption --contains "finished its reply. Want me to read it?" --timeout 10
+wait --id voice-agent-caption --contains "Read status fixture"
+shot voice-announce-reply
+driver on
+assert --path voice.announced --equals '["“Read status fixture” finished its reply. Want me to read it?"]'
+tap --id voice-mute
+assert --path voice.muted --equals 'true'
+signal voice-announce-approval
+signal voice-announce-question
+driver off
+wait --label "Unmute"
+driver on
+tap --id voice-mute
+assert --path voice.muted --equals 'false'
+driver off
+wait --id voice-agent-caption --contains "needs an approval and has a question for you. Want me to go over it?" --timeout 15
+shot voice-announce-approval-question
+driver on
+assert --path voice.announced --equals '["“Read status fixture” finished its reply. Want me to read it?", "“Read status fixture” needs an approval and has a question for you. Want me to go over it?"]'
+assert --path voice.transcript.threadIds --equals '["fixture-parent-conversation"]'
+assert --path fixtureSends.bodies --equals '[]'
+tap --id voice-end
+assert --path voice.active --equals 'false'

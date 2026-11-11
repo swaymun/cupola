@@ -1,0 +1,32 @@
+# nightly-ipad: a computer that is off is one plain state everywhere
+# A disconnected computer shows its red dot and one "is offline" line on the
+# pages that read from it (default models, Automations, Project settings): no
+# "couldn't load" text and no Try again (default models read from this device
+# and leave an unreachable computer out). The fixture stands in for the Mac.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture default-models --fixture mac-offline
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id project-row:read-project --timeout 20
+signal mac-gone
+button home
+activate
+sidebar open
+wait --id project-row:read-project --timeout 20
+wait --id threads-retry:read-project --never 3
+wait --contains "Connect to" --never 1
+wait --id computer-filter:diagnostic-host --contains disconnected --timeout 20
+shot offline-sidebar
+tap --id sidebar-automations
+wait --id automations-offline --timeout 20
+wait --id automations-retry --gone --timeout 5
+shot offline-automations
+back
+sidebar open
+tap --id sidebar-settings
+wait --id settings-add-computer --timeout 10
+tap --id settings-default-models
+wait --id provider-default-model:codex --timeout 15
+tap --id provider-default-model:codex
+wait --contains "Try again" --never 1
+wait --contains "couldn’t be loaded" --never 1
+shot offline-default-models

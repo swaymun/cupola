@@ -1,0 +1,14 @@
+# devices: iphone
+# WAKE-REPLIES: each background-task wake is its own run: the `Command "..." finished` row, its Worked row, then its reply. Offline fixture; nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture task-wakes --fixture open-project-thread
+wait --contains "Started the build, the tests and a log watcher" --timeout 30
+wait --contains "The build passed with no warnings." --timeout 15
+wait --id task-notification:wake-3/wake-3 --label "Command \"Watch the logs\" stopped" --timeout 10
+wait --id task-notification:wake-2/wake-2 --label "Command \"Run the unit tests\" failed" --timeout 10
+wait --contains "The log watcher was stopped" --timeout 10
+wait --contains "task-notification" --gone --timeout 3
+shot wake-replies-last
+swipe down
+swipe down
+wait --id task-notification:wake-1/wake-1 --label "Command \"Build the app\" finished" --timeout 10
+shot wake-replies-first

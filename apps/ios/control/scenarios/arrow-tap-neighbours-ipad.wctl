@@ -1,0 +1,30 @@
+# devices: ipad
+# SCROLL-BUTTON-TAP: scroll-to-end sits above the composer's pill row (Terminal among them). Taps on the arrow's
+# edges and just outside it must never open the Terminal or Agent tasks; only the arrow scrolls.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture long-thread-title --fixture theme --arg cupola-dark --arg=-diagnostics-scroll-top --arg=-diagnostics-terminal-available --arg=-composerPills --arg=computer,files,terminal
+wait --id conversation-title-menu --timeout 30
+wait --id scroll-to-bottom --timeout 30
+wait --id conversation-terminal-pill --timeout 10
+tree --json
+shot arrow-tap-neighbours-before
+# iPad: arrow {567,976 44x44}; Terminal pill {499,1036 46x44}: 16 pt apart vertically, no horizontal overlap.
+# Just outside the arrow (below, left, right, in the gap above Terminal): nothing opens, the arrow stays.
+tap --xy 575,1022 --size 834,1210
+tap --xy 560,1030 --size 834,1210
+tap --xy 560,998 --size 834,1210
+tap --xy 616,998 --size 834,1210
+wait --id terminal-sheet --gone --timeout 3
+wait --label "Agent tasks" --gone --timeout 3
+wait --id scroll-to-bottom --timeout 5
+shot arrow-tap-neighbours-outside
+# The arrow's circle at its lower-left edge, nearest Terminal (the corner of its 44 pt square is not part of the
+# circle): scrolls, opens nothing.
+tap --xy 574,1012 --size 834,1210
+wait --id scroll-to-bottom --gone --timeout 10
+wait --id terminal-sheet --gone --timeout 3
+wait --label "Agent tasks" --gone --timeout 3
+shot arrow-tap-neighbours-after
+# Control: the same x, on Terminal itself, does open it (the taps above could have reached it).
+tap --xy 520,1058 --size 834,1210
+wait --id terminal-sheet --timeout 10
+shot arrow-tap-neighbours-terminal-control

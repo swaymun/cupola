@@ -1,0 +1,35 @@
+# Demo mode for someone with no computer paired (an App Store reviewer): Try the demo on the
+# empty Add a computer screen shows a demo computer badged Demo in Chats; a thread opens,
+# a message sent gets a scripted reply that streams in and finishes, and Leave demo
+# returns to Add a computer with nothing left behind. The fixture empties the saved
+# computers without reading the Keychain; the demo answers inside the app, nothing is sent.
+launch --fixture unpaired
+wait --id welcome-add-computer --timeout 30
+wait --id welcome-try-demo --timeout 5
+shot demo-mode-welcome
+tap --id welcome-try-demo
+sidebar open
+wait --id demo-notice --timeout 15
+wait --id demo-badge --timeout 5
+wait --id pinned-thread:codex:demo-sign-out --timeout 20
+shot demo-mode-chats
+tap --id pinned-thread:codex:demo-sign-out
+wait --contains "42 tests passed" --timeout 20
+wait --id project-conversation-header --timeout 5
+wait --id message-draft --timeout 15
+tap --id message-draft --type TextArea
+type "How would this work on my computer?"
+tap --id send-message
+wait --contains "This is a demo, so nothing ran" --timeout 20
+shot demo-mode-streaming
+wait --contains "leave the demo and add your computer" --timeout 20
+wait --contains "How would this work on my computer?" --timeout 5
+shot demo-mode-replied
+sidebar open
+tap --id demo-leave
+wait --id welcome-add-computer --timeout 15
+wait --id welcome-try-demo --timeout 5
+sidebar open
+wait --id sidebar-add-computer --timeout 10
+wait --id demo-notice --gone --timeout 5
+shot demo-mode-left

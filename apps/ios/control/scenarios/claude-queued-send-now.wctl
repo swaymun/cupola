@@ -1,0 +1,18 @@
+# A message queued behind a running Claude reply can still be sent now from its
+# queued message's menu: Claude takes Send now (its capability record has steer).
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture send-claude --arg=-wonder.send.followUp --arg=queue
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id message-draft --timeout 15
+tap --id message-draft --type TextArea
+type "Also update the changelog"
+wait --label "Queue message" --timeout 10
+tap --id send-message
+wait --contains "Queued message: Also update the changelog" --timeout 5
+# The editable row follows once the Mac lists the queue (after its receipt).
+wait --label "Queued message actions" --timeout 10
+tap --label "Queued message actions"
+wait --label "Send now" --timeout 5
+shot claude-queued-send-now

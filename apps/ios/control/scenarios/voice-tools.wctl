@@ -1,0 +1,100 @@
+# devices: iphone ipad duo
+# visual-review: the target notice names a spoken move; confirmation cards for start, stop and approve.
+# Fixture transcripts drive the real tool router (confirmations, retargeting) and the app's real
+# navigation; threads, the running reply and the approval are served in memory (FixtureVoiceHost).
+# No microphone, network, OpenAI or agent work.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture send-states --fixture voice-preview --fixture voice-tools --fixture open-project-thread
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+tap --id voice-start
+assert --path voice.active --equals 'true'
+driver off
+wait --id voice-panel --timeout 5
+# 1. "Open the Fork thread": an explicit destination change, announced by the target notice.
+signal voice-tools-1
+driver on
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 15
+assert --path voice.chatID --equals '"fixture-fork-conversation"' --timeout 5
+assert --path voice.toolResults.0 --equals '"open_thread:opened"' --timeout 5
+driver off
+wait --id voice-target-notice --contains "Now talking in" --timeout 5
+shot voice-tools-opened-thread
+# 2. "Open the voice settings": a screen opens; speech does not move.
+signal voice-tools-2
+driver on
+assert --path settingsOpen --equals 'true' --timeout 15
+assert --path voice.chatID --equals '"fixture-fork-conversation"'
+assert --path voice.toolResults.1 --equals '"open_screen:opened"' --timeout 5
+driver off
+wait --id voice-target:diagnostic-host --contains "alking in" --timeout 8
+shot voice-tools-settings-page
+# 3-4. "Start a new Codex chat ...": a proposal first, then the spoken confirmation.
+signal voice-tools-3
+driver on
+assert --path voice.toolResults.2 --equals '"start_thread:needs_confirmation"' --timeout 10
+driver off
+shot voice-tools-start-proposal
+signal voice-tools-4
+driver on
+assert --path voice.toolResults.3 --equals '"confirm_action:started"' --timeout 10
+assert --path voice.toolActions.2 --equals '"start:read-project:codex:Check the build"' --timeout 5
+driver off
+# 5. Back to a chat by voice; the screen leaving settings never moved speech.
+signal voice-tools-5
+driver on
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 15
+assert --path voice.chatID --equals '"fixture-parent-conversation"' --timeout 5
+driver off
+# 6-7. A tool pane opens and closes beside (or over) the chat.
+signal voice-tools-6
+driver on
+assert --path voice.toolResults.5 --equals '"open_pane:opened"' --timeout 10
+driver off
+shot voice-tools-pane-open
+signal voice-tools-7
+driver on
+assert --path voice.toolResults.6 --equals '"open_pane:closed"' --timeout 10
+driver off
+# 8-9. Stop the running reply, after a proposal and a confirmation.
+signal voice-tools-8
+driver on
+assert --path voice.toolResults.7 --equals '"stop_reply:needs_confirmation"' --timeout 10
+driver off
+wait --id voice-confirmation-summary --contains "Stop the reply" --timeout 5
+shot voice-tools-stop-proposal
+signal voice-tools-9
+driver on
+assert --path voice.toolResults.8 --equals '"confirm_action:stopped"' --timeout 10
+driver off
+wait --id voice-confirmation --gone --timeout 5
+# 10-12. Answer the approval: list, propose, confirm.
+signal voice-tools-10
+signal voice-tools-11
+driver on
+assert --path voice.toolResults.10 --equals '"answer_approval:needs_confirmation"' --timeout 10
+driver off
+wait --id voice-confirmation-summary --contains "Allow once" --timeout 5
+shot voice-tools-approval-proposal
+signal voice-tools-12
+driver on
+assert --path voice.toolResults.11 --equals '"confirm_action:resolved"' --timeout 10
+assert --path voice.toolActions --equals '["open:fixture-fork-conversation","screen:settings","start:read-project:codex:Check the build","open:fixture-parent-conversation","pane:terminal","pane:close","stop:fixture-parent-conversation","approval:fixture-approval:accept"]' --timeout 5
+driver off
+# The spoken confirmation shows its result on screen, not only in the transcript.
+wait --id voice-target-notice --contains "Answered" --timeout 5
+shot voice-tools-approval-answered
+# 13. Needs you opens; voice stays in the Fixture thread.
+signal voice-tools-13
+driver on
+assert --path voice.toolResults.12 --equals '"open_screen:opened"' --timeout 10
+assert --path voice.chatID --equals '"fixture-parent-conversation"'
+assert --path voice.historyUnchanged --equals 'true'
+driver off
+wait --id voice-target:diagnostic-host --contains "alking in" --timeout 8
+shot voice-tools-needs-you
+driver on
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 15
+tap --id voice-end
+assert --path voice.active --equals 'false' --timeout 5
+driver off

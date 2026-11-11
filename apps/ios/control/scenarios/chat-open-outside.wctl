@@ -1,0 +1,57 @@
+# nightly-ipad: Outside-folder history and refusal recovery belong in the chat column.
+# Owned HTTP fixtures, no paired host or model sends. AXe checks actual visible
+# controls; the host contract separately proves no attachment or folder grant.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture chat-open-outside --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+open wonder://v1/hosts/diagnostic-host/projects/read-project/threads/codex/read-fixture
+wait --id chat-read-only-reason --contains "outside the Project's folders" --timeout 15
+wait --contains "Reply 13. Continuing the project" --timeout 20
+wait --id message-draft --gone
+wait --id send-message --gone
+shot outside-link-readable
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id chat-read-only-reason --timeout 15
+wait --contains "Reply 13. Continuing the project"
+wait --id message-draft --gone
+shot outside-row-readable
+# A tool opened over a read-only chat closes: no composer means no Files pill, so
+# the browser keeps its own Done (it used to replace the chat for good on iPhone).
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture chat-open-outside --fixture project-files-conversation-preview --fixture companion-files --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+open wonder://v1/hosts/diagnostic-host/projects/read-project/threads/codex/read-fixture
+wait --id chat-read-only-reason --contains "outside the Project's folders" --timeout 15
+wait --id workspace-sheet-done --timeout 15
+shot outside-readonly-files-open
+tap --id workspace-sheet-done
+wait --id workspace-sheet-done --gone --timeout 5
+wait --contains "Reply 13. Continuing the project" --timeout 10
+shot outside-readonly-files-closed
+# A computer from before read-only opening still gets its precise reason and
+# a useful next step, with no futile Try again (both a link and a Chats row).
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture chat-open-refused --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+open wonder://v1/hosts/diagnostic-host/projects/read-project/threads/codex/read-fixture
+wait --contains "This thread is outside the project's folders." --timeout 15
+wait --contains "Open this chat on" --timeout 5
+wait --label "Try again" --never 1
+shot outside-older-host-link-reason
+tap --label OK
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "outside the project's folders" --timeout 15
+shot outside-older-host-row-reason
+tap --label OK
+# A transient link timeout offers Try again; its actual retry opens history.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture chat-open-timeout --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+open wonder://v1/hosts/diagnostic-host/projects/read-project/threads/codex/read-fixture
+wait --contains "Opening this chat timed out" --timeout 15
+wait --label "Try again"
+shot chat-link-timeout-can-retry
+tap --label "Try again"
+wait --contains "Reply 13. Continuing the project" --timeout 20
+wait --id message-draft
+shot chat-link-retry-opened

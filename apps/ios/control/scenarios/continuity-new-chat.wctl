@@ -1,0 +1,21 @@
+# nightly-ipad: New chat stays selected and its unsent words survive Home, kill and relaunch
+# devices: iphone ipad
+# Owned synthetic host/destination only. Nothing is sent. The unit test owns
+# the before-debounce timing and three owner-reconstruction cycles.
+driver on
+launch --fixture chat-layout --fixture project-actions --fixture durable-store --fixture durable-store-reset
+assert --path route --equals '"new-chat"' --timeout 30
+driver off
+wait --id new-chat-draft --timeout 30
+tap --id new-chat-draft
+type "New chat continuity draft"
+wait --id new-chat-draft --contains "New chat continuity draft" --timeout 10
+shot continuity-new-chat-before-background
+button home
+terminate
+driver on
+launch --fixture chat-layout --fixture project-actions --fixture durable-store
+assert --path route --equals '"new-chat"' --timeout 30
+driver off
+wait --id new-chat-draft --contains "New chat continuity draft" --timeout 30
+shot continuity-new-chat-after-kill

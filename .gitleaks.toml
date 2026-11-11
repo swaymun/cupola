@@ -1,0 +1,36 @@
+title = "Cupola"
+
+[extend]
+useDefault = true
+
+# Every entry below was read and is a test vector or a declaration, not a credential.
+[[allowlists]]
+description = "Declarations and defaults-keys whose names contain 'key'"
+targetRules = ["generic-api-key"]
+regexTarget = "match"
+regexes = [
+  '''(?:pendingRemovalKey|defaultsKey) = "[a-z0-9-]+"''',
+  '''(?:privateKey|hostKey): (?:Curve25519\.KeyAgreement|P256\.Signing)\.PrivateKey''',
+]
+
+[[allowlists]]
+description = "Made-up tokens and keys that tests feed to redactors and parsers"
+targetRules = ["generic-api-key", "curl-auth-header"]
+regexTarget = "match"
+regexes = [
+  '''token = "0123456789abcdef0123456789abcdef"''',
+  '''token=abcdef1234567890''',
+  '''apiKey\\?":\s*\\?"(?:abc123def456|sk-0123456789abcdefghij)''',
+  '''Authorization: Bearer secret-token''',
+  '''nsec-websocket-key: dGhlIHNhbXBsZSBub25jZQ==''',
+  '''key = "sk-fixture-api-key-0000"''',
+]
+
+[[allowlists]]
+description = "Public host-key pins and deterministic vectors in wire-contract fixtures"
+targetRules = ["generic-api-key"]
+paths = [
+  '''tests/contracts/native/.*\.json''',
+  '''packages/protocol/fixtures/.*\.json''',
+  '''crates/wonderd/src/(?:headless/triage|rescue)\.rs''',
+]

@@ -1,0 +1,19 @@
+# devices: ipad
+# The extra-key row stays visible without the keyboard. Its same button must
+# reopen typing rather than remain a one-way Hide action. Owned offline shell.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture companion-terminal --fixture terminal-preview --fixture ux3-terminal
+wait --id terminal-output --contains build.sh --timeout 20
+wait --id terminal-key-hide --contains Hide --timeout 10
+shot ux3-terminal-start
+tap --id terminal-key-hide
+wait --id terminal-key-hide --contains Show --timeout 10
+shot ux3-terminal-hidden
+tap --id terminal-key-hide
+wait --id terminal-key-hide --contains Hide --timeout 10
+type "restored"
+wait --id terminal-output --contains "wonder-app % restored" --timeout 10
+shot ux3-terminal-shown
+tap --id terminal-key-hide
+wait --id terminal-key-hide --contains Show --timeout 10
+wait --id terminal-output --contains "wonder-app % restored" --timeout 10
+shot ux3-terminal-hidden-again

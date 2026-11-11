@@ -1,0 +1,37 @@
+# devices: duo
+# The Duo twin of computer-fold-pose-change: the real hinge changes the pose
+# (180 flat on the inner display, 90 laptop) and the picture and the keyboard's
+# text view are made once. Native taps are unavailable in the laptop pose (#387),
+# so the keyboard is raised by the dock signal; the key-latch step stays on iPhone.
+driver on
+hinge 180
+orient portrait
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture computer-dock --fixture computer-fold --fixture computer-control-active --fixture no-hardware-keyboard
+assert --path computer.hasPicture --equals true --timeout 30
+assert --path computer.controlling --equals true --timeout 15
+hinge 90
+orient landscape-left
+driver off
+wait --id computer-viewport-appearances --contains "laptop: true;" --timeout 10
+wait --id computer-session-trackpad --timeout 10
+signal computer-dock-keyboard
+driver on
+assert --path computer.keyboardPresented --equals true --timeout 10
+driver off
+shot computer-pose-duo-laptop-keyboard --display primary-1
+# Unfolding to flat moves the view; it does not rebuild the picture or the keyboard view.
+driver on
+hinge 180
+orient portrait
+driver off
+wait --id computer-viewport-appearances --contains "laptop: false;" --timeout 10
+wait --id computer-session-trackpad --gone --timeout 10
+wait --id computer-viewport-appearances --contains "appearances: 1; keyboards: 1; laptop: false;" --timeout 5
+shot computer-pose-duo-flat-keyboard
+driver on
+hinge 90
+orient landscape-left
+driver off
+wait --id computer-viewport-appearances --contains "appearances: 1; keyboards: 1; laptop: true;" --timeout 10
+wait --id computer-session-trackpad --timeout 10
+shot computer-pose-duo-laptop-again --display primary-1

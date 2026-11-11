@@ -1,0 +1,14 @@
+# Native child lifecycle values use the existing Codex roster renderer.
+# The daemon contract owns notLoaded -> native outcome and indexed desktop work.
+# This fixture holds a running Scout, a completed Builder and, with
+# project-subagents-outcomes, a failed Auditor, a stopped Fixer and a Reviewer
+# waiting for approval; no model work.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture open-project-thread --fixture project-subagents-outcomes --arg=-diagnostics-project-subagents-stale
+wait --id project-subagent-status-pill --timeout 30
+tap --id project-subagent-status-pill
+wait --label "Scout, Running" --timeout 10
+wait --label "Builder, Completed" --timeout 10
+wait --label "Auditor, Failed" --timeout 10
+wait --label "Fixer, Stopped" --timeout 10
+wait --label "Reviewer, Waiting for approval" --timeout 10
+shot codex-agent-status

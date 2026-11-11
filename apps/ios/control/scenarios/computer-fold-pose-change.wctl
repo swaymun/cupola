@@ -1,0 +1,35 @@
+# Changing pose mid-session moves the computer view, never rebuilds it: the
+# picture and the keyboard's text view (its focus and IME composition) are the
+# same views in the laptop pose and flat. The simulated fold
+# (-diagnostics-computer-fold) opens flat on `signal computer-fold-open` and
+# half-folds on `signal computer-fold-close`; a Diagnostics probe reports the
+# pose and how often the picture and the keyboard view were made.
+# Offline fixture: no paired host input or model calls.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-fold --fixture no-hardware-keyboard --fixture computer-reconnect
+wait --id computer-session-trackpad --timeout 30
+wait --id computer-viewport-appearances --contains "appearances: 1; keyboards: 1; laptop: true;" --timeout 10
+wait --id computer-session-control-active --timeout 15
+# The pad's key row holds ⌘ for the next key (key down).
+tap --id computer-session-modifier-command
+wait --id computer-viewport-appearances --contains "sent: 2;" --timeout 5
+shot computer-pose-laptop-modifier
+# A held ⌘ does not survive the pose change.
+signal computer-fold-open
+wait --id computer-viewport-appearances --contains "releases: 1;" --timeout 5
+wait --id computer-viewport-appearances --contains "sent: 3;" --timeout 5
+wait --id computer-session-trackpad --gone --timeout 10
+wait --id computer-viewport-appearances --contains "laptop: false;" --timeout 5
+tap --id computer-session-keyboard
+wait --id computer-session-keyboard --contains "Hide keyboard" --timeout 10
+shot computer-pose-flat-keyboard
+wait --id computer-viewport-appearances --contains "appearances: 1; keyboards: 1; laptop: false;" --timeout 5
+signal computer-fold-close
+wait --id computer-session-trackpad --timeout 10
+wait --id computer-viewport-appearances --contains "appearances: 1; keyboards: 1; laptop: true;" --timeout 5
+wait --id computer-session-keyboard --contains "Hide keyboard" --timeout 5
+shot computer-pose-laptop-again
+
+tap --id computer-session-keyboard
+wait --id computer-session-trackpad --timeout 10
+wait --id computer-viewport-appearances --contains "appearances: 1; keyboards: 1; laptop: true;" --timeout 5
+shot computer-pose-laptop-pad-restored

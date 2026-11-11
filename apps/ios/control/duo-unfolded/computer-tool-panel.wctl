@@ -1,0 +1,36 @@
+# Duo only; outside the feature map until #387 closes. Offline transport only.
+# Contract (UX-DUO-4): unfolded, the computer's bar is one centered row (In
+# control, the Mac's dock, shortcut icons, keyboard, trackpad, microphone), or
+# one row that scrolls where the pane is too narrow to center it, in a panel with the chat composer's radius, fill, height and bottom edge; the
+# header centers the computer pill with More and Close (here the pane's own
+# pill closes it); Swap sits on the divider at header height and not in the
+# header. Folded, the dock is a strip beside the rail, which holds the
+# inputs and the clipboard; the shortcut row appears with the keyboard.
+# After each unfolded shot, check the baseline against the composer:
+#   python3 apps/ios/control/scenarios/measure-tool-panel-baseline.py SHOT.png \
+#     --composer-x <point inside the composer> --panel-x <point inside the panel> --scale 3
+# `shot` captures the cover; capture the inner display with `--display primary-1`.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture computer-session-available-fixture --fixture computer-control-active --fixture computer-dock --fixture no-hardware-keyboard --arg=-composerPills --arg=computer --arg=-computer.bottomInput.phone --arg=off --arg=-wonder.companionPane.flipped --arg=NO --arg=-wonder.companionPane.fraction.portrait --arg=0.5 --arg=-wonder.companionPane.fraction.landscape --arg=0.5
+hinge 180
+orient portrait
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+driver off
+wait --id companion-pane --timeout 15
+wait --id computer-session-control-active --timeout 20
+wait --id computer-session-keyboard --timeout 10
+wait --label "Windows" --gone --timeout 3
+# The Duo's half holds the inputs in a side rail (keyboard, trackpad,
+# microphone, in that order from the top); the key row sits under the picture.
+order --axis y --ids computer-session-keyboard,computer-session-trackpad-toggle,computer-session-microphone
+wait --id companion-pane-flip --timeout 5
+shot duo-ux4-unfolded-computer --display primary-1
+# Folded: the dock is a strip above the shortcut icons.
+hinge 0
+orient portrait
+wait --id computer-session-control-active --timeout 20
+# The shortcut row belongs to the system keyboard, which is down here; the rail keeps the inputs and the clipboard.
+wait --id computer-session-keyboard --timeout 10
+wait --id computer-session-clipboard --timeout 10
+shot duo-ux4-folded-computer

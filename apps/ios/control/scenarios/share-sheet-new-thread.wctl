@@ -1,0 +1,20 @@
+# Sharing into a new Project thread: the Project, agent and model are chosen
+# on the sheet, and Send creates the thread with the first message. The fixture
+# creates it only with the agent and model picked here (Claude, Claude Sonnet:
+# neither the Project's last agent nor the default model), so a choice the sheet
+# dropped fails the send.
+launch --fixture share-sheet --fixture share-url --fixture share-expect-choice
+wait --id share-link-preview --timeout 30
+tap --id share-destination --type Button
+wait --id share-new-thread --timeout 15
+tap --id share-new-thread
+wait --id share-new-project --timeout 10
+wait --id share-new-family --timeout 10
+tap --label "Claude" --timeout 5
+wait --id share-new-model --contains "Claude Opus" --timeout 10
+tap --id share-new-model
+tap --label "Claude Sonnet" --timeout 5
+wait --id share-new-model --contains "Claude Sonnet" --timeout 5
+shot share-sheet-new-thread
+tap --id share-send --type Button
+wait --id share-sent --timeout 15

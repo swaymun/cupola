@@ -1,0 +1,74 @@
+# Native hardware-keyboard selection, including the Duo cover and inner display.
+# Explicit synthetic fixtures; no sends. HID 0x28 is Return.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture composer-completion --fixture composer-keyboard --fixture project-read --fixture open-project-thread --fixture composer-cached
+wait --id message-draft --timeout 30
+type "/cupola-summary"
+wait --id composer-suggestion:command:cupola-summary --timeout 15
+shot composer-keyboard-claude-commands
+keys 28
+wait --id message-draft --contains "Summarize this conversation" --timeout 5
+type " @rlnts"
+wait --id "composer-suggestion:file:workspace:docs/Release notes.md" --timeout 15
+shot composer-keyboard-claude-files
+keys 28
+wait --id message-draft --contains "Release notes.md" --timeout 5
+type "@planning"
+wait --id composer-suggestion:thread:codex:release-plan --timeout 15
+shot composer-keyboard-claude-threads
+keys 28
+wait --id message-draft --contains 'cupola://thread/codex%3Arelease-plan' --timeout 5
+shot composer-keyboard-claude-inserted
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture composer-completion --fixture composer-keyboard --fixture project-read --fixture open-project-thread --fixture composer-codex
+wait --id message-draft --timeout 30
+type "/review"
+wait --id composer-suggestion:command:review --timeout 15
+shot composer-keyboard-codex-commands
+keys 28
+wait --id message-draft --contains "/review " --timeout 5
+type " @rlnts"
+wait --id "composer-suggestion:file:workspace:docs/Release notes.md" --timeout 15
+shot composer-keyboard-codex-files
+keys 28
+wait --id message-draft --contains "Release notes.md" --timeout 5
+type "@planning"
+wait --id composer-suggestion:thread:codex:release-plan --timeout 15
+shot composer-keyboard-codex-threads
+keys 28
+wait --id message-draft --contains 'cupola://thread/codex%3Arelease-plan' --timeout 5
+shot composer-keyboard-codex-inserted
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture composer-completion --fixture composer-keyboard --fixture project-read --fixture open-project-thread --fixture t3-code --fixture t3-code-running --fixture composer-cached
+wait --id message-draft --timeout 30
+type "/compact"
+wait --id composer-suggestion:command:compact --timeout 15
+shot composer-keyboard-t3-claude-commands
+keys 28
+wait --id message-draft --contains "/compact " --timeout 5
+type " @rlnts"
+wait --id "composer-suggestion:file:workspace:docs/Release notes.md" --timeout 15
+shot composer-keyboard-t3-claude-files
+keys 28
+wait --id message-draft --contains "Release notes.md" --timeout 5
+type "@planning"
+wait --id composer-suggestion:thread:codex:release-plan --timeout 15
+shot composer-keyboard-t3-claude-threads
+keys 28
+wait --id message-draft --contains 'cupola://thread/codex%3Arelease-plan' --timeout 5
+shot composer-keyboard-t3-claude-inserted
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture composer-completion --fixture composer-keyboard --fixture project-read --fixture open-project-thread --fixture composer-codex --fixture t3-code --fixture t3-code-running
+wait --id message-draft --timeout 30
+type "/compact"
+wait --id composer-suggestion:command:compact --timeout 15
+shot composer-keyboard-t3-codex-commands
+keys 28
+wait --id message-draft --contains "/compact " --timeout 5
+type " @rlnts"
+wait --id "composer-suggestion:file:workspace:docs/Release notes.md" --timeout 15
+shot composer-keyboard-t3-codex-files
+keys 28
+wait --id message-draft --contains "Release notes.md" --timeout 5
+type "@planning"
+wait --id composer-suggestion:thread:codex:release-plan --timeout 15
+shot composer-keyboard-t3-codex-threads
+keys 28
+wait --id message-draft --contains 'cupola://thread/codex%3Arelease-plan' --timeout 5
+shot composer-keyboard-t3-codex-inserted

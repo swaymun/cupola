@@ -1,0 +1,12 @@
+{
+ "$schema":"node_modules/wrangler/config-schema.json",
+ "name":"wonder-push", "main":"src/index.ts", "compatibility_date":"2026-09-15",
+ "workers_dev":true, "preview_urls":false,
+ "routes":[{"pattern":"r-api.getcupola.app","custom_domain":true}],
+ "vars":{"APNS_TOPIC":"com.swaymun.wonder","APNS_ENVIRONMENT":"production","APPLE_AUDIENCES":"com.swaymun.wonder"},
+ "secrets":{"required":["APNS_KEY_ID","APNS_TEAM_ID","APNS_PRIVATE_KEY","RATE_SECRET","ACCOUNT_PEPPER"]},
+ "d1_databases":[{"binding":"DB","database_name":"wonder-push","database_id":"REPLACE_WITH_YOUR_D1_ID","migrations_dir":"migrations"}],
+ "ratelimits":[{"name":"IP_RATE_LIMITER","namespace_id":"1001","simple":{"limit":30,"period":60}}],
+ "triggers":{"crons":["*/5 * * * *","17 * * * *"]},
+ "observability":{"enabled":false}
+}

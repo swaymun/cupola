@@ -1,0 +1,18 @@
+*.pdf binary
+*.png binary
+
+# Archived research is kept byte-for-byte as provenance, including legacy whitespace.
+research/archive/** -whitespace
+
+# Preserve upstream license text exactly; hashes in the notices identify these bytes.
+licenses/RUST-NOTICES.txt -whitespace
+licenses/*-LICENSE.txt -whitespace
+licenses/upstream/*.txt -whitespace
+
+# Windows checkouts (core.autocrlf) keep LF: protocol schemas, contracts,
+# migrations and skills are compiled in byte-for-byte and pinned by hash.
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+apps/ios/Wonder/Fonts/*.txt -text
+licenses/RUST-NOTICES.txt -text

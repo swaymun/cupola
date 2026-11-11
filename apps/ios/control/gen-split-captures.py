@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""Regenerates the A-DUO-SPLIT capture scenarios (same states for every theme and posture)."""
+from pathlib import Path
+
+BASE = ("--fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved "
+        "--fixture project-files-send --fixture project-pull-requests --fixture project-subagents "
+        "--fixture terminal-available --fixture open-project-thread --fixture rail-fixture")
+THEMES = ["cupola-light", "cupola-dark", "nord", "misty-forest"]
+# Tools opened at launch (Diagnostics flags in ConversationView).
+TOOLS = [("files", "-diagnostics-companion-files"), ("terminal", "-diagnostics-companion-terminal"),
+         ("prs", "-diagnostics-companion-pull-requests"), ("tasks", "-diagnostics-companion-agent-task")]
+# Preview-transport set (as rail-tools.wctl): Computer, Preview and the pills that close a tool.
+PREV = ("--fixture read-preview --fixture send-preview --fixture project-files-conversation-preview "
+        "--fixture project-git-preview --fixture terminal-preview --fixture computer-session-available-fixture "
+        "--arg=-composerPills --arg=computer,files,terminal")
+PREV_TOOLS = [("files", "-diagnostics-companion-files", "conversation-files-pill"),
+              ("terminal", "-diagnostics-companion-terminal", "conversation-terminal-pill"),
+              ("computer", "-diagnostics-companion-computer", "computer-status-pill"),
+              ("preview", "-diagnostics-companion-files --arg=-preview-document --arg=README.md", "conversation-files-pill")]
+WIDTHS = [("third", 320), ("half", 507), ("twothirds", 694)]
+OUT = Path(__file__).parent / "scenarios"
+
+
+def state(tag, step, theme, extra, display, wait="message-draft"):
+    d = f" --display {display}" if display else ""
+    return f"""driver on
+launch {BASE} --fixture theme --arg {theme} {extra}
+driver off
+wait --id {wait} --timeout 30
+tree --json
+shot a-duo-split-{tag}-{theme}-{step}{d}
+"""
+
+
+def duo_block(tag, theme, hidden, display):
+    hide = f"--arg=-wonder.sidebar.hidden --arg={'YES' if hidden else 'NO'}"
+    out = [f"# {tag} / {theme}\n"]
+    out.append(state(tag, "chat", theme, hide, display))
+    if hidden:
+        for name, flag in TOOLS:
+            out.append(state(tag, name, theme, f"{hide} --arg={flag}", display))
+    else:
+        out.append(state(tag, "chats-open", theme, hide, display, "chats-sidebar"))
+    return "".join(out)
+
+
+def phone_block(tag, theme, width=None, display=""):
+    w = f"--arg=-diagnostics-window-width --arg={width} " if width else ""
+    hide = "--arg=-wonder.sidebar.hidden --arg=YES"
+    out = [f"# {tag} / {theme}\n", state(tag, "chat", theme, w + hide, display)]
+    for name, flag in TOOLS[:2]:
+        out.append(state(tag, name, theme, f"{w}{hide} --arg={flag}", display))
+    out.append(state(tag, "chats-open", theme, w + "--arg=-wonder.sidebar.hidden --arg=NO", display, "message-draft"))
+    return "".join(out)
+
+
+def close_blocks(theme, display):
+    """Unfolded Duo: each tool open (chat on one display), closed from its own pill (chat spans both)."""
+    out = []
+    for name, flag, pill in PREV_TOOLS:
+        tool = "files" if name == "preview" else name
+        out.append(f"""# unfolded-close / {theme} / {name}
+hinge 180
+orient portrait
+driver on
+launch {PREV} --fixture theme --arg {theme} --arg={flag}
+assert --path pane.tool --equals '"{tool}"' --timeout 30
+assert --id {pill} --contains "Open" --timeout 10
+shot a-duo-split-unfolded-{name}-open-{theme} --display {display}
+tap --id {pill}
+assert --path pane --equals null --timeout 10
+assert --id {pill} --contains "Closed" --timeout 10
+driver off
+wait --id companion-pane --gone --timeout 10
+shot a-duo-split-unfolded-{name}-closed-{theme} --display {display}
+""")
+    return "".join(out)
+
+
+def drawer_block(theme, width, display):
+    """Narrow window: Chats drawer actually opened (not just the wide-sidebar preference)."""
+    return f"""# narrow-{width}-drawer / {theme}
+driver on
+launch {BASE} --fixture theme --arg {theme} --arg=-diagnostics-window-width --arg={width} --arg=-wonder.sidebar.hidden --arg=YES
+assert --path thread.id --equals '"fixture-parent-conversation"' --timeout 30
+tap --id open-sidebar
+assert --path sidebarOpen --equals true --timeout 10
+driver off
+wait --id sidebar-new-chat --timeout 15
+shot a-duo-split-narrow-{width}-drawer-{theme}{" --display " + display if display else ""}
+"""
+
+
+def write(name, header, blocks):
+    (OUT / name).write_text(header + "\n".join(blocks))
+
+
+phone = [phone_block("std", th) for th in THEMES]
+# Simulated narrow windows are an iPad idea (Split View / Slide Over); an iPhone is never narrower than its screen.
+narrow = []
+for label, width in WIDTHS:
+    for th in ("cupola-light", "cupola-dark"):
+        narrow.append(phone_block(f"narrow-{label}", th, width))
+        narrow.append(drawer_block(th, width, ""))
+write("a-duo-split-captures.wctl", "# devices: iphone ipad\n# Generated by control/gen-split-captures.py\n", phone)
+write("a-duo-split-captures-narrow.wctl", "# devices: ipad\n# Generated by control/gen-split-captures.py\n", narrow)
+duo = []
+for th in THEMES:
+    duo.append("hinge 0\norient portrait\n" + state("folded", "tool-files", th, "--arg=-wonder.sidebar.hidden --arg=YES --arg=-diagnostics-companion-files", "primary"))
+for th in THEMES:
+    duo.append("hinge 180\norient portrait\n" + duo_block("unfolded", th, True, "primary-1"))
+    duo.append("hinge 180\norient portrait\n" + duo_block("unfolded-chats", th, False, "primary-1"))
+for label, width in WIDTHS[:1] + WIDTHS[1:2]:
+    duo.append("hinge 180\norient portrait\n" + phone_block(f"narrow-{label}", "cupola-light", width, "primary-1"))
+for th in THEMES[:3]:
+    duo.append(close_blocks(th, "primary-1"))
+for label, width in WIDTHS[:2]:
+    duo.append("hinge 180\norient portrait\n" + drawer_block("cupola-light", width, "primary-1"))
+duo.append("hinge 0\norient portrait\n")
+write("a-duo-split-captures-duo.wctl", "# devices: duo\n# Generated by control/gen-split-captures.py\n", duo)

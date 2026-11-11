@@ -1,0 +1,24 @@
+# Threads closed in their home app (settled or snoozed in T3 Code, archived in
+# the Claude app) are listed under the Project's Archived threads saying where,
+# a snoozed one with when it returns; the footer says what Restore does there.
+# Restore removes the row. Offline, owned in-process fixtures only.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture settled-elsewhere --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id project-row:read-project --timeout 20
+hold --id project-row:read-project
+wait --id project-archived-threads --timeout 10
+tap --id project-archived-threads
+wait --id archived-thread:claude:settled-fixture --timeout 10
+wait --id archived-where:claude:settled-fixture --label "Settled in T3 Code"
+wait --id archived-where:codex:snoozed-fixture --contains "Snoozed in T3 Code, returns tomorrow at 9:00"
+wait --id archived-where:claude:claude-app-fixture --label "Archived in the Claude app"
+# The Claude app keeps it closed, so its button says it only shows again in Cupola.
+wait --id restore-thread:claude:claude-app-fixture --contains "Show in Cupola"
+wait --id restore-thread:claude:settled-fixture --contains "Restore"
+wait --contains "reopen there too when"
+shot archive-settled-elsewhere-list
+tap --id restore-thread:claude:settled-fixture
+wait --id archived-thread:claude:settled-fixture --gone --timeout 10
+wait --id archived-thread:codex:snoozed-fixture
+shot archive-settled-elsewhere-restored

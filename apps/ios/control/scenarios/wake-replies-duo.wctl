@@ -1,0 +1,15 @@
+# devices: duo
+# WAKE-REPLIES on the Duo cover: each wake keeps its row, Worked row and reply. Duo touch scrolling is not qualified, so the top of the thread is its own two-wake fixture. Offline fixtures; nothing is sent.
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture task-wakes --fixture open-project-thread
+wait --contains "The log watcher was stopped" --timeout 30
+wait --id task-notification:wake-3/wake-3 --label "Command \"Watch the logs\" stopped" --timeout 10
+wait --contains "task-notification" --gone --timeout 3
+shot wake-replies-folded-last
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture task-wakes --fixture task-wakes-two --fixture open-project-thread
+wait --contains "Two tests failed; both need the new fixture." --timeout 30
+wait --id task-notification:wake-1/wake-1 --label "Command \"Build the app\" finished" --timeout 10
+wait --id task-notification:wake-2/wake-2 --label "Command \"Run the unit tests\" failed" --timeout 10
+wait --contains "task-notification" --gone --timeout 3
+shot wake-replies-folded-first

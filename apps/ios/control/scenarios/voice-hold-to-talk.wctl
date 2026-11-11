@@ -1,0 +1,24 @@
+# Hold to talk (Settings → Voice) for noisy places: the voice panel's orb
+# becomes a larger talk button (hold and let go to send, or tap to start and
+# tap again to send; VoiceOver's double-tap toggles). -diagnostics-voice-hold-to-talk
+# chooses the mode for this launch; -diagnostics-voice-preview scripts the
+# session (no microphone, OpenAI or Mac work), so pressing sends nothing.
+# WonderVoiceTests own what a press and release send and that a release never
+# confirms a proposal.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture voice-preview --fixture voice-hold-to-talk
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 15
+tap --id voice-start
+wait --id voice-panel --timeout 5
+wait --id voice-hold --timeout 5
+wait --id voice-orb --never 1
+# The proposal still needs its own Confirm or Cancel.
+wait --id voice-confirmation-confirm
+wait --id voice-mute
+shot voice-hold-to-talk
+tap --id voice-end
+wait --id voice-panel --gone --timeout 3
+wait --id message-draft --timeout 5

@@ -1,0 +1,33 @@
+# devices: iphone ipad
+# UX-DUO-1: icon-only composer (names stay accessibility labels), a header with no bar fill, the title menu opening
+# with the full wrapped title (tap copies it, no Show full title row) and offering Fork, and no per-reply New thread (Fork from here is on a reply's long-press).
+# iPad portrait keeps the header to one row. Light then dark.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-fork-held --fixture open-project-thread --fixture long-thread-title --fixture theme --arg cupola-light
+wait --id project-composer-access --timeout 30
+wait --id conversation-loading --gone --timeout 15
+wait --contains "Reply 13. Continuing the project" --timeout 20
+order --axis x --ids project-composer-access,dictate-message,voice-start
+wait --id fork-from-here --gone --timeout 3
+shot ux-duo-1-light-chat
+tap --id conversation-title-menu
+wait --label Fork --timeout 10
+# The first row reads the wrapped title (the full title is in the screenshot; popovers do not expose its id on iPad).
+wait --contains "read the plan" --timeout 10
+# The wrapped title row is the whole text, and tapping it copies it (there is no "Show full title" row).
+shot ux-duo-1-light-title-menu
+tap --label Fork
+wait --id fork-progress --timeout 5
+signal fork
+wait --id fork-progress --gone --timeout 10
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-fork-held --fixture open-project-thread --fixture long-thread-title --fixture theme --arg cupola-dark
+wait --id project-composer-access --timeout 30
+wait --id conversation-loading --gone --timeout 15
+wait --contains "Reply 13. Continuing the project" --timeout 20
+shot ux-duo-1-dark-chat
+tap --id conversation-title-menu
+wait --label Fork --timeout 10
+shot ux-duo-1-dark-title-menu
+# Tapping the title row copies the whole title and says so.
+tap --contains "read the plan"
+wait --label "Title copied" --timeout 5
+shot ux-duo-1-dark-title-copied

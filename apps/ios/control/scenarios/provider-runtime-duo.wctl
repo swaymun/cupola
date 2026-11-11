@@ -1,0 +1,23 @@
+# devices: duo
+# Settings > computer > Claude > Runtime on the folded and unfolded Duo, light and dark.
+# Duo taps do not register (#387): the settings-search fixture opens the Claude page and
+# -diagnostics-provider-runtime-open pushes the Runtime page; the save/refuse flow is
+# checked on iPhone and iPad by provider-runtime.wctl.
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture provider-updates --arg=-diagnostics-settings-open --arg=-diagnostics-settings-search-row --arg=provider-runtime:claude --arg=-diagnostics-provider-runtime-open --arg=-diagnostics-theme --arg=cupola-light --arg=-AppleInterfaceStyle --arg=Light
+wait --id provider-runtime-program:claude --timeout 30
+shot provider-runtime-duo-folded-light
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture provider-updates --arg=-diagnostics-settings-open --arg=-diagnostics-settings-search-row --arg=provider-runtime:claude --arg=-diagnostics-provider-runtime-open --arg=-diagnostics-theme --arg=cupola-dark --arg=-AppleInterfaceStyle --arg=Dark
+wait --id provider-runtime-program:claude --timeout 30
+shot provider-runtime-duo-folded-dark
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture provider-updates --arg=-diagnostics-settings-open --arg=-diagnostics-settings-search-row --arg=provider-runtime:claude --arg=-diagnostics-provider-runtime-open --arg=-diagnostics-theme --arg=cupola-light --arg=-AppleInterfaceStyle --arg=Light
+wait --id provider-runtime-program:claude --timeout 30
+shot provider-runtime-duo-unfolded-light --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture provider-updates --arg=-diagnostics-settings-open --arg=-diagnostics-settings-search-row --arg=provider-runtime:claude --arg=-diagnostics-provider-runtime-open --arg=-diagnostics-theme --arg=cupola-dark --arg=-AppleInterfaceStyle --arg=Dark
+wait --id provider-runtime-program:claude --timeout 30
+shot provider-runtime-duo-unfolded-dark --display primary-1
+hinge 0
+orient portrait

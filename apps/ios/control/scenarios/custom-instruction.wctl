@@ -1,0 +1,65 @@
+# Settings > computer > Codex > Added by Cupola: the custom instruction the Mac adds to
+# the chats Cupola runs, and the Cupola thread tools switch. A refused save shows the
+# Mac's words in place and keeps the saved instruction; a saved one shows in the row
+# and in the editor when it opens again, also after the page rereads the Mac.
+# Fixture computer only (it keeps PUTs in memory); nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id connection-rename --timeout 10
+tap --id settings-provider:codex
+swipe up
+wait --id custom-instruction:codex --contains "Off" --timeout 15
+wait --id custom-instruction:codex --contains "None" --timeout 5
+wait --id thread-tools:codex --contains "1" --timeout 5
+wait --contains "Applies only to chats Cupola runs" --timeout 5
+shot custom-instruction-row-off
+
+# Refused: On with no text. The Mac's reason shows in the editor; the row is unchanged.
+tap --id custom-instruction:codex
+wait --id custom-instruction-text:codex --timeout 10
+wait --id custom-instruction-count:codex --contains "0 of 4,000 characters" --timeout 5
+hold --id custom-instruction-enabled:codex --seconds 0.15 --x-fraction 0.9
+wait --id custom-instruction-enabled:codex --contains "1" --timeout 5
+tap --id custom-instruction-save:codex
+wait --id custom-instruction-failure:codex --contains "Write an instruction before turning it on." --timeout 10
+shot custom-instruction-refused
+back
+wait --id custom-instruction:codex --contains "Off" --timeout 10
+wait --id custom-instruction:codex --contains "None" --timeout 5
+
+# Saved: the row shows On and the first line; the editor opens with the text.
+tap --id custom-instruction:codex
+wait --id custom-instruction-text:codex --timeout 10
+tap --id custom-instruction-text:codex
+type "Answer in British English."
+wait --id custom-instruction-count:codex --contains "26 of 4,000 characters" --timeout 5
+hold --id custom-instruction-enabled:codex --seconds 0.15 --x-fraction 0.9
+wait --id custom-instruction-enabled:codex --contains "1" --timeout 5
+tap --id custom-instruction-save:codex
+wait --id custom-instruction-saving:codex --gone --timeout 10
+wait --id custom-instruction:codex --contains "On" --timeout 10
+wait --id custom-instruction:codex --contains "Answer in British English." --timeout 5
+shot custom-instruction-saved
+
+# Reopened after the page rereads the Mac.
+back
+wait --id settings-provider:codex --timeout 10
+tap --id settings-provider:codex
+swipe up
+wait --id custom-instruction:codex --contains "Answer in British English." --timeout 15
+tap --id custom-instruction:codex
+wait --id custom-instruction-text:codex --contains "Answer in British English." --timeout 10
+wait --id custom-instruction-enabled:codex --contains "1" --timeout 5
+shot custom-instruction-reopened
+back
+
+# Thread tools save at once.
+hold --id thread-tools:codex --seconds 0.15
+wait --id thread-tools-saving:codex --gone --timeout 10
+wait --id thread-tools:codex --contains "0" --timeout 10
+shot custom-instruction-thread-tools-off

@@ -1,0 +1,23 @@
+# devices: iphone ipad duo
+# Protocol-derived enabled providers in an owned offline T3 catalog. No model sends.
+# Source: NewChatView's new-chat-agent/model identifiers and actual selected model chip.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture t3-code --fixture t3-code-launch --fixture t3-code-picker --fixture t3-code-providers --fixture t3-code-default-on
+wait --id composer-start-in-t3 --timeout 30
+tap --id project-agent-picker
+wait --id new-chat-agent:opencode --timeout 15
+wait --id new-chat-agent:cursor --timeout 15
+shot t3-providers-catalog
+tap --id new-chat-agent:opencode
+wait --id new-chat-model:t3:opencode:opencode/beam-free --timeout 15
+tap --id new-chat-model:t3:opencode:opencode/beam-free
+assert --path presented --equals '[]' --timeout 10
+wait --id project-agent-picker --contains "Beam Free in T3 Code" --timeout 15
+shot t3-providers-opencode-selected
+tap --id project-agent-picker
+tap --id new-chat-agent:cursor
+wait --id new-chat-model:t3:cursor:grok-4.7 --timeout 15
+tap --id new-chat-model:t3:cursor:grok-4.7
+assert --path presented --equals '[]' --timeout 10
+wait --id project-agent-picker --contains "Grok 4.7 in T3 Code" --timeout 15
+shot t3-providers-cursor-selected

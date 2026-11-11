@@ -1,0 +1,40 @@
+# devices: duo
+# Duo taps are gated (#387), so the title menu and Fork are checked in ux-duo-1-chrome.wctl on iPhone and iPad.
+# UX-DUO-1: composer and rail are icon-only (names stay accessibility labels), the header floats on the
+# page color, the title menu opens with the full wrapped title and offers Fork but no per-reply New thread,
+# and a horizontal fold (the tall unfolded window, hinge across the middle) keeps the header to one row: sidebar, title, Usage.
+# Shots are named by picture shape: `wide` is the vertical hinge (header inline, rail on the right), `tall` the horizontal one.
+# Folded (cover) then unfolded (inner, primary-1).
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture voice-preview --fixture open-project-thread --fixture long-thread-title
+wait --id project-composer-access --timeout 30
+wait --id conversation-loading --gone --timeout 15
+order --axis x --ids project-composer-access,dictate-message,voice-start
+wait --id fork-from-here --gone --timeout 3
+wait --id context-usage-ring --timeout 10
+shot ux-duo-1-after-duo-folded-chat
+hinge 180
+orient portrait
+wait --id project-composer-access --timeout 20
+wait --id conversation-loading --gone --timeout 15
+order --axis x --ids project-composer-access,dictate-message,voice-start
+shot ux-duo-1-after-duo-unfolded-wide-chat --display primary-1
+orient landscape-left
+wait --id project-composer-access --timeout 20
+wait --id conversation-loading --gone --timeout 15
+order --axis x --ids project-composer-access,dictate-message,voice-start
+shot ux-duo-1-after-duo-unfolded-tall-chat --display primary-1
+# Dark, folded then unfolded wide.
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture voice-preview --fixture open-project-thread --fixture long-thread-title --fixture theme --arg cupola-dark
+wait --id project-composer-access --timeout 30
+wait --id conversation-loading --gone --timeout 15
+order --axis x --ids project-composer-access,dictate-message,voice-start
+shot ux-duo-1-after-duo-folded-dark-chat
+hinge 180
+orient portrait
+wait --id project-composer-access --timeout 20
+wait --id conversation-loading --gone --timeout 15
+shot ux-duo-1-after-duo-unfolded-wide-dark-chat --display primary-1

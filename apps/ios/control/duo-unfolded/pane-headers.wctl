@@ -1,0 +1,121 @@
+# devices: duo
+# Real AppShell, each pane owner, split and a restored expanded preference.
+# Duo keeps both physical displays usable; it has no spread-wide expand action.
+# Native AX and inner-display capture-rail.py own geometry; no Duo native tap claim (#387).
+# Pull requests has no rail pill (the chat's title menu opens it), so its pane keeps Close.
+# No model sends or paired host. See capture-rail.py --state pane-<tool>[-expanded].
+hinge 180
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture context-usage --fixture project-pull-requests --arg=-diagnostics-companion-pull-requests --arg=-wonder.sidebar.hidden --arg=YES --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+assert --path pane.tool --equals '"pull-requests"' --timeout 30
+assert --path pane.expanded --equals false --timeout 10
+driver off
+wait --id companion-pane-header --timeout 20
+wait --id companion-pane-expand --gone --timeout 10
+wait --id companion-pane-flip --timeout 10
+wait --id pull-requests-done --timeout 10
+wait --id open-sidebar --timeout 10
+wait --id context-usage-ring --timeout 10
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture context-usage --fixture project-pull-requests --arg=-diagnostics-companion-pull-requests --arg=-diagnostics-companion-expanded --arg=-wonder.sidebar.hidden --arg=YES --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+assert --path pane.tool --equals '"pull-requests"' --timeout 30
+assert --path pane.expanded --equals false --timeout 10
+driver off
+wait --id companion-pane-header --timeout 20
+wait --id companion-pane-expand --gone --timeout 10
+wait --id companion-pane-flip --timeout 10
+wait --id pull-requests-done --timeout 10
+wait --id open-sidebar --timeout 10
+wait --id context-usage-ring --timeout 10
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture context-usage --arg=-diagnostics-companion-agent-task --arg=-wonder.sidebar.hidden --arg=YES --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+assert --path pane.tool --equals '"agent-task"' --timeout 30
+assert --path pane.expanded --equals false --timeout 10
+driver off
+wait --id companion-pane-header --timeout 20
+wait --id companion-pane-expand --gone --timeout 10
+wait --id companion-pane-flip --timeout 10
+wait --id project-subagent-sheet-done --gone --timeout 10
+wait --id project-subagent-status-pill --contains "Open" --timeout 10
+wait --id open-sidebar --timeout 10
+wait --id context-usage-ring --timeout 10
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture context-usage --arg=-diagnostics-companion-agent-task --arg=-diagnostics-companion-expanded --arg=-wonder.sidebar.hidden --arg=YES --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+assert --path pane.tool --equals '"agent-task"' --timeout 30
+assert --path pane.expanded --equals false --timeout 10
+driver off
+wait --id companion-pane-header --timeout 20
+wait --id companion-pane-expand --gone --timeout 10
+wait --id companion-pane-flip --timeout 10
+wait --id project-subagent-sheet-done --gone --timeout 10
+wait --id project-subagent-status-pill --contains "Open" --timeout 10
+wait --id open-sidebar --timeout 10
+wait --id context-usage-ring --timeout 10
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture context-usage --arg=-diagnostics-companion-details --arg=-wonder.sidebar.hidden --arg=YES --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+assert --path pane.tool --equals '"details"' --timeout 30
+assert --path pane.expanded --equals false --timeout 10
+driver off
+wait --id companion-pane-header --timeout 20
+wait --id companion-pane-expand --gone --timeout 10
+wait --id companion-pane-flip --timeout 10
+wait --id thread-details-done --timeout 10
+wait --id open-sidebar --timeout 10
+wait --id context-usage-ring --timeout 10
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture context-usage --arg=-diagnostics-companion-details --arg=-diagnostics-companion-expanded --arg=-wonder.sidebar.hidden --arg=YES --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+assert --path pane.tool --equals '"details"' --timeout 30
+assert --path pane.expanded --equals false --timeout 10
+driver off
+wait --id companion-pane-header --timeout 20
+wait --id companion-pane-expand --gone --timeout 10
+wait --id companion-pane-flip --timeout 10
+wait --id thread-details-done --timeout 10
+wait --id open-sidebar --timeout 10
+wait --id context-usage-ring --timeout 10
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture context-usage --arg=-diagnostics-app-store --arg=-diagnostics-companion-reply-changes --arg=-wonder.sidebar.hidden --arg=YES --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+assert --path pane.tool --equals '"reply-changes"' --timeout 30
+assert --path pane.expanded --equals false --timeout 10
+driver off
+wait --id companion-pane-header --timeout 20
+wait --id companion-pane-expand --gone --timeout 10
+wait --id companion-pane-flip --timeout 10
+wait --id reply-changes-done --timeout 10
+wait --id open-sidebar --timeout 10
+wait --id context-usage-ring --timeout 10
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture context-usage --arg=-diagnostics-app-store --arg=-diagnostics-companion-reply-changes --arg=-diagnostics-companion-expanded --arg=-wonder.sidebar.hidden --arg=YES --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+assert --path pane.tool --equals '"reply-changes"' --timeout 30
+assert --path pane.expanded --equals false --timeout 10
+driver off
+wait --id companion-pane-header --timeout 20
+wait --id companion-pane-expand --gone --timeout 10
+wait --id companion-pane-flip --timeout 10
+wait --id reply-changes-done --timeout 10
+wait --id open-sidebar --timeout 10
+wait --id context-usage-ring --timeout 10
+# Preview is a full-screen route after W2-BROWSER-ONE. Close the expanded
+# fixture pane through its production dismiss action, then prove Preview's
+# own Done returns to the same chat. The eight states above use AppShell;
+# this older WebKit fixture owns its preview root. No external links or sends.
+driver on
+dismiss
+assert --path pane --equals null --timeout 10
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture dev-server-preview --fixture context-usage --arg=-wonder.sidebar.hidden --arg=YES
+tap --id preview-pages-menu
+tap --id preview-page-5173
+wait --id browser-preview-page-probe --contains "Recipes · " --timeout 15
+assert --path browser.fullScreen --equals true
+tap --id browser-done
+assert --path browser --equals null --timeout 10
+assert --path thread.id --equals '"preview"'
+assert --path pane --equals null
+driver off
+wait --id message-draft --timeout 10
+# The preview fixture has no provider reading, and the context ring is offered only once one is measured
+# (UX-HEADER-POLISH: Usage beside Settings is the plan entry), so the ring stays away.
+wait --id context-usage-ring --gone --timeout 10
+hinge 0
+orient portrait

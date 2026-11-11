@@ -1,0 +1,67 @@
+# A 240-line Studio tool input must never push the one-tap decisions out of
+# the phone viewport. The offline endpoint validates the exact signed choice;
+# disappearance confirms resolution, not just successful input delivery.
+launch --fixture subagent-fixture --fixture opencode-fixture --fixture opencode-approval --arg=-diagnostics-approval-long --fixture theme --arg nord --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-AppleInterfaceStyle --arg=Light
+wait --id question-dock-open --timeout 20
+shot approval-fit-long-input
+wait --id approval-accept-fixture-opencode-approval --timeout 5
+wait --id approval-decline-fixture-opencode-approval --timeout 5
+wait --id approval-title-fixture-opencode-approval --contains "Roblox Studio: run code"
+wait --contains "mcp__roblox-studio__run_code" --gone
+tree --json
+tap --id approval-input-fixture-opencode-approval
+shot approval-fit-input-expanded
+wait --id approval-accept-fixture-opencode-approval
+wait --id approval-decline-fixture-opencode-approval
+tree --json
+tap --id approval-accept-fixture-opencode-approval
+wait --id question-dock-open --gone --timeout 10
+wait --id approval-accept-fixture-opencode-approval --gone
+wait --id activity-group:fixture-parent-turn/fixture-studio-call --contains "Roblox Studio: run code"
+shot approval-fit-allow-resolved
+tap --id activity-group:fixture-parent-turn/fixture-studio-call
+wait --contains "Cancelled · Roblox Studio: run code"
+tap --contains "Cancelled · Roblox Studio: run code" --type Button
+wait --label Error
+shot approval-fit-cancelled-record
+
+# Repeat with a fresh pending request and the opposite signed decision.
+launch --fixture subagent-fixture --fixture opencode-fixture --fixture opencode-approval --fixture opencode-approval-decline --arg=-diagnostics-approval-long --fixture theme --arg nord --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-AppleInterfaceStyle --arg=Light
+wait --id question-dock-open --timeout 20
+wait --id approval-accept-fixture-opencode-approval
+wait --id approval-decline-fixture-opencode-approval
+shot approval-fit-decline-ready
+tap --id approval-decline-fixture-opencode-approval
+wait --id question-dock-open --gone --timeout 10
+wait --id approval-decline-fixture-opencode-approval --gone
+shot approval-fit-decline-resolved
+
+# Select the largest accessibility text size explicitly; expanding the same
+# input still leaves both decisions above the composer.
+launch --fixture subagent-fixture --fixture opencode-fixture --fixture opencode-approval --fixture opencode-approval-decline --arg=-diagnostics-approval-long --fixture theme --arg nord --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL --arg=-AppleInterfaceStyle --arg=Light
+wait --id question-dock-open --timeout 20
+wait --id approval-accept-fixture-opencode-approval
+wait --id approval-decline-fixture-opencode-approval
+shot approval-fit-accessibility
+reveal up --id approval-input-fixture-opencode-approval --in attention-review
+tap --id approval-input-fixture-opencode-approval
+wait --id approval-accept-fixture-opencode-approval
+wait --id approval-decline-fixture-opencode-approval
+shot approval-fit-accessibility-expanded
+tap --id approval-decline-fixture-opencode-approval
+wait --id question-dock-open --gone --timeout 10
+wait --id approval-decline-fixture-opencode-approval --gone
+shot approval-fit-accessibility-resolved
+
+# The compact footer keeps the same advertised Stop choice in a native menu.
+# The fixture accepts only the exact signed cancel for this fresh request.
+launch --fixture subagent-fixture --fixture opencode-fixture --fixture opencode-approval --arg=-diagnostics-approval-long --arg=-diagnostics-approval-cancel --fixture theme --arg nord --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL --arg=-AppleInterfaceStyle --arg=Light
+wait --id question-dock-open --timeout 20
+wait --id approval-more-fixture-opencode-approval
+tap --id approval-more-fixture-opencode-approval
+wait --id approval-cancel-fixture-opencode-approval
+shot approval-fit-accessibility-more
+tap --id approval-cancel-fixture-opencode-approval
+wait --id question-dock-open --gone --timeout 10
+wait --id approval-cancel-fixture-opencode-approval --gone
+shot approval-fit-menu-cancel-resolved

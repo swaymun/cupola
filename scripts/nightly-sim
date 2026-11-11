@@ -1,0 +1,1600 @@
+#!/usr/bin/env python3
+"""Nightly iOS simulator run: the feature map on iphone, its iPad subset on ipad, triaged by Codex.
+
+  scripts/nightly-sim run                 # what the 4:30 a.m. LaunchAgent runs
+  scripts/nightly-sim run --dry-run       # one device, one scenario, no GitHub issues
+  scripts/nightly-sim run --dry-run --only first-launch --only /path/to/failing.wctl
+  scripts/nightly-sim run --device duo --only add-project --output .local/hid-qualification
+  scripts/nightly-sim run --no-status-truth            # the simulator host (Mac mini)
+  scripts/nightly-sim status-truth --sim-host second-mac # this Mac: Rust table + the host's report
+  scripts/nightly-sim cli-codex                         # only the Mac-without-ChatGPT check
+  scripts/nightly-sim xctests [--check | --lane iphone]  # the app's XCTest manifest, per lane
+
+Installed by scripts/setup-nightly-sim, which writes a standalone launcher under
+~/.wonder/nightly/. It refreshes <main checkout>/.local/wt-nightly from origin/main
+and execs this script there, independent of the main checkout's scripts. Each night:
+
+1. recreates that dedicated detached worktree if missing, moves it to origin/main
+   (never the owner's checkout), and restarts from it;
+2. waits until no simulator is in use (no xcodebuild, simctl, AXe, wonderctl or
+   run-scenarios process and no unexpired `wonderctl lock` lease), polling until
+   --deadline, else skips with a note; never shuts down another session's devices;
+3. runs scripts/run-scenarios on disposable pool clones and its own build cache:
+   every scenario on the iPhone, only those tagged `# nightly-ipad: <reason>` on the
+   iPad (IPAD_TAG); the Duo stays on its cover input canary until cover/inner input,
+   explicit posture scenarios and a final-candidate full map are qualified (DUO_ISSUE);
+   full runs also measure iPhone scroll and streaming smoothness against
+   apps/ios/control/smoothness-baseline.json (fixtures only), check live toy-Project
+   edits and Stop, capped at four sends per day, run the host as on a Mac without
+   ChatGPT, with the current public Codex CLI from PATH (scripts/check-cli-codex), and
+   measure the host status truth table (no simulator, no model work); full runs also
+   build the app's XCTests once and run the offline lanes of apps/ios/control/xctests.txt
+   on the iPhone and iPad (XCTEST_RUN_LANES), one row and issue per failing, skipped or
+   missing test;
+4. has Codex read the failures and screenshots and write report.md and findings.json;
+5. opens or updates one GitHub issue labeled `nightly` per failing scenario and closes
+   the ones whose scenario passed everywhere tonight;
+6. deletes its simulators.
+
+Output goes to <main checkout>/.local/nightly/<YYYY-MM-DD>/ (run.log, results, shots,
+report.md); <main checkout>/.local/nightly/latest.md is a copy of the newest report.
+A dry run writes under .local/nightly/dry-run/ instead and never touches GitHub.
+Focused runs (--device or --only) write under .local/nightly/qualifications/<run>/.
+--output DIR writes directly to DIR. Neither updates the real nightly's latest.md;
+qualification runs do not update the worktree, run live checks or touch GitHub.
+"""
+import argparse
+import ast
+import datetime as dt
+import fcntl
+import importlib.machinery
+import json
+import os
+import plistlib
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+import time
+import uuid
+import types
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+# Share the host admission implementation; importing it never contacts CoreSimulator.
+_control_loader = importlib.machinery.SourceFileLoader("nightly_wonderctl", str(ROOT / "scripts/wonderctl"))
+CONTROL = types.ModuleType(_control_loader.name)
+CONTROL.__file__ = _control_loader.path
+_control_loader.exec_module(CONTROL)
+NIGHTLY_LANES = set()
+CODEX = "/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex"
+CODEX_MODEL = "gpt-6-astra"
+# Keep the Duo canary-only until cover/inner input, explicit posture scenarios and
+# one full map pass on the final candidate (#387). A cover canary alone is not enough.
+DEVICES = ["iphone", "ipad"]
+DUO_ISSUE = 387
+DERIVED = Path.home() / "Library/Caches/wonderctl/nightly-derived"
+# Processes that mean the owner (or an agent they asked) is using a simulator right now.
+BUSY_COMMANDS = {"xcodebuild", "simctl", "axe"}
+BUSY_SCRIPTS = r"scripts/(wonderctl|run-scenarios)( |$)"
+LEASE = Path.home() / "Library/Caches/wonderctl/simulator-lease.json"
+LABEL = "nightly"
+TITLE = "Nightly: {} fails"
+# Owner decision 2026-10-21: the iPhone runs the whole feature map; the iPad only the
+# scenarios whose layout, sheets, sidebar or keyboard differ there, each saying why in a
+# `# nightly-ipad: <reason>` line (apps/ios/CONTROL.md). An explicit --only overrides it.
+IPAD_TAG = re.compile(r"^# nightly-ipad: *\S", re.MULTILINE)
+DEVICES_TAG = re.compile(r"^# devices: (.+)$", re.MULTILINE)
+# A scenario whose claim only a person can judge from its last screenshot says what to
+# look at in a `# visual-review: <what>` line; its passing shot is kept with the commit.
+REVIEW_TAG = re.compile(r"^# visual-review: *(\S.*)$", re.MULTILINE)
+
+LOG = None
+
+
+def log(message):
+    line = f"[{dt.datetime.now():%H:%M:%S}] {message}"
+    print(line, flush=True)
+    if LOG:
+        with open(LOG, "a") as handle:
+            handle.write(line + "\n")
+
+
+def run(cmd, cwd=ROOT, env=None, check=False, quiet=False, timeout=None):
+    """Runs a command, appending its output to run.log; returns (code, output)."""
+    if not quiet:
+        log("$ " + " ".join(str(c) for c in cmd))
+    try:
+        # No stdin: `codex exec` appends piped stdin to its prompt and would wait for it.
+        result = subprocess.run([str(c) for c in cmd], cwd=cwd, env=env, text=True, stdin=subprocess.DEVNULL,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout)
+        code, output = result.returncode, result.stdout
+    except subprocess.TimeoutExpired as error:
+        code, output = 124, f"{error.output or ''}\ntimed out after {timeout}s"
+    except FileNotFoundError as error:
+        code, output = 127, str(error)
+    if LOG and output and not quiet:
+        with open(LOG, "a") as handle:
+            handle.write(output if output.endswith("\n") else output + "\n")
+    if check and code != 0:
+        raise RuntimeError(f"{cmd[0]} failed ({code}): {output.strip()[-500:]}")
+    return code, output
+
+
+def main_checkout():
+    common = subprocess.run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                            cwd=ROOT, text=True, capture_output=True, check=True).stdout.strip()
+    return Path(common).parent
+
+
+# 1. Update the dedicated worktree to origin/main and restart from it.
+
+def update_checkout(main):
+    worktree = main / ".local/wt-nightly"
+    if ROOT.resolve() not in {main.resolve(), worktree.resolve()}:
+        log(f"not the nightly worktree ({ROOT}); testing it as it is")
+        return
+    run(["git", "fetch", "--quiet", "origin", "main"], cwd=main)
+    code, _ = run(["git", "cat-file", "-e", "origin/main:scripts/nightly-sim"], cwd=main, quiet=True)
+    if code != 0:
+        log("origin/main has no scripts/nightly-sim yet; testing the worktree's current commit")
+        return
+    if not worktree.exists():
+        log(f"recreating missing nightly worktree: {worktree}")
+        # --force also repairs the registration left by a deleted worktree directory.
+        run(["git", "worktree", "add", "--force", "--detach", worktree, "origin/main"], cwd=main, check=True)
+    else:
+        code, location = run(["git", "rev-parse", "--path-format=absolute", "--show-toplevel", "--git-common-dir"],
+                             cwd=worktree, quiet=True)
+        expected = [worktree.resolve(), (main / ".git").resolve()]
+        if worktree.is_symlink() or code != 0 or [Path(p).resolve() for p in location.splitlines()] != expected:
+            raise RuntimeError(f"refusing to update {worktree}: not the dedicated Git worktree")
+        run(["git", "checkout", "--quiet", "--detach", "--force", "origin/main"], cwd=worktree, check=True)
+        run(["git", "clean", "-fdq"], cwd=worktree, check=True)
+    log("restarting from origin/main")
+    os.execve(sys.executable, [sys.executable, str(worktree / "scripts/nightly-sim"), *sys.argv[1:]],
+              {**os.environ, "WONDER_NIGHTLY_UPDATED": "1"})
+
+
+# 2. Wait until no simulator is in use.
+
+def simulators(*filters):
+    result = subprocess.run(["xcrun", "simctl", "list", "devices", *filters, "-j"],
+                            text=True, capture_output=True)
+    try:
+        return json.loads(result.stdout)["devices"]
+    except ValueError:
+        log(f"simctl list failed: {result.stderr.strip()[-300:]}")
+        return {}
+
+
+def nightly_simulators():
+    path = CONTROL.LOCKS / "sim-pool.json"
+    pool = json.loads(path.read_text()) if path.exists() else {}
+    owned = {slot["udid"] for slot in pool.get("slots", [])
+             if slot.get("lease", {}).get("holder") == nightly_env()["WONDER_CONTROL_HOLDER"]}
+    for runtime, entries in simulators().items():
+        for entry in entries:
+            if entry["udid"] in owned:
+                yield entry
+
+
+def busy_reasons():
+    # Agents often leave their own simulators booted for hours. wonderctl targets the
+    # Nightly devices by name and uses its own build cache, so only a running tool means
+    # someone is using a simulator now (2026-10-13 skipped on four idle booted ones).
+    reasons = []
+    for name in sorted(BUSY_COMMANDS):
+        _, output = run(["pgrep", "-lx", name], quiet=True)
+        reasons += [f"process {line}" for line in output.splitlines()]
+    _, output = run(["pgrep", "-lf", BUSY_SCRIPTS], quiet=True)
+    # A multi-line command line continues on lines that do not start with a pid.
+    reasons += [f"process {line[:160]}" for line in output.splitlines()
+                if re.match(r"\d+ ", line) and "nightly-sim" not in line]
+    try:
+        lease = json.loads(LEASE.read_text())
+        if dt.datetime.fromisoformat(lease["expires"]) > dt.datetime.now():
+            reasons.append(f"simulator lease held by {lease['holder']} until {lease['expires']}")
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return reasons
+
+
+def wait_until_idle(deadline, poll, ignore_busy=False):
+    while True:
+        reasons = busy_reasons()
+        if reasons and ignore_busy:
+            log(f"ignoring {len(reasons)} signs of use (--ignore-busy): {reasons}")
+            return []
+        if not reasons:
+            log("no simulator in use; starting")
+            return []
+        if dt.datetime.now() + dt.timedelta(seconds=poll) > deadline:
+            log(f"still in use at the {deadline:%H:%M} deadline; skipping tonight")
+            for reason in reasons:
+                log(f"  {reason}")
+            return reasons
+        log(f"simulators in use ({len(reasons)}: {reasons[0]}); checking again in {poll}s")
+        time.sleep(poll)
+
+
+# 3. Run the feature map.
+
+def device_plan(device):
+    """(scenario names to run, names skipped by design) for DEVICE's whole nightly map.
+
+    A scenario whose `# devices:` line leaves DEVICE out is not applicable, not skipped,
+    as in run-scenarios."""
+    run_names, skipped = [], []
+    for scenario in sorted((ROOT / "apps/ios/control/scenarios").glob("*.wctl")):
+        text = scenario.read_text()
+        devices = DEVICES_TAG.search(text)
+        if devices and device not in devices.group(1).split():
+            continue
+        (run_names if device != "ipad" or IPAD_TAG.search(text) else skipped).append(scenario.stem)
+    if device == "duo":
+        for collection in ("duo-cover", "duo-unfolded"):
+            run_names += [f"{collection}--{path.stem}"
+                          for path in sorted((ROOT / "apps/ios/control" / collection).glob("*.wctl"))]
+    return run_names, skipped
+
+
+def delete_nightly_simulators():
+    # Never infer ownership from a name suffix: another nightly may still own it.
+    for kind in list(NIGHTLY_LANES):
+        run([ROOT / "scripts/wonderctl", "lane", "release", "--kind", kind, "--no-refill"],
+            env=nightly_env(), check=True, timeout=600)
+        NIGHTLY_LANES.discard(kind)
+    run([ROOT / "scripts/wonderctl", "pool", "reap"], env=nightly_env(), check=True, timeout=600)
+
+
+def acquire_nightly_lane(kind):
+    env = nightly_env()
+    run([ROOT / "scripts/wonderctl", "pool", "init", "--" + kind, "1", "--minimum"],
+        env=env, check=True, timeout=1800)
+    _, output = run([ROOT / "scripts/wonderctl", "lane", "acquire", "--kind", kind,
+                    "--owner-pid", str(os.getpid())], env=env, check=True, timeout=900)
+    NIGHTLY_LANES.add(kind)
+    try:
+        device_udid = str(uuid.UUID(output.strip().splitlines()[-1])).upper()
+    except (ValueError, IndexError) as error:
+        raise RuntimeError("lane acquire did not return its simulator UUID") from error
+    prepare_nightly_services(device_udid)
+
+
+NIGHTLY_KEEP = ("com.apple.liveactivitiesd", "com.apple.chronod", "com.apple.PosterBoard")
+
+
+def prepare_nightly_services(device_udid):
+    # Live Activity scenarios use ActivityKit and the actual Lock Screen. Restore
+    # only their dependencies on this leased clone; never change the golden.
+    command = ["simslim", "on", device_udid, "--keep", ",".join(NIGHTLY_KEEP)]
+    log("$ " + shlex.join(command))
+    try:
+        with CONTROL.device_lock(device_udid):
+            CONTROL.sh(command, env=nightly_env(), timeout=900)
+    except CONTROL.ControlError as error:
+        raise RuntimeError(str(error)) from error
+
+
+# The Duo's taps have had no effect in every recorded nightly (Oct 12 3/68, Oct 14 5/94)
+# while its accessibility tree reads fine; daytime reproductions of the same flow pass,
+# including with the screen locked. One tap first tells a dead-input night from real
+# failures, records what differs (lock, DeviceHub, display list, a cover capture with or
+# without the home indicator) and tries one recreated device before giving up.
+DUO_CANARY = """# One tap before the Duo feature map (written by scripts/nightly-sim).
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions
+wait --id open-sidebar --timeout 30
+sidebar open
+shot duo-input-canary
+"""
+
+
+def screen_state():
+    _, registry = run(["ioreg", "-n", "Root", "-d1", "-a"], quiet=True)
+    locked = re.search(r"<key>CGSSessionScreenIsLocked</key>\s*<true/>", registry) is not None
+    _, hubs = run(["pgrep", "-f", "DeviceHub"], quiet=True)
+    return f"screen_locked={locked} devicehub_pids={hubs.split()}"
+
+
+def review_reason(name):
+    """What to look at in scenario NAME's passing shot, or None when it has no `# visual-review:` line."""
+    collection, separator, stem = name.partition("--")
+    scenario = (ROOT / "apps/ios/control" / collection / f"{stem}.wctl"
+                if separator and collection in {"duo-cover", "duo-unfolded"}
+                else ROOT / "apps/ios/control/scenarios" / f"{name}.wctl")
+    found = REVIEW_TAG.search(scenario.read_text()) if scenario.exists() else None
+    return found.group(1).strip() if found else None
+
+
+def keep_review_shot(result, out, name):
+    """Keep every requested visual-review capture, including both Duo displays/postures."""
+    reason = review_reason(result["name"])
+    shots = [Path(path) for path in (result.get("shots") or [result.get("shot")]) if path and Path(path).exists()]
+    if not reason or not shots:
+        return
+    (out / "review-shots").mkdir(exist_ok=True)
+    kept = []
+    for index, source in enumerate(shots):
+        suffix = f"-{index + 1}" if len(shots) > 1 else ""
+        target = out / "review-shots" / f"{name}{suffix}.png"
+        shutil.copy(source, target)
+        kept.append(str(target))
+    result.update(shot=kept[-1], review=reason, review_shots=kept)
+
+
+def review_markdown(results, commit):
+    """The kept passing shots, each with what to check, for the morning report."""
+    rows = [r for r in results if r.get("passed") and r.get("review")]
+    if not rows:
+        return None
+    lines = [f"Passed, but only a look at the retained screenshots proves the claim (commit `{commit[:10]}`):", ""]
+    lines += [f"- {r['device']} `{r['name']}`: {r['review']} ("
+              + ", ".join(f"`{path}`" for path in r.get("review_shots", [r["shot"]])) + ")" for r in rows]
+    return "\n".join(lines)
+
+
+def keep_evidence(result, out, name):
+    """Copies a failed scenario's screenshot and native context into the report directory."""
+    if result.get("shot") and Path(result["shot"]).exists():
+        (out / "shots").mkdir(exist_ok=True)
+        target = out / "shots" / f"{name}.png"
+        shutil.copy(result["shot"], target)
+        result["shot"] = str(target)
+    if result.get("context") and Path(result["context"]).exists():
+        (out / "native-context").mkdir(exist_ok=True)
+        target = out / "native-context" / f"{name}.json"
+        shutil.copy(result["context"], target)
+        result["context"] = str(target)
+    for index, crash in enumerate(result.get("crashes") or []):
+        if not Path(crash["report"]).exists():
+            continue
+        # The next night rebuilds over the dSYMs and may prune evidence: keep both here.
+        stem = name if index == 0 else f"{name}-{index + 1}"
+        (out / "crash-reports").mkdir(exist_ok=True)
+        target = out / "crash-reports" / f"{stem}.ips"
+        shutil.copy(crash["report"], target)
+        result["failure"] = result["failure"].replace(crash["report"], str(target))
+        crash["report"] = str(target)
+        kept = []
+        for dsym in map(Path, crash.get("dsyms") or []):
+            if dsym.exists():
+                copy = out / "crash-reports" / f"{stem}-dSYMs" / dsym.name
+                shutil.copytree(dsym, copy, dirs_exist_ok=True)
+                kept.append(str(copy))
+        crash["dsyms"] = kept
+    if result.get("crashes") and str(result.get("context") or "").startswith(str(out)):
+        # The archived context names the kept copies, not the control evidence they came from.
+        context = Path(result["context"])
+        try:
+            data = json.loads(context.read_text())
+        except (OSError, ValueError):
+            data = {}
+        data["crashes"] = result["crashes"]
+        context.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+
+
+def duo_input_canary(env, out, started):
+    """Returns None when a Duo tap works, else one failure that stands in for the Duo phase."""
+    canary = out / "duo-input-canary.wctl"
+    canary.write_text(DUO_CANARY)
+    last = None
+    for attempt in ("first", "recreated"):
+        if attempt == "recreated":
+            run([ROOT / "scripts/wonderctl", "lane", "release", "--kind", "duo", "--no-refill"], env=env, check=True, timeout=600)
+            acquire_nightly_lane("duo")
+            run([ROOT / "scripts/wonderctl", "--device", "duo", "install"], env=env, timeout=600)
+        results_file = out / f"duo-input-canary-{attempt}.json"
+        run([ROOT / "scripts/run-scenarios", "--device", "duo", "--only", canary, "--results", results_file],
+            env=env, timeout=600)
+        results = json.loads(results_file.read_text()) if results_file.exists() else []
+        last = results[0] if results else {"passed": False, "shot": None, "output": "",
+                                           "failure": "run-scenarios wrote no canary result"}
+        log(f"duo input canary ({attempt}): {'ok' if last['passed'] else 'FAILED'}; {screen_state()}")
+        if last["passed"]:
+            return None
+        keep_evidence(last, out, f"duo-input-canary-{attempt}")
+        if last.get("result") == "crashed":
+            break  # the app crashed: not dead input, and a recreated simulator would not change that
+    crashed = last.get("result") == "crashed"
+    return {"name": "duo-input-canary", "device": "duo", "passed": False, "blocked_device": True,
+            "result": "crashed" if crashed else "failed",
+            **({"crashes": last["crashes"]} if crashed else {}),
+            "seconds": time.time() - started, "shot": last.get("shot"), "context": last.get("context"),
+            "output": last.get("output", "")[-4000:],
+            "failure": ("The Duo feature map did not run: " + str(last["failure"])[:500] if crashed else
+                        "Duo taps had no effect, before and after recreating the simulator, so its feature map "
+                        "did not run: " + str(last.get("failure", ""))[:200]),
+            "repro": "scripts/nightly-sim run --device duo --only add-project --no-issues"}
+
+
+def nightly_env():
+    env = {**os.environ, "WONDER_CONTROL_HOLDER": f"nightly:{ROOT}:{os.getpid()}",
+           "WONDER_CONTROL_LANE_OWNER_PID": str(os.getpid()), "WONDER_CONTROL_REQUIRE_LANE": "1",
+           "WONDER_CONTROL_DERIVED": str(DERIVED), "WONDER_CONTROL_WAIT": "1",
+           # The Mac is otherwise idle; a little slack absorbs a slow first boot.
+           "WONDER_CONTROL_TIMEOUT_SCALE": "2"}
+    env.pop("CI", None)
+    env.pop("WONDER_CONTROL_SIMULATOR_SUFFIX", None)
+    return env
+
+
+def duo_canary_only(out):
+    """Runs only the Duo input canary (DUO_ISSUE); returns a one-line result for the report."""
+    env, started = nightly_env(), time.time()
+    try:
+        acquire_nightly_lane("duo")
+    except (RuntimeError, subprocess.SubprocessError, OSError) as error:
+        return False, f"the Duo pool lane was unavailable: {error}"
+    code, _ = run([ROOT / "scripts/wonderctl", "--device", "duo", "build"], env=env, timeout=3600)
+    if code != 0:
+        return False, "the Duo build failed, so the canary did not run"
+    blocked = duo_input_canary(env, out, started)
+    if blocked:
+        return False, f"{'crashed' if blocked['result'] == 'crashed' else 'failed'} ({blocked['failure'][:300]})"
+    return True, "passed"
+
+
+def run_device(device, only, out):
+    env = nightly_env()
+    started = time.time()
+    try:
+        acquire_nightly_lane(device)
+    except (RuntimeError, subprocess.SubprocessError, OSError) as error:
+        return [{"name": "pool-lane", "device": device, "passed": False, "seconds": time.time() - started,
+                 "shot": None, "failure": str(error)[-1000:], "output": ""}]
+    code, output = run([ROOT / "scripts/wonderctl", "--device", device, "build"], env=env, timeout=3600)
+    if code != 0:
+        failure = next((l for l in output.splitlines() if l.startswith("error:")), output.strip()[-300:])
+        return [{"name": "build", "device": device, "passed": False, "seconds": time.time() - started,
+                 "shot": None, "failure": failure.removeprefix("error: ")[:300], "output": output[-4000:]}]
+    if device == "duo":
+        blocked = duo_input_canary(env, out, started)
+        if blocked:
+            return [blocked]
+    results_file = out / f"results-{device}.json"
+    cmd = [ROOT / "scripts/run-scenarios", "--device", device, "--results", results_file]
+    for name in only:
+        cmd += ["--only", name]
+    run(cmd, env=env, timeout=4 * 3600)
+    if not results_file.exists():
+        return [{"name": "run-scenarios", "device": device, "passed": False, "seconds": 0, "shot": None,
+                 "failure": "run-scenarios wrote no results; see run.log", "output": ""}]
+    results = json.loads(results_file.read_text())
+    for r in results:
+        if not r["passed"]:
+            keep_evidence(r, out, f"{device}-{r['name']}")
+        else:
+            keep_review_shot(r, out, f"{device}-{r['name']}")
+        r["output"] = r["output"][-4000:]
+    return results
+
+
+# 3b. Scroll and streaming smoothness on the iPhone simulator.
+
+SMOOTHNESS_TESTS = ["testLiveActivityAndScrolling", "testStreamingReplyAndScrolling"]
+SMOOTHNESS_BASELINE = ROOT / "apps/ios/control/smoothness-baseline.json"
+MEASURED = re.compile(r"Test Case '-\[WonderUITests\.WonderUITests (\w+)\]' measured \[([^\]]+)\] average: ([0-9.]+)")
+
+
+def smoothness_results(log_text, code, baseline, seconds):
+    """One result per test: each measured average against its baseline (fixture-only XCTest)."""
+    measured = {}
+    for test, metric, value in MEASURED.findall(log_text):
+        measured.setdefault(test, {})[metric] = float(value)
+    tolerance = baseline.get("tolerance", 0.2)
+    results = []
+    for test in SMOOTHNESS_TESTS:
+        values = measured.get(test, {})
+        expected = baseline.get("tests", {}).get(test, {}).get("metrics", {})
+        worse = [f"{metric}: {values[metric]:g} vs baseline {limit:g} (+{(values[metric] / limit - 1) * 100:.0f}%)"
+                 for metric, limit in expected.items() if metric in values and limit > 0 and values[metric] > limit * (1 + tolerance)]
+        missing = not values
+        output = "; ".join(f"{metric} {value:g}" for metric, value in sorted(values.items()))
+        failure = ("no measurement; see smoothness.log" if missing else
+                   f"slower than the baseline by more than {tolerance * 100:.0f}%: " + "; ".join(worse) if worse else "")
+        results.append({"name": "smoothness: " + test, "device": "iphone", "kind": "smoothness",
+                        "result": "passed" if not failure else "failed", "passed": not failure,
+                        "seconds": seconds / len(SMOOTHNESS_TESTS), "shot": None, "output": output, "failure": failure,
+                        "repro": f"xcodebuild test -project apps/ios/Wonder.xcodeproj -scheme Diagnostics "
+                                 f"-configuration Diagnostics -only-testing:WonderUITests/WonderUITests/{test}"})
+    if code != 0 and all(r["passed"] for r in results):
+        results.append({"name": "smoothness-infrastructure", "device": "iphone", "kind": "smoothness",
+                        "result": "infrastructure_failed", "passed": False, "seconds": 0, "shot": None, "output": "",
+                        "failure": f"xcodebuild exited {code}; see smoothness.log", "repro": ""})
+    return results
+
+
+def run_smoothness(out):
+    """Measures scrolling and a streaming reply on the Nightly iPhone (fixtures only, nothing sent).
+
+    Runs after the iPhone feature map, before its simulator is deleted; never raises."""
+    env, started = nightly_env(), time.time()
+    log_path = out / "smoothness.log"
+    try:
+        code, doctor = run([ROOT / "scripts/wonderctl", "--device", "iphone", "doctor"], env=env, timeout=600)
+        udid = json.loads(doctor[doctor.index("{"):])["device"]["udid"]
+        derived = DERIVED.parent / "nightly-smoothness"
+        command = ["xcodebuild", "test", "-project", str(ROOT / "apps/ios/Wonder.xcodeproj"), "-scheme", "Diagnostics",
+                   "-configuration", "Diagnostics", "-destination", f"id={udid}", "-derivedDataPath", str(derived),
+                   "-parallel-testing-enabled", "NO",
+                   *[f"-only-testing:WonderUITests/WonderUITests/{test}" for test in SMOOTHNESS_TESTS]]
+        log("$ " + shlex.join(command))
+        with log_path.open("w") as output:
+            code = CONTROL.run_xcodebuild(command, cwd=ROOT, env=env, stdin=subprocess.DEVNULL, stdout=output,
+                                  stderr=subprocess.STDOUT, timeout=3600).returncode
+        baseline = json.loads(SMOOTHNESS_BASELINE.read_text())
+        return smoothness_results(log_path.read_text(errors="ignore"), code, baseline, time.time() - started)
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, subprocess.SubprocessError) as error:
+        return [{"name": "smoothness-infrastructure", "device": "iphone", "kind": "smoothness",
+                 "result": "infrastructure_failed", "passed": False, "seconds": time.time() - started, "shot": None,
+                 "output": "", "failure": f"Smoothness check did not report: {error}", "repro": ""}]
+
+
+# 3c. The app's offline XCTest inventory, chosen by a checked-in manifest (never by name).
+
+XCTEST_MANIFEST = ROOT / "apps/ios/control/xctests.txt"
+XCTEST_TARGETS = ["WonderDiagnosticsTests", "WonderUITests"]
+# Lanes the nightly runs, on the device of the same name; SMOOTHNESS_TESTS runs the third.
+XCTEST_RUN_LANES = ["iphone", "ipad", "smoothness"]
+# Lanes it never runs; each line says where the test can run and why it is not here.
+XCTEST_EXCLUDED_LANES = ["duo", "live", "manual", "physical", "microphone"]
+XCTEST_DERIVED = DERIVED.parent / "nightly-xctests"
+# Declarations are read from code with comments and string literals blanked, at any
+# indentation; a test is a no-argument instance method directly inside an XCTestCase
+# subclass (or an extension of one), as XCTest discovers them.
+XCTEST_ATTRIBUTES = r"(?:@\w+(?:\([^)]*\))?\s+)*"
+XCTEST_TYPE = re.compile(r"^\s*" + XCTEST_ATTRIBUTES + r"(?:(?:public|internal|open|final|private|fileprivate|package)\s+)*"
+                         r"(class|struct|enum|actor|extension)\s+(?!func\b|var\b|let\b|subscript\b)([\w.]+)"
+                         r"(?:<[^>]*>)?\s*(?::\s*([\w.]+))?")
+XCTEST_METHOD = re.compile(r"^\s*((?:@\w+(?:\([^)]*\))?\s+|(?:override|public|internal|open|final|nonisolated|dynamic|"
+                           r"private|fileprivate|static|class|package)\s+)*)func\s+(test\w*)\s*\(\s*\)")
+XCTEST_NOT_DISCOVERED = {"private", "fileprivate", "static", "class"}
+SWIFT_STRING = re.compile(r'(#*)("""|")')
+XCTEST_OUTCOME = re.compile(r"Test Case '-\[(\w+)\.(\w+) (\w+)\]' (passed|failed|skipped)(?: \(([0-9.]+) seconds\))?")
+XCTEST_ISSUE = re.compile(r"^.*?:\d+: (?:error: )?-\[(\w+)\.(\w+) (\w+)\] : (.*)$", re.MULTILINE)
+
+
+def swift_code(text):
+    """TEXT with comments and string literals (interpolations included) blanked, newlines kept,
+    so the braces and declarations left are code."""
+    out = list(text)
+
+    def blank(start, end):
+        for k in range(start, end):
+            if out[k] != "\n":
+                out[k] = " "
+
+    def string_end(i, hashes, delimiter):
+        close, escape = delimiter + hashes, "\\" + hashes
+        while i < len(text):
+            if text.startswith(escape + "(", i):
+                i = code_end(i + len(escape) + 1, closing_paren=True)
+            elif text.startswith(escape, i):
+                i += len(escape) + 1
+            elif text.startswith(close, i):
+                return i + len(close)
+            else:
+                i += 1
+        raise ValueError("unterminated string literal")
+
+    def code_end(i, closing_paren=False):
+        depth = 0
+        while i < len(text):
+            if text.startswith("//", i):
+                j = text.find("\n", i)
+                j = len(text) if j < 0 else j
+                blank(i, j)
+                i = j
+            elif text.startswith("/*", i):
+                nested, j = 1, i + 2
+                while nested and j < len(text):
+                    nested += 1 if text.startswith("/*", j) else -1 if text.startswith("*/", j) else 0
+                    j += 2 if text.startswith(("/*", "*/"), j) else 1
+                blank(i, j)
+                i = j
+            elif match := SWIFT_STRING.match(text, i):
+                j = string_end(match.end(), match.group(1), match.group(2))
+                blank(i, j)
+                i = j
+            elif closing_paren and text[i] in "()":
+                depth += 1 if text[i] == "(" else -1
+                i += 1
+                if depth < 0:
+                    return i
+            else:
+                i += 1
+        if closing_paren:
+            raise ValueError("unterminated string interpolation")
+        return i
+
+    code_end(0)
+    return "".join(out)
+
+
+def xctest_ids(root=ROOT):
+    """Target/Class/method for every XCTest method in the app's test sources, at any indentation.
+
+    A method counts when it is a no-argument `test…` instance method directly inside a class
+    that inherits XCTestCase (or an extension of one) in the same target, which is how XCTest
+    finds tests; private and static methods are not found by XCTest and are not counted."""
+    found = []
+    for target in XCTEST_TARGETS:
+        superclass, methods = {}, []
+        for path in sorted((root / "apps/ios" / target).glob("*.swift")):
+            code = swift_code(path.read_text())
+            scopes, pending = [], None
+            for number, line in enumerate(code.splitlines(), 1):
+                if match := XCTEST_TYPE.match(line):
+                    kind, name, parent = match.groups()
+                    name = name.rsplit(".", 1)[-1]
+                    pending = name
+                    if kind == "class":
+                        superclass[name] = (parent or "").rsplit(".", 1)[-1]
+                match = XCTEST_METHOD.match(line)
+                if match and scopes and scopes[-1] and not XCTEST_NOT_DISCOVERED & set(match.group(1).split()):
+                    methods.append((scopes[-1], match.group(2)))
+                for character in line:
+                    if character == "{":
+                        scopes.append(pending)
+                        pending = None
+                    elif character == "}":
+                        if not scopes:
+                            raise ValueError(f"{path.relative_to(root)}:{number}: unbalanced braces")
+                        scopes.pop()
+            if scopes:
+                raise ValueError(f"{path.relative_to(root)}: unbalanced braces")
+
+        def is_test_case(name, seen=()):
+            parent = superclass.get(name)
+            return parent == "XCTestCase" or (parent in superclass and parent not in seen
+                                               and is_test_case(parent, (*seen, name)))
+        for kind, method in methods:
+            test = f"{target}/{kind}/{method}"
+            if is_test_case(kind) and test not in found:
+                found.append(test)
+    return found
+
+
+def read_xctest_manifest(path=XCTEST_MANIFEST):
+    """[(lane, test id, reason, line number)] from the manifest, in file order."""
+    rows = []
+    for number, line in enumerate(path.read_text().splitlines(), 1):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        entry, _, reason = line.partition(" -- ")
+        parts = entry.split()
+        if len(parts) != 2:
+            raise ValueError(f"{path.name}:{number}: expected '<lane> <Target/Class/method>', got {line!r}")
+        rows.append((parts[0], parts[1], reason.strip(), number))
+    return rows
+
+
+def check_xctest_manifest(root=ROOT, path=None):
+    """Problems with the manifest against the test sources; empty when every test is classified once."""
+    path = path or root / "apps/ios/control/xctests.txt"
+    try:
+        rows = read_xctest_manifest(path)
+    except (OSError, ValueError) as error:
+        return [str(error)]
+    name = path.relative_to(root) if path.is_relative_to(root) else path
+    problems, seen = [], {}
+    for lane, test, reason, number in rows:
+        where = f"{name}:{number}"
+        if lane not in XCTEST_RUN_LANES + XCTEST_EXCLUDED_LANES:
+            problems.append(f"{where}: unknown lane {lane!r}; use one of {', '.join(XCTEST_RUN_LANES + XCTEST_EXCLUDED_LANES)}")
+        if lane in XCTEST_EXCLUDED_LANES and not reason:
+            problems.append(f"{where}: {test} is excluded ({lane}) without a reason; add ' -- <where it can run>: <why>'")
+        if test in seen:
+            problems.append(f"{where}: {test} is already classified on line {seen[test]}")
+        seen.setdefault(test, number)
+    try:
+        source = xctest_ids(root)
+    except (OSError, ValueError) as error:
+        return problems + [f"could not read the test sources: {error}"]
+    for test in sorted(set(source) - set(seen)):
+        problems.append(f"{name}: {test} is not classified; add a line '<lane> {test}' "
+                        "(iphone, ipad, or an excluded lane with its reason)")
+    for test in sorted(set(seen) - set(source)):
+        problems.append(f"{name}:{seen[test]}: {test} names no test in apps/ios/{test.split('/')[0]}; "
+                        "remove or rename the line")
+    smoothness = sorted(test.rsplit("/", 1)[1] for lane, test, _, _ in rows if lane == "smoothness")
+    if smoothness != sorted(SMOOTHNESS_TESTS):
+        problems.append(f"{name}: the smoothness lane {smoothness} must match SMOOTHNESS_TESTS in scripts/nightly-sim "
+                        f"{sorted(SMOOTHNESS_TESTS)}")
+    for lane in XCTEST_RUN_LANES:
+        if not any(row[0] == lane for row in rows):
+            problems.append(f"{name}: the {lane} lane selects no test")
+    return problems
+
+
+def xctest_lane(lane, path=XCTEST_MANIFEST):
+    return [test for row_lane, test, _, _ in read_xctest_manifest(path) if row_lane == lane]
+
+
+def xctest_plan(path=XCTEST_MANIFEST):
+    """One line per lane: how many tests each target contributes."""
+    rows = read_xctest_manifest(path)
+    lines = []
+    for lane in XCTEST_RUN_LANES + XCTEST_EXCLUDED_LANES:
+        tests = [test for row_lane, test, _, _ in rows if row_lane == lane]
+        targets = ", ".join(f"{target} {sum(t.startswith(target + '/') for t in tests)}" for target in XCTEST_TARGETS)
+        runs = "runs" if lane in XCTEST_RUN_LANES else "not run"
+        lines.append(f"{lane}: {len(tests)} ({targets}); {runs}")
+    return lines
+
+
+def xctest_env():
+    """The xcodebuild environment: no live-fixture, pairing or widget QA settings reach a test."""
+    env = {k: v for k, v in os.environ.items()
+           if not k.startswith(("WONDER_", "TEST_RUNNER_WONDER_", "SIMCTL_CHILD_WONDER_"))}
+    env.pop("CI", None)
+    return env
+
+
+def xctest_results(log_text, code, tests, device, seconds):
+    """One row per selected test from the xcodebuild log; a skipped or missing test is not a pass."""
+    by_case = {tuple(test.split("/")[1:]): test for test in tests}
+    outcomes, issues = {}, {}
+    for target, kind, method, outcome, _ in XCTEST_OUTCOME.findall(log_text):
+        if (kind, method) in by_case:
+            outcomes[by_case[(kind, method)]] = outcome
+    for target, kind, method, message in XCTEST_ISSUE.findall(log_text):
+        if (kind, method) in by_case:
+            issues.setdefault(by_case[(kind, method)], message.strip())
+    results = []
+    for test in tests:
+        outcome = outcomes.get(test, "missing")
+        message = issues.get(test, "")
+        failure = {"passed": "",
+                   "failed": message or "failed; see the test log",
+                   "skipped": "skipped on the device chosen for it: " + (message.removeprefix("Test skipped - ") or "no reason given"),
+                   "missing": "did not run: not in the test log"}[outcome]
+        results.append({"name": "xctest: " + test, "device": device, "kind": "xctest", "result": outcome,
+                        "passed": outcome == "passed", "seconds": seconds / max(len(tests), 1), "shot": None,
+                        "output": "", "failure": failure[:500],
+                        "repro": f"xcodebuild test -project apps/ios/Wonder.xcodeproj -scheme Diagnostics "
+                                 f"-configuration Diagnostics -only-testing:{test}"})
+    executed = sum(r["result"] in ("passed", "failed") for r in results)
+    if not executed or (code != 0 and all(r["passed"] for r in results)):
+        results.append({"name": f"xctests-{device}-infrastructure", "device": device, "kind": "xctest",
+                        "result": "infrastructure_failed", "passed": False, "seconds": 0, "shot": None, "output": "",
+                        "failure": (f"no selected test ran (xcodebuild exited {code})" if not executed
+                                    else f"xcodebuild exited {code}; see xctests-{device}.log"), "repro": ""})
+    return results
+
+
+def xcodebuild_logged(arguments, log_path, timeout):
+    command = ["xcodebuild", *arguments, "-project", str(ROOT / "apps/ios/Wonder.xcodeproj"), "-scheme", "Diagnostics",
+               "-configuration", "Diagnostics", "-derivedDataPath", str(XCTEST_DERIVED)]
+    log("$ " + shlex.join(command[:12]) + (f" ... ({len(command) - 12} more)" if len(command) > 12 else ""))
+    with log_path.open("w") as output:
+        return CONTROL.run_xcodebuild(command, cwd=ROOT, env=xctest_env(), stdin=subprocess.DEVNULL, stdout=output,
+                              stderr=subprocess.STDOUT, timeout=timeout).returncode
+
+
+def run_xctests(out, device, build):
+    """Runs DEVICE's manifest lane on its Nightly simulator (offline fixtures, nothing sent).
+
+    The first call builds for testing; later calls reuse that build (`build` holds its result).
+    Runs after the device's feature map, before its simulator is deleted; never raises."""
+    started = time.time()
+
+    def infrastructure(failure):
+        return [{"name": f"xctests-{device}-infrastructure", "device": device, "kind": "xctest",
+                 "result": "infrastructure_failed", "passed": False, "seconds": time.time() - started, "shot": None,
+                 "output": "", "failure": failure, "repro": ""}]
+    try:
+        problems = check_xctest_manifest()
+        if problems:
+            return infrastructure("the test manifest is out of date: " + "; ".join(problems)[:400])
+        tests = xctest_lane(device)
+        if "code" not in build:
+            build["code"] = xcodebuild_logged(["build-for-testing", "-destination", "generic/platform=iOS Simulator"],
+                                              out / "xctests-build.log", timeout=3600)
+        if build["code"] != 0:
+            return infrastructure(f"build-for-testing exited {build['code']}; see xctests-build.log")
+        _, doctor = run([ROOT / "scripts/wonderctl", "--device", device, "doctor"], env=nightly_env(), timeout=600)
+        udid = json.loads(doctor[doctor.index("{"):])["device"]["udid"]
+        bundle = out / f"xctests-{device}.xcresult"
+        shutil.rmtree(bundle, ignore_errors=True)
+        log_path = out / f"xctests-{device}.log"
+        code = xcodebuild_logged(["test-without-building", "-destination", f"id={udid}", "-parallel-testing-enabled", "NO",
+                                  "-resultBundlePath", str(bundle), *[f"-only-testing:{test}" for test in tests]],
+                                 log_path, timeout=4 * 3600)
+        return xctest_results(log_path.read_text(errors="ignore"), code, tests, device, time.time() - started)
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, subprocess.SubprocessError) as error:
+        return infrastructure(f"App tests did not report: {error}")
+
+
+def xctest_markdown(results):
+    rows = [r for r in results if r.get("kind") == "xctest"]
+    if not rows:
+        return None
+    lines = ["| Device | Selected | Passed | Failed | Skipped | Did not run |", "| --- | --- | --- | --- | --- | --- |"]
+    for device in dict.fromkeys(r["device"] for r in rows):
+        mine = [r for r in rows if r["device"] == device and r["result"] != "infrastructure_failed"]
+        count = lambda outcome: sum(r["result"] == outcome for r in mine)
+        lines.append(f"| {device} | {len(mine)} | {count('passed')} | {count('failed')} | {count('skipped')} | {count('missing')} |")
+    problems = [r for r in rows if not r["passed"]]
+    lines += [""] + [f"- {r['device']} `{r['name'].removeprefix('xctest: ')}`: {r['result']}: {r['failure']}"
+                     for r in problems[:60]]
+    if len(problems) > 60:
+        lines.append(f"- … {len(problems) - 60} more in results.json")
+    try:
+        excluded = [line for line in xctest_plan() if line.endswith("not run")]
+        lines += ["", "Not run by design (each line in `apps/ios/control/xctests.txt` says where it can run): "
+                  + "; ".join(line.removesuffix("; not run") for line in excluded) + "."]
+    except (OSError, ValueError):
+        pass
+    return "\n".join(lines)
+
+
+def cmd_xctests(args):
+    if args.check:
+        problems = check_xctest_manifest()
+        for problem in problems:
+            print(problem, file=sys.stderr)
+        if not problems:
+            print(f"{XCTEST_MANIFEST.relative_to(ROOT)}: all {len(xctest_ids())} tests classified")
+        return 1 if problems else 0
+    if args.lane:
+        for test in xctest_lane(args.lane):
+            print(f"-only-testing:{test}")
+        return 0
+    print("\n".join(xctest_plan()))
+    return 0
+
+
+def smoothness_markdown(results):
+    rows = [r for r in results if r.get("kind") == "smoothness"]
+    if not rows:
+        return None
+    lines = ["| Test | Result | Measured (averages) |", "| --- | --- | --- |"]
+    lines += [f"| `{r['name'].removeprefix('smoothness: ')}` | {'PASS' if r['passed'] else 'FAIL: ' + r['failure']} | {r['output'] or '-'} |"
+              for r in rows]
+    return "\n".join(lines)
+
+
+# 4. Bounded live provider checks.
+
+def fixture_process(command, report, log_path=None, seconds=600):
+    """Leave the runner time to archive its threads and remove its auth copy."""
+    log("$ " + shlex.join(str(c) for c in command))
+    previous = report.stat().st_mtime_ns if report.exists() else None
+    log_path = log_path or report.with_suffix(".log")
+    descriptor = os.open(log_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    os.fchmod(descriptor, 0o600)
+    with os.fdopen(descriptor, "w") as output:
+        process = subprocess.Popen([str(c) for c in command], cwd=ROOT, stdin=subprocess.DEVNULL,
+                                   stdout=output, stderr=subprocess.STDOUT)
+        try:
+            process.wait(timeout=seconds)
+        except (subprocess.TimeoutExpired, KeyboardInterrupt):
+            process.terminate()
+            try:
+                process.wait(timeout=90)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=10)
+            # A report written before termination cannot establish this run's result.
+            raise RuntimeError("Live fixture interrupted; saved ownership requires recovery")
+    if process.returncode not in (0, 1) or not report.is_file() or report.stat().st_mtime_ns == previous:
+        raise RuntimeError(f"Live fixture exited {process.returncode} without a report")
+    data = json.loads(report.read_text())
+    if not isinstance(data, dict):
+        raise ValueError("Live fixture report is not an object")
+    return data
+
+
+# The isolated live-fixture daemon comes from a signed host bundle, never this checkout's
+# build. A nightly-owned copy (staged with scripts/wonderctl stage-host) wins over the
+# installed app, so a Mac whose own host is older still checks the current release; the
+# Oct 16 Wonder.app on the mini predates the phone-code pairing contract the probe enforces.
+LIVE_HOSTS = [Path.home() / ".wonder/nightly/host/Cupola.app", Path("/Applications/Cupola.app"),
+              Path("/Applications/Wonder.app")]
+
+
+def live_host(candidates=None):
+    """The first present host bundle: its daemon, resources and version."""
+    override = os.environ.get("WONDER_NIGHTLY_HOST_APP")
+    for app in [Path(override)] if override else (candidates or LIVE_HOSTS):
+        # Cupola.app keeps wonderd beside the cupola CLI; the old Wonder.app kept it in Resources.
+        for daemon in (app / "Contents/MacOS/wonderd", app / "Contents/Resources/wonderd"):
+            if daemon.is_file():
+                try:
+                    with (app / "Contents/Info.plist").open("rb") as info:
+                        version = plistlib.load(info).get("CFBundleVersion")
+                except (OSError, plistlib.InvalidFileException):
+                    version = None
+                return {"app": str(app), "daemon": str(daemon), "resources": str(app / "Contents/Resources"),
+                        "version": version}
+    raise RuntimeError("No host bundle for live checks: stage one with scripts/wonderctl --mini stage-host, "
+                       "or set WONDER_NIGHTLY_HOST_APP")
+
+
+def run_live_fixtures(main, out):
+    """Two small tasks per provider, one daily budget, and recovery before more work."""
+    state = main / ".local/nightly/live-fixtures"
+    state.mkdir(mode=0o700, parents=True, exist_ok=True)
+    pending = state / "pending.json"
+    budget = out / "live-budget.json"
+    python = main / ".local/nightly/venv/bin/python"
+    results = []
+
+    def failure(name, error):
+        return {"name": name, "device": "paired-host", "passed": False, "seconds": 0,
+                "shot": None, "failure": str(error), "output": "", "kind": "live-provider",
+                "result": "infrastructure_failed", "repro": "Read the saved live fixture report and recover its exact owned threads; do not reset the daily budget."}
+
+    try:
+        host = live_host()
+        common = [python, ROOT / "scripts/run-live-fixtures.py",
+                  "--daemon", host["daemon"], "--resources", host["resources"],
+                  "--codex", CODEX, "--public-checkout", main / ".local/public-source/public-checkout"]
+        if not python.is_file():
+            raise RuntimeError("Live fixture environment missing; run scripts/setup-nightly-sim")
+        # Import the event client before reserving recovery state or creating fixtures.
+        # --help alone never loaded the lazy WebSocket import.
+        run([python, ROOT / "scripts/run-live-fixtures.py", "--check-dependencies"],
+            cwd=ROOT, check=True, quiet=True, timeout=30)
+        if pending.exists():
+            owned = json.loads(pending.read_text())
+            previous = Path(owned["output"])
+            previous_budget = Path(owned["budget"])
+            # Only this scheduler's private descendants can be recovered automatically.
+            for path in (previous, previous_budget):
+                path.resolve().relative_to((main / ".local/nightly").resolve())
+            command = common + ["--output", previous, "--budget", previous_budget, "--recover"]
+            recovered = fixture_process(command, previous / "recovery-report.json")
+            if recovered.get("result") != "recovered" or recovered.get("cleanupErrors"):
+                raise RuntimeError("Prior live fixture cleanup remains incomplete: " + str(previous))
+            pending.unlink()
+        for scenario in ("edit", "stop"):
+            output = out / ("live-" + scenario + "-" + uuid.uuid4().hex[:8])
+            # Persist before launch, so a crash cannot lose the exact run to recover.
+            temporary = pending.with_suffix(".tmp")
+            with temporary.open("w") as saved:
+                os.chmod(temporary, 0o600)
+                saved.write(json.dumps({"output": str(output), "budget": str(budget)}))
+                saved.flush()
+                os.fsync(saved.fileno())
+            os.replace(temporary, pending)
+            directory = os.open(state, os.O_RDONLY)
+            try:
+                os.fsync(directory)
+            finally:
+                os.close(directory)
+            command = common + ["--output", output, "--budget", budget, "--provider", "all",
+                                "--scenario", scenario, "--turn-cap", "4", "--execute"]
+            started = time.monotonic()
+            # The runner requires a fresh output directory; its log lives beside it.
+            report = output / "report.json"
+            data = fixture_process(command, report, out / (output.name + "-process.log"))
+            owned_file = output / "owned-threads.json"
+            owned_ids = set(json.loads(owned_file.read_text())) if owned_file.exists() else set()
+            cleaned_ids = {item["conversationId"] for item in data.get("cleanupOutcomes", [])
+                           if item.get("state") in ("archived", "no_provider_session")}
+            if (data.get("cleanupErrors") or owned_ids != cleaned_ids
+                    or data.get("result") not in ("passed", "failed", "infrastructure_failed")):
+                raise RuntimeError("Live fixture cleanup remains incomplete: " + str(output))
+            pending.unlink()
+            for provider in ("codex", "claude"):
+                measured = data.get("providers", {}).get(provider, {})
+                outcome = measured.get("result", "infrastructure_failed")
+                if outcome == "available":
+                    # The catalog offered the model but the run ended before its turn
+                    # (pairing, daemon start): the check never ran, so it cannot read as available.
+                    outcome = "infrastructure_failed"
+                passed = outcome == "passed" and data.get("result") in ("passed", "failed", "infrastructure_failed")
+                results.append({"name": f"live-{provider}-{scenario}", "device": "paired-host",
+                    "kind": "live-provider", "result": outcome, "passed": passed,
+                    "seconds": time.monotonic() - started, "shot": None,
+                    "failure": "" if passed else (measured.get("error") or data.get("error") or "Provider check did not pass; inspect its report"),
+                    "output": json.dumps({"report": str(report), "host": host, "daemonSha256": data.get("daemonSha256"),
+                        "modelTurnAttempts": data.get("modelTurnAttempts"), "budgetAttemptsTotal": data.get("budgetAttemptsTotal"),
+                        "provider": measured}),
+                    "repro": "Inspect " + str(report) + "; reuse " + str(budget) + " for any authorized rerun."})
+    except (OSError, ValueError, TypeError, KeyError, RuntimeError, subprocess.SubprocessError) as error:
+        results.append(failure("live-fixture-infrastructure", error))
+    return results
+
+
+def run_cli_codex(main, out):
+    """A Mac without ChatGPT: the Codex CLI on PATH, a fresh HOME and data directory, no model work.
+
+    Returns (results, markdown): one result, so one issue, with its own table. Never raises."""
+    report = out / "cli-codex/cli-codex.json"
+    report.unlink(missing_ok=True)
+    command = [sys.executable, ROOT / "scripts/check-cli-codex", "--out", report.parent,
+               "--target-dir", main / ".local/build/rust"]
+    started = time.monotonic()
+    log("$ " + shlex.join(str(c) for c in command))
+    try:
+        code, output = run(command, quiet=True, timeout=5400)
+        (out / "cli-codex.log").write_text(output)
+        data, markdown = json.loads(report.read_text()), report.with_suffix(".md").read_text()
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        code, data = None, {"result": "infrastructure_failed", "error": f"the check did not report: {error}"}
+        markdown = data["error"] + "; see cli-codex.log.\n"
+    return cli_codex_results(data, code, time.monotonic() - started), markdown
+
+
+def cli_codex_results(data, code, seconds):
+    failing = [f"{c['name']}: {c['detail']}" for c in data.get("checks", []) if not c.get("pass")]
+    result = data.get("result", "infrastructure_failed")
+    passed = result == "passed" and code == 0 and not failing
+    return [{"name": "cli-codex", "device": "cli-only-mac", "kind": "cli-codex", "result": result,
+             "passed": passed, "seconds": seconds, "shot": None, "output": "",
+             "failure": "" if passed else ("; ".join(failing) or data.get("error") or f"exited {code}")[:1000],
+             "repro": "scripts/check-cli-codex --out .local/cli-codex"}]
+
+
+def status_truth_results(data, code):
+    """One result per status-table row; a failing row is reported like a failing scenario."""
+    results = []
+    for row in data.get("rows", []):
+        failing = [f"{c['surface']}: expected {json.dumps(c['expected'])}, observed {json.dumps(c['observed'])}"
+                   + (f" after {c['delayMs']} ms" if c.get("delayMs") is not None else "")
+                   for phase in row.get("phases", []) for c in phase.get("checks", []) if not c.get("pass")]
+        results.append({"name": "status-truth: " + row["name"], "device": "host", "kind": "status-truth",
+                        "result": "passed" if row.get("pass") else "failed", "passed": bool(row.get("pass")),
+                        "seconds": row.get("seconds", 0), "shot": None, "output": "",
+                        "failure": "" if row.get("pass") else (row.get("error") or "; ".join(failing))[:1000],
+                        "repro": f"WONDER_STATUS_TABLE_ONLY={row['name']} WONDER_STATUS_TABLE=/tmp/status-truth.json "
+                                 "cargo test -p wonderd --lib status_truth_table -- --ignored --nocapture"})
+    if code != 0 and not any(row.get("error") for row in data.get("rows", [])):
+        results.append({"name": "status-truth-infrastructure", "device": "host", "kind": "status-truth",
+                        "result": "infrastructure_failed", "passed": False, "seconds": 0, "shot": None,
+                        "output": "", "failure": f"Status truth table exited {code}; see status-truth.log",
+                        "repro": "cargo test -p wonderd --lib status_truth_table -- --ignored --nocapture"})
+    return results
+
+
+def run_status_truth(main, out):
+    """The host status truth table: real host loops around fake runtimes, no simulator.
+
+    Returns (results, markdown). It runs after the simulator phases and never raises."""
+    report = out / "status-truth.json"
+    for stale in (report, report.with_suffix(".md")):
+        stale.unlink(missing_ok=True)
+    cargo = shutil.which("cargo") or str(Path.home() / ".cargo/bin/cargo")
+    env = dict(os.environ, WONDER_STATUS_TABLE=str(report), CARGO_TARGET_DIR=str(main / ".local/build/rust"))
+    command = [cargo, "test", "-p", "wonderd", "--lib", "status_truth_table", "--", "--ignored", "--nocapture"]
+    log("$ " + shlex.join(command))
+    try:
+        with (out / "status-truth.log").open("w") as output:
+            code = subprocess.run(command, cwd=ROOT, env=env, stdin=subprocess.DEVNULL, stdout=output,
+                                  stderr=subprocess.STDOUT, timeout=2400).returncode
+        markdown = report.with_suffix(".md").read_text()
+        return status_truth_results(json.loads(report.read_text()), code), markdown
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, subprocess.SubprocessError) as error:
+        return [{"name": "status-truth-infrastructure", "device": "host", "kind": "status-truth",
+                 "result": "infrastructure_failed", "passed": False, "seconds": 0, "shot": None, "output": "",
+                 "failure": f"Status truth table did not report: {error}",
+                 "repro": "cargo test -p wonderd --lib status_truth_table -- --ignored --nocapture"}], None
+
+
+# 5. Triage with Codex.
+
+PROMPT = """You are triaging tonight's automated iOS simulator run of the Wonder app.
+Read {out}/results.json: one entry per scenario and device. Devices run: {devices}
+(iphone = iOS 26 iPhone,
+duo = folded iPhone Duo on iOS 27.1, ipad = iPad Pro 11-inch on iOS 27). The ipad runs
+only scenarios tagged `# nightly-ipad:`; one with no ipad entry was skipped by design. Failed entries
+carry the failing step, the wonderctl output and a screenshot (attached, and under
+{out}/shots/). When present, their context path contains the native accessibility tree,
+display inventory and capture errors from the exact failed device, before deletion.
+Read it before inferring an input or display fault; a timed-out or truncated probe
+does not prove the app's state. Entries with result=crashed are app crashes found in the
+simulator's crash reports (same device, process and build): each of their crashes names the
+raw .ips report under {out}/crash-reports/, its exception, the faulting app frames and any
+matching dSYMs. Report them as crashes, not as the app losing the foreground or an input
+fault, and point the likely cause at those frames. A failure's unattributed_crash_reports are
+Wonder crash reports from that time that could not be tied to its device, process or build;
+say they may be related, never that this scenario crashed. The scenarios are in {checkout}/apps/ios/control/scenarios, the app source
+in {checkout}/apps/ios, and apps/ios/CONTROL.md explains wonderctl. The tested commit is
+{commit}. You may read anything; write only inside {out}. Do not run simulators or builds.
+
+Entries with kind=live-provider are paired HTTP/WebSocket checks against the installed
+Mac daemon, not simulator scenarios. Their output names a private report with the daemon
+hash, exact models and send count. Preserve infrastructure_failed versus failed, use
+their supplied repro, and do not invent a screenshot or a .wctl scenario. Do not run
+model work, retry sends, reset budgets or perform cleanup while triaging.
+
+Entries with kind=status-truth are rows of the host status truth table, already reported
+in {out}/status-truth.md and appended to the report after you. Do not write sections or
+findings for them.
+
+Write two files:
+1. {out}/report.md, concise Markdown: a one-line summary (passed/failed per device), then
+   one section per failing scenario headed `## <scenario>` with: devices, the failing step
+   and what the screenshot shows, likely cause (point to files and lines; label it
+   measured, inferred or guessed), repro command
+   (`scripts/wonderctl --device DEVICE run apps/ios/control/scenarios/NAME.wctl`), and
+   severity (high: a core flow is broken for users; medium: a feature is wrong; low:
+   cosmetic or a test-only problem). Say plainly when a failure looks like a scenario or
+   simulator problem rather than an app bug.
+2. {out}/findings.json: a JSON array, one object per failing scenario, with keys
+   scenario, devices (array), severity, summary (one sentence), likely_cause, repro.
+"""
+
+
+def scenario_failures(results):
+    """Failures Codex triages; status-truth and cli-codex rows carry their own table."""
+    return [r for r in results if not r["passed"] and r.get("kind") not in ("status-truth", "smoothness", "cli-codex", "xctest")]
+
+
+def triage(results, out, checkout, commit, devices):
+    failures = scenario_failures(results)
+    (out / "results.json").write_text(json.dumps(results, indent=2))
+    if not failures:
+        return None
+    if not Path(CODEX).exists():
+        return f"Codex is not installed at {CODEX}"
+    images = []
+    for r in failures[:12]:
+        if r["shot"] and Path(r["shot"]).exists():
+            images += ["-i", r["shot"]]
+    cmd = [CODEX, "exec", "-m", CODEX_MODEL, "-c", "model_reasoning_effort=medium",
+           "-s", "workspace-write", "-C", out, "--skip-git-repo-check", "--ephemeral",
+           *images, "--", PROMPT.format(out=out, checkout=checkout, commit=commit, devices=", ".join(devices))]
+    code, output = run(cmd, cwd=out, timeout=1800)
+    if code != 0 or not (out / "report.md").exists():
+        return f"Codex triage failed ({code}): {output.strip()[-300:]}"
+    return None
+
+
+def fallback_report(results, note):
+    lines = ["Codex did not write this report: " + note, ""]
+    for r in scenario_failures(results):
+        if not r["passed"]:
+            lines += [f"## {r['name']}", f"- device: {r['device']}", f"- failure: {r['failure']}",
+                      f"- screenshot: {r['shot'] or 'none'}",
+                      *crash_lines(r),
+                      f"- native context: {r.get('context') or 'unavailable'}",
+                      "- repro: `" + (r.get("repro") or f"scripts/wonderctl --device {r['device']} run "
+                                      f"apps/ios/control/scenarios/{r['name']}.wctl") + "`", ""]
+    return "\n".join(lines)
+
+
+def crash_lines(r):
+    lines = []
+    for crash in r.get("crashes") or []:
+        lines += ([f"- crash report: {crash['report']} ({crash['exception']}, process {crash.get('pid')})"]
+                  + [f"  - {frame}" for frame in crash.get("frames", [])[:5]])
+    return lines
+
+
+def summary_line(results, devices):
+    parts = []
+    for device in devices:
+        # App test rows carry their own table (xctest_markdown).
+        mine = [r for r in results if r["device"] == device and r.get("kind") != "xctest"]
+        crashed = sum(r.get("result") == "crashed" for r in mine)
+        parts.append(f"{device} {sum(r['passed'] for r in mine)}/{len(mine)}" + (f" ({crashed} crashed)" if crashed else ""))
+    return "passed: " + ", ".join(parts)
+
+
+# 5. GitHub issues, one per failing scenario.
+
+def findings_by_scenario(out):
+    try:
+        data = json.loads((out / "findings.json").read_text())
+        return {f["scenario"].removesuffix(".wctl"): f for f in data if isinstance(f, dict) and "scenario" in f}
+    except (OSError, ValueError, KeyError, AttributeError):
+        return {}
+
+
+def issue_body(name, failures, finding, date, commit, out):
+    verb = "The app crashed" if any(r.get("result") == "crashed" for r in failures) else "Failed"
+    lines = [f"{verb} in the nightly simulator run on {date} at `{commit[:10]}`.", ""]
+    if finding:
+        lines += [f"**Severity:** {finding.get('severity', '?')}", "",
+                  str(finding.get("summary", "")), "",
+                  f"**Likely cause:** {finding.get('likely_cause', '')}", ""]
+    lines += ["| Device | Failure |", "| --- | --- |"]
+    lines += [f"| {r['device']} | {r['failure'].replace('|', '/')} |" for r in failures]
+    for r in failures:
+        for crash in r.get("crashes") or []:
+            lines += ["", f"**The app crashed on {r['device']}** ({crash['exception']}). Faulting app frames:", "```",
+                      *crash.get("frames", [])[:8], "```",
+                      f"Crash report: `{crash['report']}`" + (f"; dSYMs: `{', '.join(crash['dsyms'])}`" if crash.get("dsyms") else "")]
+    repro = failures[0].get("repro") or (finding or {}).get("repro") or (f"scripts/wonderctl --device {failures[0]['device']} run "
+                                              f"apps/ios/control/scenarios/{name}.wctl")
+    lines += ["", f"**Repro:** `{repro}`", "",
+              f"Report and screenshots on the nightly Mac: `{out}/report.md`."]
+    return "\n".join(lines)
+
+
+def gh(*args):
+    return run(["gh", *args], quiet=False)
+
+
+def sync_issues(results, out, date, commit, full_run, dry_run):
+    by_name = {}
+    for r in results:
+        by_name.setdefault(r["name"], []).append(r)
+    failing = {name: [r for r in rs if not r["passed"]] for name, rs in by_name.items()}
+    failing = {name: rs for name, rs in failing.items() if rs}
+    findings = findings_by_scenario(out)
+    if dry_run:
+        for name in failing:
+            log(f"dry run: would open or update issue '{TITLE.format(name)}'")
+        return
+    gh("label", "create", LABEL, "--color", "B60205", "--description",
+       "Found by the nightly simulator run (scripts/nightly-sim)", "--force")
+    code, output = gh("issue", "list", "--label", LABEL, "--state", "all", "--limit", "500",
+                      "--json", "number,title,state")
+    existing = {i["title"]: i for i in json.loads(output)} if code == 0 else {}
+    for name, failures in failing.items():
+        title = TITLE.format(name)
+        body = issue_body(name, failures, findings.get(name), date, commit, out)
+        issue = existing.get(title)
+        if not issue:
+            gh("issue", "create", "--title", title, "--label", LABEL, "--body", body)
+            continue
+        if issue["state"] != "OPEN":
+            gh("issue", "reopen", str(issue["number"]))
+        gh("issue", "edit", str(issue["number"]), "--body", body)
+        gh("issue", "comment", str(issue["number"]), "--body", f"Still failing on {date} at `{commit[:10]}`: "
+           + ", ".join(f"{r['device']}: {r['failure']}" for r in failures)[:1500])
+    blocked = sorted({r["device"] for r in results if r.get("blocked_device")})
+    if blocked:
+        log(f"not closing passing issues: the feature map did not run on {', '.join(blocked)}")
+    if not full_run or blocked:
+        return
+    for title, issue in existing.items():
+        match = re.fullmatch(TITLE.format("(.+)"), title)
+        if issue["state"] == "OPEN" and match and match.group(1) in by_name and match.group(1) not in failing:
+            gh("issue", "close", str(issue["number"]), "--comment",
+               f"Passed every applicable nightly check on {date} at `{commit[:10]}`.")
+
+
+# Main.
+
+def qualification(args):
+    return bool(getattr(args, "output", None) or getattr(args, "only", None) or getattr(args, "device", None))
+
+
+def explicit_output(args, main):
+    """An explicit test destination must never alias the real nightly's state."""
+    if not getattr(args, "output", None):
+        return None
+    out = Path(args.output).expanduser().resolve()
+    state = (main / ".local/nightly").resolve()
+    if out == state or out in state.parents or (state in out.parents and
+            out.relative_to(state).parts[0] not in {"dry-run", "qualifications"}):
+        raise ValueError("--output must be outside real nightly state (use .local/nightly/qualifications/<run>)")
+    return out
+
+
+def cmd_run(args):
+    global LOG
+    main = main_checkout()
+    explicit_output(args, main)
+    # All run modes share simulator ownership. Acquire it before touching reports.
+    state = main / ".local/nightly"
+    state.mkdir(parents=True, exist_ok=True)
+    LOG = None
+    with (state / ".lock").open("a") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            log("another nightly run is in progress; exiting")
+            return 0
+        if not args.dry_run and not args.no_update and not qualification(args) and os.environ.get("WONDER_NIGHTLY_UPDATED") != "1":
+            update_checkout(main)
+        return run_nightly(args, main)
+
+
+def run_nightly(args, main):
+    global LOG
+    now = dt.datetime.now()
+    date = f"{now:%Y-%m-%d}"
+    base = main / ".local/nightly"
+    latest = None
+    out = explicit_output(args, main)
+    if out is None:
+        if args.dry_run:
+            out = base / "dry-run" / date
+            latest = base / "dry-run/latest.md"
+        elif qualification(args):
+            out = base / "qualifications" / f"{date}-{now:%H%M%S}-{uuid.uuid4().hex[:8]}"
+        else:
+            out = base / date
+            latest = base / "latest.md"
+    out.mkdir(parents=True, exist_ok=True)
+    # A second run the same day starts clean, so an old report never stands in for a new one.
+    for stale in ["report.md", "findings.json", "results.json", *[p.name for p in out.glob("results-*.json")]]:
+        (out / stale).unlink(missing_ok=True)
+    shutil.rmtree(out / "shots", ignore_errors=True)
+    shutil.rmtree(out / "review-shots", ignore_errors=True)
+    LOG = out / "run.log"
+    devices = args.device or (["iphone"] if args.dry_run else DEVICES)
+    only = args.only or (["first-launch"] if args.dry_run else [])
+    hour, minute = map(int, args.deadline.split(":")) if args.deadline else (None, None)
+    deadline = (now.replace(hour=hour, minute=minute, second=0, microsecond=0) if args.deadline
+                else now + dt.timedelta(minutes=2) if args.dry_run
+                else now.replace(hour=10, minute=0, second=0, microsecond=0))
+    poll = args.poll or (15 if args.dry_run else 300)
+    commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, capture_output=True).stdout.strip()
+    title = "Nightly qualification" if qualification(args) else "Nightly simulator run"
+    log(f"{title}{' (dry run)' if args.dry_run else ''}: {ROOT} at {commit[:10]}, devices {devices}, "
+        f"scenarios {only or 'all'}, deadline {deadline:%H:%M}")
+
+    delete_nightly_simulators()
+    reasons = wait_until_idle(deadline, poll, args.ignore_busy)
+    if reasons:
+        report = (f"# {title} {date}: skipped\n\nSimulators were still in use at the "
+                  f"{deadline:%H:%M} deadline, so nothing ran:\n\n" + "\n".join(f"- {r}" for r in reasons) + "\n")
+        (out / "report.md").write_text(report)
+        if latest:
+            shutil.copy(out / "report.md", latest)
+        return 0
+
+    results = []
+    duo_canary = None
+    ipad_note = ""
+    smoothness_enabled = getattr(args, "smoothness", False) or not (args.dry_run or args.only or args.device)
+    xctests_enabled = getattr(args, "xctests", False) or not (args.dry_run or args.only or args.device)
+    xctest_build = {}
+    if not xctests_enabled:
+        try:
+            log("app tests not requested for this run; the manifest selects " + "; ".join(xctest_plan()))
+        except (OSError, ValueError) as error:
+            log(f"app test manifest unreadable: {error}")
+    try:
+        for device in devices:
+            log(f"== {device} ==")
+            names = only
+            if not only and device == "ipad":
+                names, skipped = device_plan(device)
+                ipad_note = (f"The iPad runs only the {len(names)} scenarios tagged `# nightly-ipad:`; {len(skipped)} "
+                             "others are skipped there by design (the iPhone runs them; see apps/ios/CONTROL.md).\n\n")
+                log(f"ipad: {len(names)} tagged scenarios, {len(skipped)} skipped by design")
+                if not names:
+                    continue
+            device_results = run_device(device, names, out)
+            for r in device_results:
+                r["device"] = device
+            results += device_results
+            log(f"{device}: {sum(r['passed'] for r in device_results)}/{len(device_results)} passed")
+            if device == "iphone" and smoothness_enabled:
+                log("== smoothness ==")
+                smoothness = run_smoothness(out)
+                results += smoothness
+                log(f"smoothness: {sum(r['passed'] for r in smoothness)}/{len(smoothness)} passed")
+            if device in XCTEST_RUN_LANES and xctests_enabled:
+                log(f"== {device} app tests ==")
+                xctests = run_xctests(out, device, xctest_build)
+                results += xctests
+                log(f"{device} app tests: {sum(r['passed'] for r in xctests)}/{len(xctests)} passed")
+            delete_nightly_simulators()
+        if not (args.dry_run or args.only or args.device):
+            log("== duo input canary ==")
+            duo_canary = duo_canary_only(out)
+            log(f"duo input canary: {duo_canary[1]}")
+    finally:
+        delete_nightly_simulators()
+
+    live_enabled = not (args.dry_run or qualification(args) or args.no_live)
+    if live_enabled:
+        results += run_live_fixtures(main, out)
+    cli_enabled = ((getattr(args, "cli_codex", False) or not (args.dry_run or args.only or args.device))
+                   and not getattr(args, "no_cli_codex", False))
+    cli_markdown = None
+    if cli_enabled:
+        log("== Mac without ChatGPT ==")
+        cli_results, cli_markdown = run_cli_codex(main, out)
+        results += cli_results
+        log(f"cli-codex: {cli_results[0]['result']}")
+    status_enabled = ((getattr(args, "status_truth", False) or not (args.dry_run or args.only or args.device))
+                      and not getattr(args, "no_status_truth", False))
+    status_markdown = None
+    if status_enabled:
+        status_results, status_markdown = run_status_truth(main, out)
+        results += status_results
+    reported_devices = (devices + (["paired-host"] if live_enabled else []) + (["cli-only-mac"] if cli_enabled else [])
+                        + (["host"] if status_enabled else []))
+    note = triage(results, out, ROOT, commit, reported_devices)
+    failures = scenario_failures(results)
+    live_note = ("Live checks use the installed Mac daemon; its hash and attempted sends are in each private report."
+                 if live_enabled else "Live provider checks were not requested for this dry, focused or --no-live run.")
+    duo_note = (f"The Duo is out of the feature map pending cover/inner input qualification, posture checks "
+                f"and a full map on the final candidate (#{DUO_ISSUE}); "
+                f"tonight's canary {duo_canary[1]}.\n\n" if duo_canary else "")
+    header = (f"# {title} {date}\n\nCommit `{commit[:10]}`; {summary_line(results, reported_devices)}. "
+              f"Files: `{out}`.\n\n{live_note}\n\n{ipad_note}{duo_note}")
+    if not failures:
+        body = "Every simulator scenario and live check passed.\n"
+    elif note:
+        log(note)
+        body = fallback_report(results, note)
+    else:
+        body = (out / "report.md").read_text()
+    if cli_markdown:
+        body += "\n\n## Mac without ChatGPT (Codex CLI)\n\n" + cli_markdown
+    if status_markdown:
+        body += "\n\n## Status truth table\n\n" + status_markdown
+    if smoothness := smoothness_markdown(results):
+        body += "\n\n## Smoothness (simulator)\n\n" + smoothness
+    if review := review_markdown(results, commit):
+        body += "\n\n## Screenshots to look at\n\n" + review
+    if xctests := xctest_markdown(results):
+        body += "\n\n## App tests (simulator, offline fixtures)\n\n" + xctests
+    (out / "report.md").write_text(header + body)
+    if latest:
+        shutil.copy(out / "report.md", latest)
+    log(f"report: {out / 'report.md'}")
+
+    if duo_canary and duo_canary[0] and not args.no_issues and not qualification(args):
+        gh("issue", "comment", str(DUO_ISSUE), "--body",
+           f"The Duo cover input canary passed on {date} at `{commit[:10]}`. Next: qualify native input "
+           "and locators on the cover and inner display, then run the explicit posture scenarios "
+           "(`scripts/run-scenarios --device duo --only duo-cover --only duo-unfolded`). Keep visual "
+           "review for bar pills until their locator path is qualified. Finally run "
+           "`scripts/nightly-sim run --device duo --no-issues` on the final candidate; only after "
+           "those gates pass, add `duo` back to DEVICES and close this issue.")
+    if not args.no_issues and not qualification(args):
+        sync_issues(results, out, date, commit, full_run=not args.only and devices == DEVICES,
+                    dry_run=args.dry_run)
+    log("done")
+    return 0
+
+
+# Split nights: a simulator host (the Mac mini) runs `run --no-status-truth`; this Mac
+# measures only the Rust status truth table, then folds the host's report into its own.
+
+def remote_main(host):
+    """The simulator host's main checkout, read from its installed launcher."""
+    code, output = run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", host,
+                        "sed -n 's/^MAIN = //p' ~/.wonder/nightly/launcher"], quiet=True, timeout=60)
+    if code != 0 or not output.strip():
+        raise RuntimeError(f"{host} has no nightly launcher (run scripts/setup-nightly-sim --role sims there): "
+                           + output.strip()[-200:])
+    return ast.literal_eval(output.strip().splitlines()[0])
+
+
+def remote_finished(host, night):
+    """The host's report is final once its run logged `done` or it wrote a skipped report."""
+    script = (f"test -f {shlex.quote(night)}/report.md && "
+              f"(head -1 {shlex.quote(night)}/report.md | grep -q ': skipped$' || "
+              f"tail -1 {shlex.quote(night)}/run.log | grep -q '] done$')")
+    code, _ = run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", host, script], quiet=True, timeout=60)
+    return code == 0
+
+
+def combined_report(date, host, sim_report, status_markdown, status_results, commit):
+    """The simulator host's report with this Mac's status truth table appended."""
+    passed = sum(r["passed"] for r in status_results)
+    status = (f"\n\n## Status truth table (this Mac, `{commit[:10]}`; host {passed}/{len(status_results)})\n\n"
+              + (status_markdown or "The status truth table did not report; see status-truth.log."))
+    if sim_report is None:
+        sim_report = (f"# Nightly simulator run {date}\n\nThe simulator host `{host}` did not finish a report "
+                      "before the deadline; read its `~/Library/Logs/wonder-nightly-sim.log`.\n")
+    return sim_report.rstrip("\n") + status
+
+
+def cmd_status_truth(args):
+    global LOG
+    main = main_checkout()
+    state = main / ".local/nightly"
+    state.mkdir(parents=True, exist_ok=True)
+    with (state / ".lock").open("a") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            log("another nightly run is in progress; exiting")
+            return 0
+        if not args.no_update and os.environ.get("WONDER_NIGHTLY_UPDATED") != "1":
+            update_checkout(main)
+        now = dt.datetime.now()
+        date = f"{now:%Y-%m-%d}"
+        out = state / date
+        out.mkdir(parents=True, exist_ok=True)
+        LOG = out / "status-run.log"
+        commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, capture_output=True).stdout.strip()
+        hour, minute = map(int, args.deadline.split(":"))
+        deadline = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        log(f"status truth at {commit[:10]}; simulator host {args.sim_host}, deadline {deadline:%H:%M}")
+        status_results, status_markdown = run_status_truth(main, out)
+
+        sim_report = None
+        try:
+            night = f"{remote_main(args.sim_host)}/.local/nightly/{date}"
+            while not remote_finished(args.sim_host, night):
+                if dt.datetime.now() + dt.timedelta(seconds=args.poll) > deadline:
+                    log(f"{args.sim_host} has not finished tonight's run at the {deadline:%H:%M} deadline")
+                    break
+                log(f"waiting for {args.sim_host}; checking again in {args.poll}s")
+                time.sleep(args.poll)
+            else:
+                # Keep this Mac's status files; the host's names never collide with them.
+                code, output = run(["rsync", "-a", "--exclude", "/status-*", f"{args.sim_host}:{night}/", f"{out}/"],
+                                   timeout=1800)
+                if code == 0:
+                    shutil.copy(out / "report.md", out / "sim-report.md")
+                    sim_report = (out / "sim-report.md").read_text()
+                else:
+                    log(f"copying {args.sim_host}'s report failed: {output.strip()[-300:]}")
+        except (OSError, ValueError, SyntaxError, RuntimeError) as error:
+            log(f"simulator host report unavailable: {error}")
+
+        (out / "report.md").write_text(combined_report(date, args.sim_host, sim_report, status_markdown,
+                                                       status_results, commit))
+        shutil.copy(out / "report.md", state / "latest.md")
+        log(f"report: {out / 'report.md'}")
+        if not args.no_issues:
+            # Only status-truth issue titles are touched; the host files and closes its own.
+            sync_issues(status_results, out, date, commit, full_run=True, dry_run=False)
+        log("done")
+        return 0
+
+
+def cmd_cli_codex(args):
+    """The nightly's Mac-without-ChatGPT step alone: no simulator, worktree update or GitHub."""
+    global LOG
+    main = main_checkout()
+    out = explicit_output(args, main) or main / ".local/nightly/dry-run" / f"cli-codex-{dt.datetime.now():%Y-%m-%d}"
+    out.mkdir(parents=True, exist_ok=True)
+    LOG = out / "run.log"
+    results, markdown = run_cli_codex(main, out)
+    (out / "results.json").write_text(json.dumps(results, indent=2))
+    (out / "report.md").write_text("# Mac without ChatGPT (Codex CLI)\n\n" + markdown)
+    print(markdown, end="")
+    return 0 if results[0]["passed"] else 1
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = parser.add_subparsers(dest="command", required=True)
+    r = sub.add_parser("run", help="wait for idle simulators, run the feature map, triage, file issues")
+    r.add_argument("--dry-run", action="store_true",
+                   help="iphone and first-launch only (unless given), 2-minute idle deadline, 15 s polls, "
+                        "output under .local/nightly/dry-run, no GitHub issues, no worktree update")
+    r.add_argument("--output", type=Path, metavar="DIR",
+                   help="qualification output directory; never update nightly latest.md, the worktree or GitHub, or run live checks")
+    r.add_argument("--device", action="append", choices=["iphone", "iphone-27", "duo", "ipad"])
+    r.add_argument("--only", action="append", metavar="SCENARIO", help="scenario name or .wctl path; repeatable")
+    r.add_argument("--deadline", help="HH:MM today after which a busy Mac skips the run (default 10:00)")
+    r.add_argument("--poll", type=int, help="seconds between idle checks (default 300)")
+    r.add_argument("--ignore-busy", action="store_true",
+                   help="report signs of simulator use but run anyway (for testing this script)")
+    r.add_argument("--no-update", action="store_true", help="test this checkout as it is")
+    r.add_argument("--no-issues", action="store_true", help="do not open, update or close GitHub issues")
+    r.add_argument("--no-live", action="store_true", help="omit live provider checks; dry and focused runs already omit them")
+    r.add_argument("--status-truth", action="store_true",
+                   help="also measure the host status truth table on a dry or focused run (full runs always do)")
+    r.add_argument("--no-status-truth", action="store_true",
+                   help="leave the Rust status truth table to the Mac running `status-truth` (simulator host)")
+    r.add_argument("--cli-codex", action="store_true",
+                   help="also run the Mac-without-ChatGPT check on a dry or focused run (full runs always do)")
+    r.add_argument("--no-cli-codex", action="store_true", help="omit the Mac-without-ChatGPT check")
+    r.add_argument("--smoothness", action="store_true",
+                   help="also measure iPhone scroll and streaming smoothness on a dry or focused run (full runs always do)")
+    r.add_argument("--xctests", action="store_true",
+                   help="also run the app's offline XCTest lanes (apps/ios/control/xctests.txt) on a dry or focused run "
+                        "(full runs always do)")
+    x = sub.add_parser("xctests", help="list or check the app's XCTest manifest (apps/ios/control/xctests.txt)")
+    x.add_argument("--check", action="store_true", help="fail when a test is unclassified, stale or excluded without a reason")
+    x.add_argument("--lane", choices=XCTEST_RUN_LANES + XCTEST_EXCLUDED_LANES, help="print that lane's -only-testing arguments")
+    s = sub.add_parser("status-truth",
+                       help="measure the status truth table here and fold in the simulator host's report")
+    s.add_argument("--sim-host", required=True, help="SSH host running `run --no-status-truth`, e.g. second-mac")
+    s.add_argument("--deadline", default="11:00", help="HH:MM today to stop waiting for the host (default 11:00)")
+    s.add_argument("--poll", type=int, default=300, help="seconds between checks of the host (default 300)")
+    s.add_argument("--no-update", action="store_true", help="test this checkout as it is")
+    s.add_argument("--no-issues", action="store_true", help="do not open, update or close GitHub issues")
+    c = sub.add_parser("cli-codex", help="run only the Mac-without-ChatGPT check (scripts/check-cli-codex)")
+    c.add_argument("--output", type=Path, metavar="DIR",
+                   help="default .local/nightly/dry-run/cli-codex-DATE; never the real nightly's state")
+    args = parser.parse_args()
+    commands = {"status-truth": cmd_status_truth, "cli-codex": cmd_cli_codex, "xctests": cmd_xctests}
+    return commands.get(args.command, cmd_run)(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

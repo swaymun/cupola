@@ -1,0 +1,21 @@
+# devices: duo
+# Cover and inner captures must follow the active display; the dormant cover
+# produces a black image after opening even while inner AX assertions pass.
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture settings-open
+wait --id settings-search-field --timeout 30
+shot ux6-settings-folded-before-edge
+swipe right --edge-of settings-root-list
+wait --id settings-search-field --gone --timeout 10
+wait --id new-chat-draft --timeout 10
+shot ux6-settings-folded-after-edge
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture settings-open
+wait --id settings-search-field --timeout 30
+shot ux6-settings-unfolded-before-edge --display primary-1
+swipe right --edge-of settings-root-list
+wait --id settings-search-field --gone --timeout 10
+wait --id new-chat-draft --timeout 10
+shot ux6-settings-unfolded-after-edge --display primary-1

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>WonderPushKeychainGroup</key><string>$(AppIdentifierPrefix)$(WONDER_APP_BUNDLE_IDENTIFIER).push</string>
+<key>WonderDistributionChannel</key><string>$(WONDER_DISTRIBUTION_CHANNEL)</string>
+<key>WonderDeepLinkScheme</key><string>$(WONDER_DEEP_LINK_SCHEME)</string>
+<key>CFBundleURLTypes</key><array><dict>
+<key>CFBundleURLName</key><string>$(WONDER_APP_BUNDLE_IDENTIFIER).link</string>
+<key>CFBundleURLSchemes</key><array><string>$(WONDER_DEEP_LINK_SCHEME)</string></array>
+</dict></array>
+<key>WonderBuildProfile</key><string>$(WONDER_BUILD_PROFILE)</string>
+<key>WonderAPNsEnvironment</key><string>$(WONDER_APNS_ENVIRONMENT)</string>
+<key>NSSupportsLiveActivities</key><true/>
+<key>CADisableMinimumFrameDurationOnPhone</key><true/>
+<key>NSBonjourServices</key><array><string>_wonder._tcp</string></array>
+<key>UIBackgroundModes</key><array><string>audio</string><string>remote-notification</string></array>
+</dict></plist>

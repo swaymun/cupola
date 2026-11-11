@@ -1,0 +1,16 @@
+# devices: iphone-11-usb
+# Physical iPhone 11 only (scripts/device-runner): the simulator lanes skip it as not applicable.
+# RESCUE-VERIFY live run on the USB iPhone 11, already paired to a scratch host
+# (scripts/pair-device --route home). While this waits, the host's daemon is
+# killed until its supervisor gives up; Restart must bring it back.
+launch
+wait --id open-sidebar --timeout 60
+sidebar open
+wait --id chats-sidebar --timeout 20
+shot rv-phone-connected
+wait --id sidebar-rescue-restart --timeout 280
+shot rv-phone-gave-up
+tap --id sidebar-rescue-restart
+shot rv-phone-restarting
+wait --id sidebar-rescue --gone --timeout 90
+shot rv-phone-reconnected

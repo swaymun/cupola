@@ -1,0 +1,202 @@
+# Edit from here on the owner's own message in a started, idle Codex Project
+# thread: the long-press menu offers it, the confirmation says the conversation
+# from that message on is removed and files stay as they are, "Rewinding…"
+# shows, then the thread ends before the message and the message is back in the
+# draft. An agent reply offers no Edit from here. The confirmation opens from
+# just below the header, leaving the title uncovered (check rewind-confirm). The
+# fixture stands in for the Mac; nothing is sent. The words are proven back in
+# the draft and in none of the owner's bubbles: the text alone matches the
+# bubble before the rewind and the draft after it alike. The result notice
+# hides after 2.5 s, so the fixture holds it until `signal chat-notice`.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-rewind --fixture chat-notice-held
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Reply 13. Continuing the project" --timeout 20
+driver on
+assert --path composer.text --equals '""' --timeout 5
+assert --path "userMessageCounts.Please continue" --equals 1 --timeout 5
+driver off
+hold --contains "Reply 13. Continuing the project"
+wait --id select-message-text-action --timeout 10
+wait --id edit-from-here --gone --timeout 3
+tap --id select-message-text-action
+wait --id select-message-text --timeout 10
+tap --id select-message-done --type Button
+wait --id select-message-text --gone --timeout 10
+wait --id copy-message --gone --timeout 10
+hold --contains "Please continue"
+wait --id edit-from-here --timeout 10
+shot rewind-menu
+tap --id edit-from-here
+wait --id rewind-conversation --timeout 10
+wait --contains "Files on your computer stay as they are" --timeout 5
+wait --id rewind-restore-files --gone --timeout 2
+shot rewind-confirm
+tap --id rewind-conversation
+wait --id rewind-progress --timeout 5
+shot rewind-progress
+signal rewind
+wait --id rewind-progress --gone --timeout 10
+wait --id chat-notice --contains "files are unchanged" --timeout 10
+signal chat-notice
+wait --id chat-notice --gone --timeout 10
+wait --contains "Reply 13. Continuing the project" --gone --timeout 10
+wait --id message-draft --contains "Please continue" --timeout 5
+driver on
+assert --path composer.text --equals '"Please continue\n\n```\nContinue the project at:\n/p/app\n```"' --timeout 5
+assert --path "userMessageCounts.Please continue" --equals 0 --timeout 5
+driver off
+shot rewind-draft
+# The Mac refuses (Claude open on the Mac): its words show and nothing changes.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-rewind --fixture project-rewind-conflict --fixture chat-notice-held
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Reply 13. Continuing the project" --timeout 20
+tap --id message-draft
+type "Keep this draft"
+hold --contains "Please continue"
+wait --id edit-from-here --timeout 10
+tap --id edit-from-here
+wait --id rewind-conversation --timeout 10
+tap --id rewind-conversation
+wait --id rewind-progress --timeout 5
+signal rewind
+wait --id chat-notice --contains "open in Claude on your Mac" --timeout 10
+wait --id rewind-unconfirmed --gone --timeout 2
+shot rewind-refused
+wait --contains "Reply 13. Continuing the project" --timeout 5
+driver on
+assert --path composer.text --equals '"Keep this draft"' --timeout 5
+assert --path "userMessageCounts.Please continue" --equals 1 --timeout 5
+driver off
+# Settings > computer > Claude: file backups are off until turned on; the Mac
+# saves the switch. With them on, a Claude chat's confirmation also offers
+# "Rewind and restore files" (WonderPairing ConversationRewindTests).
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-rewind
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id connection-rename --timeout 10
+tap --id settings-provider:claude
+wait --id file-restore:claude --contains "0" --timeout 15
+wait --contains "keeps backups of the files it edits" --timeout 5
+shot rewind-file-restore-off
+# A switch takes a short press (see wonder-skills.wctl).
+hold --id file-restore:claude --seconds 0.15
+wait --id file-restore:claude --contains "1" --timeout 10
+shot rewind-file-restore-on
+# The Mac rewinds but its answer is lost, and the chat cannot be read yet: the
+# phone says it could not confirm (never "Nothing changed"), keeps the message
+# saved beside the typed draft, and puts it back exactly once when history
+# shows the edit. Reading the chat again changes nothing.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-rewind --fixture project-rewind-lost --fixture chat-notice-held
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Reply 13. Continuing the project" --timeout 20
+tap --id message-draft
+type "Also check tests"
+hold --contains "Please continue"
+wait --id edit-from-here --timeout 10
+tap --id edit-from-here
+wait --id rewind-conversation --timeout 10
+tap --id rewind-conversation
+wait --id rewind-progress --timeout 5
+signal rewind
+wait --id rewind-progress --gone --timeout 10
+wait --id chat-notice --contains "confirm" --timeout 10
+wait --contains "Nothing changed" --gone --timeout 2
+wait --id rewind-unconfirmed --timeout 10
+wait --id rewind-unconfirmed-check --timeout 10
+shot rewind-unconfirmed
+driver on
+assert --path composer.text --equals '"Also check tests"' --timeout 5
+assert --path "userMessageCounts.Please continue" --equals 1 --timeout 5
+driver off
+signal history
+tap --id rewind-unconfirmed-check
+wait --id chat-notice --contains "Rewound. Your message is back in the draft" --timeout 15
+wait --id rewind-unconfirmed --gone --timeout 10
+signal chat-notice
+wait --id chat-notice --gone --timeout 10
+wait --contains "Reply 13. Continuing the project" --gone --timeout 10
+driver on
+assert --path composer.text --equals '"Also check tests\n\nPlease continue\n\n```\nContinue the project at:\n/p/app\n```"' --timeout 5
+assert --path "userMessageCounts.Also check tests" --equals 0 --timeout 5
+driver off
+shot rewind-reconciled
+# Reopening the chat reads it again and adds nothing.
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 10
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 10
+pause 2
+driver on
+assert --path composer.text --equals '"Also check tests\n\nPlease continue\n\n```\nContinue the project at:\n/p/app\n```"' --timeout 5
+driver off
+# Claude restores files when its backups are on. The setting is read when the
+# confirmation opens: while the Mac has not answered, the confirmation says it is
+# checking (not that backups are off), then offers the file choice.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture send-claude --fixture project-rewind --fixture project-rewind-backups-slow
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --contains "Reply 13. Continuing the project" --timeout 20
+hold --contains "Please continue"
+wait --id edit-from-here --timeout 10
+tap --id edit-from-here
+wait --id rewind-conversation --timeout 10
+wait --contains "Checking whether Claude kept file backups" --timeout 5
+wait --contains "turn on file backups" --gone --timeout 2
+wait --id rewind-restore-files --gone --timeout 2
+shot rewind-backups-loading
+signal rewind
+wait --id rewind-restore-files --timeout 10
+wait --contains "from the backups it kept" --timeout 5
+shot rewind-backups-enabled
+# A read that fails is not "off": the confirmation says it could not check, keeps
+# the conversation-only choice and offers to check again, which restores the file choice.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture send-claude --fixture project-rewind --fixture project-rewind-backups-failing --fixture chat-notice-held
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --contains "Reply 13. Continuing the project" --timeout 20
+hold --contains "Please continue"
+wait --id edit-from-here --timeout 10
+tap --id edit-from-here
+wait --id rewind-check-backups --timeout 10
+wait --contains "Couldn’t check whether Claude kept file backups" --timeout 5
+wait --contains "turn on file backups" --gone --timeout 2
+wait --id rewind-restore-files --gone --timeout 2
+wait --id rewind-conversation --timeout 2
+shot rewind-backups-failed
+tap --id rewind-check-backups
+wait --id rewind-restore-files --timeout 15
+shot rewind-backups-retried
+tap --id rewind-restore-files
+wait --id rewind-progress --timeout 5
+signal rewind
+wait --id chat-notice --contains "2 files restored" --timeout 10
+signal chat-notice
+wait --contains "Reply 13. Continuing the project" --gone --timeout 10
+wait --id message-draft --contains "Please continue" --timeout 5

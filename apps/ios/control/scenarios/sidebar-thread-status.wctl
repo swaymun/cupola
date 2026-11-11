@@ -1,0 +1,61 @@
+# nightly-ipad: sidebar row layout: title line, status slot and second line
+# visual-review: long titles end before the spinner, unread and needs-answer dots
+# Held synthetic catalog: no provider work or owner conversations.
+# Select each mode/filter explicitly at launch; the view-picker interaction has its own scenario.
+# Computer provenance shares the title line; status keeps its own slot.
+# Line 2: provider icon, Project (in All Chats), the branch or worktree, then a working row's step.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id project-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --contains "Started on computer or owned by a desktop app" --timeout 20
+wait --id project-thread:claude:7d1c9e42-5b3a-4f60-8e21-0a9b8c7d6e54 --contains "Started on computer or owned by a desktop app"
+wait --id project-thread:codex:5f2b8c31-9d4e-4a7b-b6c0-1e2f3a4b5c6d
+wait --id project-thread:codex:5f2b8c31-9d4e-4a7b-b6c0-1e2f3a4b5c6d --contains "Started on computer or owned by a desktop app" --gone
+wait --id pinned-thread:codex:read-fixture --contains "Started on computer or owned by a desktop app"
+wait --label "Working" --timeout 10
+wait --label "Unread"
+wait --label "Needs your answer" --timeout 15
+shot sidebar-computer-project
+tree --json
+# Opening the pin refreshes details; its producer evidence must survive that copy.
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Continue the project at:" --timeout 20
+sidebar open
+wait --id pinned-thread:codex:read-fixture --contains "Started on computer or owned by a desktop app" --timeout 20
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture sidebar-all-chats --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id chat-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --contains "Started on computer or owned by a desktop app" --timeout 20
+wait --id chat-thread:claude:7d1c9e42-5b3a-4f60-8e21-0a9b8c7d6e54 --contains "Started on computer or owned by a desktop app"
+wait --id chat-thread:codex:5f2b8c31-9d4e-4a7b-b6c0-1e2f3a4b5c6d
+wait --id chat-thread:codex:5f2b8c31-9d4e-4a7b-b6c0-1e2f3a4b5c6d --contains "Started on computer or owned by a desktop app" --gone
+wait --id pinned-thread:codex:read-fixture --contains "Started on computer or owned by a desktop app"
+wait --label "Working" --timeout 10
+wait --label "Unread"
+wait --label "Needs your answer" --timeout 15
+wait --id project-row:read-project --gone
+wait --id chat-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --contains "Branch main"
+wait --id chat-thread:claude:7d1c9e42-5b3a-4f60-8e21-0a9b8c7d6e54 --contains "Branch agent/onboarding-copy-for-the-first-launch in a worktree"
+wait --id chat-thread:codex:5f2b8c31-9d4e-4a7b-b6c0-1e2f3a4b5c6d --contains "Branch" --gone
+shot sidebar-computer-all
+tree --json
+# Opening the pin refreshes details; its producer evidence must survive that copy.
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Continue the project at:" --timeout 20
+sidebar open
+wait --id pinned-thread:codex:read-fixture --contains "Started on computer or owned by a desktop app" --timeout 20
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture sidebar-working --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id project-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --contains "Started on computer or owned by a desktop app" --timeout 20
+wait --id project-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --contains "Branch main"
+wait --label "Working"
+shot sidebar-computer-project-ax5
+tree --json
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture sidebar-working --fixture sidebar-all-chats --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id chat-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --contains "Started on computer or owned by a desktop app" --timeout 20
+wait --label "Working"
+shot sidebar-computer-all-ax5
+tree --json

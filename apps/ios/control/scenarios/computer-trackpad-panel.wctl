@@ -1,0 +1,62 @@
+# devices: iphone
+# The separate trackpad under the picture, outside the half-folded Duo: it is
+# added from the computer controls; the system keyboard, with its shortcut row
+# (Esc, the app keys) now in the controls row, takes the room under the picture while it is up
+# and the pad returns when it is hidden. The hidden keyboard view is made once
+# and survives every change.
+# Offline fixture: no paired host input or model calls.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture no-hardware-keyboard --fixture computer-reconnect
+wait --id computer-session-more --timeout 30
+wait --id computer-session-control-active --timeout 15
+wait --id computer-session-trackpad --gone
+shot computer-trackpad-before
+tap --id computer-session-trackpad-toggle
+wait --id computer-session-trackpad --timeout 10
+wait --id computer-session-trackpad-toggle --contains "Hide trackpad"
+wait --id computer-viewport-appearances --contains "keyboards: 1; laptop: false;" --timeout 5
+wait --id computer-viewport-appearances --contains "trackpad: true; releases: 0;" --timeout 5
+shot computer-trackpad-panel
+# The system keyboard comes up; the shortcut row is already in the controls row and the pad stays above the keyboard.
+tap --id computer-session-keyboard
+wait --id computer-session-keyboard --contains "Hide keyboard" --timeout 10
+wait --id computer-session-shortcuts-row --timeout 10
+wait --id computer-session-key-escape --timeout 10
+wait --id computer-session-trackpad --timeout 10
+shot computer-trackpad-keyboard-up
+# The shortcut row sends keys through the same input queue: Esc is one press.
+wait --id computer-viewport-appearances --contains "sent: 1;" --timeout 5
+tap --id computer-session-key-escape
+wait --id computer-viewport-appearances --contains "sent: 2;" --timeout 5
+# The pad's toggle hides the keyboard and keeps the saved choice.
+tap --id computer-session-trackpad-toggle
+wait --id computer-viewport-appearances --contains "saved: trackpad;" --timeout 5
+wait --id computer-session-shortcuts-row --timeout 5
+wait --id computer-session-trackpad --timeout 10
+tap --id computer-session-keyboard
+wait --id computer-viewport-appearances --contains "saved: keyboard;" --timeout 5
+wait --id computer-session-key-escape --timeout 10
+wait --id computer-session-trackpad --timeout 10
+tap --id computer-session-keyboard
+wait --id computer-session-keyboard --contains "Show keyboard" --timeout 10
+wait --id computer-session-trackpad --timeout 10
+wait --id computer-viewport-appearances --contains "appearances: 1; keyboards: 1;" --timeout 5
+shot computer-trackpad-keyboard-hidden
+# The panel goes away from the same controls.
+tap --id computer-session-trackpad-toggle
+wait --id computer-session-trackpad --gone --timeout 10
+wait --id computer-session-trackpad-toggle --contains "Show trackpad"
+shot computer-trackpad-removed
+
+# The keyboard launch fixture raises the keyboard without a tap; a lease loss
+# lowers it, and taking control again brings it back.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-control-active --fixture computer-keyboard --fixture no-hardware-keyboard --fixture computer-reconnect
+wait --id computer-viewport-appearances --contains "sent: 1;" --timeout 30
+wait --id computer-session-key-escape --timeout 15
+signal computer-control-lost
+wait --id computer-session-more --timeout 15
+# A restored connection takes control again by itself.
+wait --id computer-session-control-active --timeout 20
+wait --id computer-session-key-escape --timeout 15
+tap --id computer-session-key-escape
+wait --id computer-viewport-appearances --contains "sent: 3;" --timeout 5
+shot computer-keyboard-after-control-loss

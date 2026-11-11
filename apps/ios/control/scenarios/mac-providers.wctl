@@ -1,0 +1,112 @@
+# Settings > Providers has a page per provider: Codex and Claude show their
+# account status and OpenCode its installed version, as the Mac does. Update
+# now drives the Mac's Reconnect, shows Reconnecting… and then the result.
+# No sign-out is offered. Nothing is sent to an agent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture providers-held
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id connection-rename --timeout 10
+tap --id settings-provider:claude
+wait --contains "Signed in with Claude Max" --timeout 15
+wait --id provider:codex --gone --timeout 2
+shot mac-providers-claude
+back
+tap --id settings-provider:opencode
+wait --id provider:opencode --timeout 15
+wait --contains "Installed" --timeout 5
+back
+tap --id settings-provider:codex
+wait --id provider:codex --timeout 15
+wait --label "Update ready" --timeout 5
+shot mac-providers
+tap --id provider-action:codex
+wait --contains "Reconnecting…" --timeout 5
+shot mac-providers-reconnecting
+signal provider-reconnect
+wait --id provider-message:codex --contains "Codex reconnected." --timeout 10
+wait --contains "Signed in with ChatGPT account" --timeout 5
+wait --id provider-action:codex --gone --timeout 5
+shot mac-providers-reconnected
+
+# A provider still starting offers no premature Reconnect action.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture providers-starting
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id connection-rename --timeout 10
+tap --id settings-provider:claude
+wait --id provider:claude --timeout 15
+wait --contains "Connecting…" --timeout 10
+wait --id provider-action:claude --gone --timeout 2
+shot mac-providers-starting
+back
+tap --id settings-provider:opencode
+wait --id provider:opencode --timeout 15
+wait --id provider-action:opencode --gone --timeout 2
+
+# Distinct fixture hosts: reconnect and chat detail on A must leave B alone.
+# Each origin has different provider/sign-in/usage data and independent state.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture providers-held
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-provider:codex --gone --timeout 2
+wait --id settings-default-models --timeout 5
+shot providers-computers-settings
+tap --id settings-computer:diagnostic-host
+wait --id connection-rename --timeout 10
+tap --id settings-provider:codex
+wait --id provider-computer --contains "Synthetic fixture" --timeout 10
+wait --id codex-usage-window:primary --contains "73%" --timeout 10
+wait --label "Update ready" --timeout 5
+wait --id provider-default-model:codex --gone --timeout 2
+tap --id provider-action:codex
+wait --contains "Reconnecting…" --timeout 5
+signal provider-reconnect
+wait --id provider-message:codex --contains "Codex reconnected." --timeout 10
+swipe up
+tap --id provider-chat-detail:codex:conversation
+wait --id provider-chat-detail:codex:conversation --contains "Selected" --timeout 10
+shot providers-computer-a
+back
+back
+tap --id settings-computer:diagnostic-host-studio
+wait --id connection-rename --timeout 10
+tap --id settings-provider:codex
+wait --id provider-computer --contains "Studio" --timeout 10
+wait --id codex-usage-window:primary --contains "41%" --timeout 10
+wait --label "Update ready" --timeout 5
+swipe up
+wait --id provider-chat-detail:codex:everything --contains "Selected" --timeout 10
+# Write on B too: returning it to Commentary & tools must leave A at Conversation.
+tap --id provider-chat-detail:codex:conversation
+wait --id provider-chat-detail:codex:conversation --contains "Selected" --timeout 10
+shot providers-computer-b-conversation-only
+tap --id provider-chat-detail:codex:everything
+wait --id provider-chat-detail:codex:everything --contains "Selected" --timeout 10
+shot providers-computer-b
+back
+tap --id settings-provider:claude
+wait --id provider-computer --contains "Studio" --timeout 10
+wait --contains "Not signed in" --timeout 10
+wait --contains "Sign in to Claude on Studio with cupola providers login claude" --timeout 5
+shot providers-computer-b-sign-in
+back
+back
+tap --id settings-computer:diagnostic-host
+wait --id connection-rename --timeout 10
+tap --id settings-provider:codex
+wait --id provider-computer --contains "Synthetic fixture" --timeout 10
+wait --id provider-action:codex --gone --timeout 5
+wait --id codex-usage-window:primary --contains "73%" --timeout 10
+swipe up
+wait --id provider-chat-detail:codex:conversation --contains "Selected" --timeout 10
+shot providers-computer-a-persisted

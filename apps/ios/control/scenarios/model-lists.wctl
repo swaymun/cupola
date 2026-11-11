@@ -1,0 +1,43 @@
+# devices: iphone ipad
+# Settings > Default models > OpenCode (a long list from several providers): the
+# default picker lists models in name order within a provider with no "only on"
+# note; the Models list has a search field, Select all and Select none that act on
+# what the search shows, grouped by provider. Select none, search "deepseek",
+# Select all leaves exactly those shown. Fixture computer; nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture default-models --fixture opencode-list
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-default-models --timeout 10
+tap --id settings-default-models
+wait --id provider-default-model:opencode --timeout 15
+tap --id provider-default-model:opencode
+wait --id default-model-opencode --timeout 15
+wait --id models-count:opencode:diagnostic-host --contains "14 of 14" --timeout 15
+wait --contains "only on" --never 1
+shot model-lists-opencode
+tap --id default-model-opencode
+wait --label "Beam Free" --timeout 10
+shot model-lists-picker-order
+tap --label "Beam Free" --type Button
+tap --id models-select-none:opencode:diagnostic-host
+wait --id models-count:opencode:diagnostic-host --contains "0 of 14" --timeout 10
+shot model-lists-none
+# Select none stays cleared after leaving the page and reopening it.
+tap --label "Default models" --type Button
+wait --id provider-default-model:opencode --timeout 10
+tap --id provider-default-model:opencode
+wait --id models-count:opencode:diagnostic-host --contains "0 of 14" --timeout 10
+shot model-lists-none-reopened
+tap --id models-search:opencode
+type "deepseek"
+wait --id "model-shown:opencode:openrouter/deepseek-v4-pro" --timeout 5
+wait --id "model-shown:opencode:opencode/gpt-6.1-terra" --gone --timeout 5
+tap --id models-select-all:opencode:diagnostic-host
+wait --id models-count:opencode:diagnostic-host --contains "2 of 14" --timeout 10
+shot model-lists-search
+tap --id models-search-clear:opencode
+wait --id "model-shown:opencode:opencode/beam-free" --contains "0" --timeout 5
+wait --id models-count:opencode:diagnostic-host --contains "2 of 14" --timeout 5
+shot model-lists-cleared

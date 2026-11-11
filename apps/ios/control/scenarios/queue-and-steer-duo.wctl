@@ -1,0 +1,67 @@
+# devices: duo
+# #387: Duo rig input reports no touchscreen. Semantic Send
+# drives the same primary action as the button; AX reads and shots inspect
+# the actual cover UI. Native hold-menu and Edit/Remove input run on iPhone
+# in queue-and-steer.wctl; this does not claim physical Duo input acceptance.
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture queue-ux
+open-thread fixture-parent-conversation
+assert --path composer.placeholder --equals '"Message"' --timeout 15
+assert --path composer.steers --equals true
+shot queue-and-steer-duo-default
+type "Use the new API instead"
+tap --id send-message
+assert --path composer.text --equals '""' --timeout 15
+assert --path fixtureSends.steered --equals 1 --timeout 15
+assert --path fixtureSends.queued --equals 0
+assert --path fixtureSends.duplicates --equals 0
+shot queue-and-steer-duo-steered
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --arg=-wonder.send.followUp --arg=queue --fixture queue-ux
+open-thread fixture-parent-conversation
+assert --path composer.placeholder --equals '"Queue a message"' --timeout 15
+assert --path composer.steers --equals false
+shot queue-and-steer-duo-queue-choice
+type "Then update the changelog"
+tap --id send-message
+assert --path composer.text --equals '""' --timeout 15
+assert --path fixtureSends.queued --equals 1 --timeout 15
+assert --path fixtureSends.steered --equals 0
+assert --path fixtureSends.duplicates --equals 0
+driver off
+wait --contains "Queued message: Then update the changelog" --timeout 15
+wait --label "Queued message actions" --timeout 15
+shot queue-and-steer-duo-row
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-open-on-mac-preview --fixture disconnected-preview --fixture queue-ux
+driver off
+wait --id composer-mac-unreachable --timeout 15
+wait --id open-elsewhere --gone --timeout 5
+shot queue-and-steer-duo-offline-status
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-open-on-mac-preview --fixture queue-ux
+driver off
+wait --id open-elsewhere --timeout 15
+wait --id composer-mac-unreachable --gone --timeout 5
+shot queue-and-steer-duo-held-status
+# Steer remains selected, but an unconnected T3 Code thread cannot take it.
+# Its existing plain explanation is the only notice; sending queues once.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-running --fixture queue-ux
+open-thread fixture-parent-conversation
+assert --path composer.steers --equals false --timeout 15
+assert --path composer.placeholder --equals '"Queue a message"'
+driver off
+wait --id open-elsewhere --contains "Connect T3 Code in Settings" --timeout 15
+wait --id composer-mac-unreachable --gone --timeout 5
+shot queue-and-steer-duo-t3-unavailable
+driver on
+type "Please verify the tests"
+tap --id send-message
+assert --path composer.text --equals '""' --timeout 15
+assert --path fixtureSends.queued --equals 1 --timeout 15
+assert --path fixtureSends.steered --equals 0
+driver off
+wait --contains "Queued message: Please verify the tests" --timeout 15
+shot queue-and-steer-duo-t3-queued

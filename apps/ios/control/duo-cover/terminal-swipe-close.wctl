@@ -1,0 +1,26 @@
+# devices: duo
+# On a phone-width window Terminal is a sheet: a swipe down from its native grabber to the
+# bottom edge closes it, the shell stays, and the pill reopens it with
+# its output. (A drag that starts on the output scrolls the terminal instead.)
+# iPad shows Terminal in the companion pane, which has no swipe (companion-pane.wctl).
+activate
+hinge 0
+orient portrait
+activate
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture terminal-preview
+wait --id conversation-terminal-pill --timeout 20
+tap --id conversation-terminal-pill
+wait --id terminal-output --contains "build.sh" --timeout 10
+type "kept"
+wait --id terminal-output --contains "wonder-app % kept" --timeout 5
+# The first title drag lowers the keyboard/large sheet, the next dismisses it.
+swipe down --from terminal-title
+swipe down --from terminal-title
+wait --id terminal-sheet --gone --timeout 10
+tap --id conversation-terminal-pill
+wait --id terminal-output --contains "wonder-app % kept" --timeout 10
+shot terminal-reattached-after-swipe
+# The first title drag lowers the keyboard/large sheet, the next dismisses it.
+swipe down --from terminal-title
+swipe down --from terminal-title
+wait --id terminal-sheet --gone --timeout 10

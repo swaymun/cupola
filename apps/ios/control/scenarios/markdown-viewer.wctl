@@ -1,0 +1,73 @@
+# visual-review: source colours follow the theme
+# Open guide.md from Files: it opens rendered (Preview); Source shows coloured markdown;
+# the choice is remembered across a relaunch, and switching back is remembered too.
+# Then Swift and Rust files open coloured in a light and a dark theme.
+launch --fixture read-preview --fixture send-preview --fixture files-preview --fixture project-files-conversation-preview --fixture workspace-viewer-preview
+wait --id conversation-files-pill
+tap --id conversation-files-pill
+wait --id workspace-file-list
+tap --id workspace-file-entry:guide.md --timeout 5
+# Select the starting mode; a previous run may have left Source saved.
+wait --id workspace-viewer-mode --timeout 10
+tap --label Preview --type RadioButton
+wait --id workspace-markdown-preview --timeout 10
+shot markdown-preview
+tap --label Source --type RadioButton
+wait --id annotation-selectable-text --timeout 15
+wait --id workspace-markdown-preview --gone --timeout 5
+shot markdown-source
+launch --fixture read-preview --fixture send-preview --fixture files-preview --fixture project-files-conversation-preview --fixture workspace-viewer-preview
+wait --id conversation-files-pill
+tap --id conversation-files-pill
+wait --id workspace-file-list
+tap --id workspace-file-entry:guide.md --timeout 5
+wait --id annotation-selectable-text --timeout 10
+shot markdown-source-remembered
+tap --label Preview --type RadioButton
+wait --id workspace-markdown-preview --timeout 5
+shot markdown-preview-again
+launch --fixture read-preview --fixture send-preview --fixture files-preview --fixture project-files-conversation-preview --fixture workspace-viewer-preview
+wait --id conversation-files-pill
+tap --id conversation-files-pill
+wait --id workspace-file-list
+tap --id workspace-file-entry:guide.md --timeout 5
+wait --id workspace-markdown-preview --timeout 10
+# A Markdown table draws as the same grid as reply and page tables: a header
+# row, wrapped cells, each row read with its column names.
+reveal up --contains "Day: Sat, Plan: Museum, Notes: Opens at ten" --in workspace-markdown-preview
+shot markdown-preview-table
+# Source files open coloured by language in the theme's syntax colours: trip.swift and
+# trip.rs in Cupola Light, then Cupola Dark. Each has a block comment and a string that
+# span lines; check in the shots that their middle lines keep the comment/string colour.
+launch --fixture read-preview --fixture send-preview --fixture files-preview --fixture project-files-conversation-preview --fixture workspace-viewer-preview --arg=-diagnostics-theme --arg=cupola-light
+wait --id conversation-files-pill
+tap --id conversation-files-pill
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:trip.swift --in workspace-file-list
+tap --id workspace-file-entry:trip.swift --timeout 5
+wait --id annotation-selectable-text --timeout 10
+wait --contains "struct TripPlanner" --timeout 5
+shot source-swift-light
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:trip.rs --in workspace-file-list
+tap --id workspace-file-entry:trip.rs --timeout 5
+wait --id annotation-selectable-text --timeout 10
+wait --contains "pub fn nights" --timeout 5
+shot source-rust-light
+launch --fixture read-preview --fixture send-preview --fixture files-preview --fixture project-files-conversation-preview --fixture workspace-viewer-preview --arg=-diagnostics-theme --arg=cupola-dark
+wait --id conversation-files-pill
+tap --id conversation-files-pill
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:trip.swift --in workspace-file-list
+tap --id workspace-file-entry:trip.swift --timeout 5
+wait --id annotation-selectable-text --timeout 10
+wait --contains "struct TripPlanner" --timeout 5
+shot source-swift-dark
+tap --id workspace-preview-back
+wait --id workspace-file-list
+reveal up --id workspace-file-entry:trip.rs --in workspace-file-list
+tap --id workspace-file-entry:trip.rs --timeout 5
+wait --id annotation-selectable-text --timeout 10
+wait --contains "pub fn nights" --timeout 5
+shot source-rust-dark

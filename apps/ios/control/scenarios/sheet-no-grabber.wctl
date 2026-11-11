@@ -1,0 +1,24 @@
+# Sheets draw no grabber line; swiping down still closes them. Captures: model, Agent tasks, Chat details, Pull requests.
+# devices: iphone
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture project-subagents --fixture open-project-thread --arg=-diagnostics-project-subagents-stale
+wait --id project-composer-model --contains "Sonnet fixture" --timeout 20
+wait --id project-subagent-status-pill --timeout 10
+tap --id project-composer-model
+wait --id project-model:claude:haiku --timeout 10
+wait --label "Sheet Grabber" --gone --timeout 2
+shot sheet-model
+swipe down --from-sheet
+wait --id project-model:claude:haiku --gone --timeout 10
+tap --id project-subagent-status-pill
+wait --label "Scout, Running" --timeout 10
+wait --label "Sheet Grabber" --gone --timeout 2
+shot sheet-agent-tasks
+swipe down --from-sheet
+wait --label "Scout, Running" --gone --timeout 10
+tap --id conversation-title-menu
+wait --contains "Chat details" --timeout 5
+tap --contains "Chat details"
+pause 2
+wait --label "Sheet Grabber" --gone --timeout 2
+shot sheet-chat-details
+swipe down --from-sheet

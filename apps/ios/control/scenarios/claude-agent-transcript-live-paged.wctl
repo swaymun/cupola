@@ -1,0 +1,23 @@
+# A running agent task keeps updating after the reader loads its older
+# activity: the newest page merges in by ID, the older rows stay, and the sheet
+# stops refreshing once the task finishes. The fixture stands in for the Mac and
+# finishes Scout's turn only after the older page was read.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture project-subagents-live-paged
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-subagent-status-pill --timeout 15
+tap --id project-subagent-status-pill
+wait --id project-subagent-roster:fixture-child-thread --timeout 10
+tap --id project-subagent-roster:fixture-child-thread
+wait --contains "Checking the parser." --timeout 15
+wait --id project-subagent-load-older --timeout 5
+tap --id project-subagent-load-older
+wait --contains "Scout read the parser tests first." --timeout 10
+wait --id project-subagent-load-older --gone --timeout 5
+# The sheet refreshes every 4 s while the task runs.
+wait --contains "The parser review is done." --timeout 15
+wait --contains "Scout read the parser tests first." --timeout 3
+wait --contains "Checking the parser." --timeout 3
+shot claude-agent-transcript-live-paged

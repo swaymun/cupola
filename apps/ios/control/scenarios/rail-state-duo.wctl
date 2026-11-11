@@ -1,0 +1,100 @@
+# devices: duo
+# Native AX geometry and selected state; semantic toggles use the production tool reducer.
+# IDs: ComputerDock, FilesDock, TerminalPill, ProjectSubagentDock and CompanionExpandButton.
+# Offline fixture only: no model sends or personal computer access.
+hinge 180
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,pullRequests --arg=-wonder.sidebar.hidden --arg=YES --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+driver off
+wait --id conversation-terminal-pill --timeout 30
+order --axis y --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+driver on
+tap --id computer-status-pill
+assert --path pane.tool --equals '"computer"' --timeout 10
+driver off
+wait --id computer-status-pill --contains "Open" --timeout 10
+order --axis y --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+shot rail-state-duo-computer --display primary-1
+driver on
+tap --id computer-status-pill
+assert --path pane --equals null --timeout 10
+driver off
+wait --id computer-status-pill --contains "Closed" --timeout 10
+order --axis y --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+driver on
+tap --id conversation-files-pill
+assert --path pane.tool --equals '"files"' --timeout 10
+driver off
+wait --id conversation-files-pill --contains "Open" --timeout 10
+order --axis y --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+shot rail-state-duo-files --display primary-1
+driver on
+tap --id conversation-files-pill
+assert --path pane --equals null --timeout 10
+driver off
+wait --id conversation-files-pill --contains "Closed" --timeout 10
+order --axis y --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+driver on
+tap --id conversation-terminal-pill
+assert --path pane.tool --equals '"terminal"' --timeout 10
+driver off
+wait --id conversation-terminal-pill --contains "Open" --timeout 10
+order --axis y --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+shot rail-state-duo-terminal --display primary-1
+driver on
+tap --id conversation-terminal-pill
+assert --path pane --equals null --timeout 10
+driver off
+wait --id conversation-terminal-pill --contains "Closed" --timeout 10
+order --axis y --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,pullRequests --arg=-wonder.sidebar.hidden --arg=YES --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --fixture companion-agent-task
+assert --path pane.tool --equals '"agent-task"' --timeout 30
+driver off
+wait --id project-subagent-status-pill --contains "Open" --timeout 10
+wait --id project-subagent-sheet-done --gone --timeout 10
+order --axis y --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+shot rail-state-duo-agent-task --display primary-1
+driver on
+tap --id project-subagent-status-pill
+assert --path pane --equals null --timeout 10
+# Taking control retains every ordinary tool in the same native order.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,pullRequests --arg=-wonder.sidebar.hidden --arg=YES --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --fixture companion-computer --fixture computer-control-active
+assert --path computer.controlling --equals true --timeout 15
+driver off
+wait --id computer-status-pill --contains "Open" --timeout 10
+order --axis y --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+shot rail-state-duo-computer-control --display primary-1
+driver on
+tap --id computer-status-pill
+assert --path pane --equals null --timeout 10
+hinge 0
+orient portrait
+# Folded Computer owns a selected rail toggle even though its chat is covered.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture companion-computer --fixture computer-session-fixture --fixture computer-session-available-fixture --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,pullRequests --arg=-wonder.sidebar.hidden --arg=YES
+driver off
+wait --id computer-session-container --timeout 30
+wait --id computer-status-pill --contains "Open" --timeout 10
+wait --id computer-session-close --gone --timeout 10
+shot rail-state-duo-folded-computer --display primary
+driver on
+tap --id computer-status-pill
+driver off
+wait --id computer-session-container --gone --timeout 10
+wait --id message-draft --timeout 10
+# The same selected toggle also exits folded Computer while controlling.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,pullRequests --arg=-wonder.sidebar.hidden --arg=YES --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --fixture companion-computer --fixture computer-control-active
+assert --path computer.controlling --equals true --timeout 15
+driver off
+wait --id computer-status-pill --contains "Open" --timeout 10
+wait --id computer-session-close --gone --timeout 10
+shot rail-state-duo-folded-computer-control --display primary
+driver on
+tap --id computer-status-pill
+driver off
+wait --id computer-session-container --gone --timeout 10
+wait --id message-draft --timeout 10

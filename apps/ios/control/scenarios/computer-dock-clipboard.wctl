@@ -1,0 +1,42 @@
+# devices: iphone ipad
+# Native menu interaction (the clipboard is on the keyboard shortcut row); Duo uses computer-dock.wctl and the keyboard capture
+# matrix because its native taps are unavailable (#387). Copy seeds only this
+# fixture lane's pasteboard before Paste, so no external clipboard is required.
+driver on
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-control-active --fixture computer-reconnect --fixture computer-dock --fixture computer-keyboard --fixture no-hardware-keyboard --fixture computer-windows-host
+assert --path computer.hasPicture --equals true --timeout 30
+assert --path computer.keyboardPresented --equals true --timeout 10
+driver off
+wait --id computer-session-shortcuts-row --timeout 10
+wait --id computer-session-clipboard --timeout 10
+tap --id computer-session-clipboard
+wait --id computer-session-paste-from-phone --timeout 10
+wait --id computer-session-copy-from-mac --contains "Copy from" --timeout 10
+shot computer-dock-clipboard-menu
+tap --id computer-session-copy-from-mac
+clipboard --contains "Fixture clipboard text"
+driver on
+assert --path computer.clipboardOperations --equals '["copyToPhone"]' --timeout 10
+assert --path computer.keyboardPresented --equals true
+driver off
+tap --id computer-session-clipboard
+tap --id computer-session-paste-from-phone
+driver on
+assert --path computer.clipboardOperations --equals '["copyToPhone","pasteFromPhone"]' --timeout 10
+assert --path computer.keyboardPresented --equals true
+driver off
+# A held modifier (Alt on Windows) must be released before the standalone clipboard action.
+tap --id computer-session-modifier-alt
+driver on
+assert --path computer.heldModifiers --equals '["alt"]' --timeout 10
+driver off
+tap --id computer-session-clipboard
+tap --id computer-session-paste-from-phone
+driver on
+assert --path computer.heldModifiers --equals '[]' --timeout 10
+assert --path computer.clipboardOperations --equals '["copyToPhone","pasteFromPhone","pasteFromPhone"]' --timeout 10
+assert --path computer.keyboardPresented --equals true
+assert --path computer.controlling --equals true
+driver off
+wait --id computer-session-shortcuts-row --timeout 10
+shot computer-dock-clipboard-after-paste

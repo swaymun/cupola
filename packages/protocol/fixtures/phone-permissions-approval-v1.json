@@ -1,0 +1,21 @@
+{
+  "approvalId": "fixture-permissions",
+  "conversationId": "preview",
+  "method": "item/permissions/requestApproval",
+  "actionNonce": "fixture",
+  "params": {
+    "threadId": "fixture-thread",
+    "turnId": "fixture-turn",
+    "permissions": {
+      "fileSystem": {
+        "read": [
+          "/Users/example/Movies"
+        ]
+      },
+      "network": {
+        "enabled": true
+      }
+    }
+  },
+  "resolutionIdempotencyKey": null
+}

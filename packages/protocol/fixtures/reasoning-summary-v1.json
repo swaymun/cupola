@@ -1,0 +1,23 @@
+{
+  "description": "A Codex reasoning item as the App Server sends it, and as the host serves it. Summary text reaches the phone only while Codex is set to the thinking detail level; raw reasoning content never does.",
+  "codexItem": {
+    "id": "rs_1",
+    "type": "reasoning",
+    "status": "completed",
+    "summary": ["**Reading the parser**\n\nThe tokenizer drops a trailing comma.", "Checking the token sk-live-123 \u001b[1mnext\u001b[0m."],
+    "content": ["raw chain of thought"],
+    "encryptedContent": "opaque"
+  },
+  "thinking": {
+    "id": "rs_1",
+    "type": "reasoning",
+    "status": "completed",
+    "summary": ["**Reading the parser**\n\nThe tokenizer drops a trailing comma.", "Checking the token [redacted] next."]
+  },
+  "thinkingText": "**Reading the parser**\n\nThe tokenizer drops a trailing comma.\n\nChecking the token [redacted] next.",
+  "hidden": {
+    "id": "rs_1",
+    "type": "reasoning",
+    "status": "completed"
+  }
+}

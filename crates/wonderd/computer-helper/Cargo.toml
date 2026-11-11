@@ -1,0 +1,58 @@
+[package]
+name = "wonder-computer-helper"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+autobins = false
+autotests = false
+
+# Standalone: Windows libwebrtc uses MSVC while wonderd uses gnullvm.
+[workspace]
+
+[dependencies]
+libwebrtc = "=0.3.52"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "io-std", "io-util", "sync", "time", "process"] }
+serde_json = "1"
+base64 = "0.22"
+futures = "0.3"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["test-util"] }
+
+[build-dependencies]
+sha2 = "0.10"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+sha2 = "0.10"
+windows-capture = "=2.0.1"
+windows = { version = "0.62", features = ["Win32_Foundation", "Win32_System_Com", "Win32_Storage_FileSystem", "Win32_UI_Shell", "Win32_Graphics_Gdi", "Win32_Graphics_Dwm", "Win32_System_LibraryLoader", "Win32_System_Threading", "Win32_System_ProcessStatus", "Win32_System_DataExchange", "Win32_System_Memory", "Win32_UI_HiDpi", "Win32_UI_Input_KeyboardAndMouse", "Win32_UI_WindowsAndMessaging"] }
+
+[[bin]]
+name = "wonder-computer-helper"
+path = "src/main.rs"
+
+[profile.release]
+strip = true
+lto = "thin"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+x11rb = { version = "0.13", features = ["shm", "composite"] }
+libc = "0.2"
+
+[features]
+parity-tests = []
+
+[[bin]]
+name = "computer-parity-receiver"
+path = "tests/parity_receiver.rs"
+required-features = ["parity-tests"]
+
+# Scoped native encoder fixes; upstream version and changes are recorded in vendor/README.md.
+[patch.crates-io]
+webrtc-sys = { path = "vendor/webrtc-sys" }
+
+[[bin]]
+name = "computer-encoder-probe"
+path = "tests/encoder_probe.rs"
+required-features = ["parity-tests"]

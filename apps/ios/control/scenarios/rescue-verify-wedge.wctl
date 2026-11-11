@@ -1,0 +1,18 @@
+# devices: iphone-11-usb
+# Physical iPhone 11 only (scripts/device-runner): the simulator lanes skip it as not applicable.
+# RESCUE-VERIFY live wedge run on the USB iPhone 11, paired to a scratch host
+# (scripts/pair-device --route home). After the first capture the host's daemon
+# is stopped with SIGSTOP; the supervisor's watchdog replaces it. The phone may
+# say "Cupola isn't responding." meanwhile, but it must come back without a tap
+# (`wait --never` only passes time; the captures show the phone before, during
+# and after).
+launch
+wait --id open-sidebar --timeout 60
+sidebar open
+wait --id chats-sidebar --timeout 20
+shot rv-wedge-connected
+wait --id sidebar-rescue-restart --never 20
+shot rv-wedge-during
+wait --id sidebar-rescue-restart --never 50
+wait --id sidebar-rescue --gone --timeout 5
+shot rv-wedge-recovered

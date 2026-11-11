@@ -1,0 +1,517 @@
+#!/usr/bin/env python3
+"""Measure how often a computer session really shows a picture.
+
+Runs N sequential computer sessions through wonderd's real HTTP signaling, with
+the test-only libwebrtc answerer (computer-parity-receiver) standing in for the
+phone: create session -> poll for the offer -> post answer and candidates ->
+wait for the first decoded frame (default within 5 s) -> hold -> close. Prints
+one JSON object and exits 1 when fewer than N sessions showed a picture:
+
+  {"sessions", "withPicture", "firstFrameMs": {"p50","p95","max"},
+   "failures": [{"i","stage","reason"}], ...}
+
+Stages: create, source, offer, answer, connect, frame, hold, close.
+firstFrameMs is measured from the create request to the first decoded frame.
+
+Two modes (same code path, different daemon):
+
+  isolated  Starts its own wonderd (empty data dir, throwaway loopback
+            capability, paired synthetic phone) beside a capture helper. Safe
+            for workers; needs no installed Cupola. Default helper is the
+            freshly built macOS dev helper (native/computer-use, built with
+            `--scratch-path .local/build/computer-use-dev -Xswiftc
+            -DCUPOLA_DEV_HELPER`; the shipped build only runs under Cupola),
+            which captures this Mac's real display and so needs
+            Screen Recording permission for the calling terminal. `--helper
+            fake` uses a stub that never publishes video: it proves the
+            plumbing and must report 0 pictures.
+              scripts/computer-soak --isolated --sessions 20 \\
+                  --daemon target/debug/wonderd
+  live      Targets an already running, installed Cupola (LIVE-PASS). It pairs
+            a throwaway "computer-soak" phone using the host's loopback
+            capability (env WONDER_LOOPBACK_CAPABILITY, or the file named by
+            --capability-file) and forgets it afterwards.
+              scripts/computer-soak --base-url http://127.0.0.1:PORT --sessions 50
+
+`--source simulator --udid UDID` opens a booted simulator the way the Simulators
+pill does (create -> first decoded frame, through the real wonderd and libwebrtc).
+`--helper PATH` picks the capture helper, so an old and a new build compare on the
+same simulator.
+
+`--only-network CIDR` forwards only ICE candidates inside that network to the
+other side, to test one route (for example the tailnet 100.64.0.0/10, or a LAN
+range). The selected candidate pair (route that carried the picture) is
+reported per session. Caveat (measured 2026-10-29): macOS asks "accept incoming network connections?" the
+first time a rebuilt computer-parity-receiver runs. Until someone clicks Allow
+the answerer's UDP is blocked and every session fails at stage `connect`
+("no decoded frame"). Approve it once on the Mac (or run an already-approved
+build); do not read those failures as helper failures.
+Dependencies: scripts/live-fixtures-requirements.txt
+(the shared venv at <main checkout>/.local/nightly/venv is used if the
+current Python lacks them).
+"""
+import argparse
+import importlib.util
+import ipaddress
+import json
+import os
+from pathlib import Path
+import queue
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+import uuid
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent
+HOST_VIEW = 'wonder-host-view'
+STAGES = ('create', 'source', 'offer', 'answer', 'connect', 'frame', 'hold', 'close')
+
+
+def ensure_dependencies():
+    try:
+        import cryptography  # noqa: F401
+        return
+    except ImportError:
+        pass
+    main = subprocess.run(['git', '-C', str(ROOT), 'worktree', 'list', '--porcelain'], capture_output=True, text=True).stdout
+    first = main.splitlines()[0][len('worktree '):] if main else str(ROOT)
+    venv = Path(first) / '.local/nightly/venv/bin/python'
+    if venv.exists() and Path(sys.executable).resolve() != venv.resolve():
+        os.execv(str(venv), [str(venv), *sys.argv])
+    sys.exit('Python cryptography is missing: pip install -r scripts/live-fixtures-requirements.txt')
+
+
+def load_http():
+    spec = importlib.util.spec_from_file_location('http_probe', HERE / 'test-session-replay-http.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def find_receiver(explicit):
+    candidates = [explicit] if explicit else [
+        ROOT / 'crates/wonderd/computer-helper/target/release/computer-parity-receiver']
+    for path in candidates:
+        if path and Path(path).exists():
+            return str(path)
+    sys.exit('Build the answerer first: (cd crates/wonderd/computer-helper && cargo build --locked --release '
+             '--features parity-tests --bin computer-parity-receiver) or pass --receiver')
+
+
+FAKE_HELPER = r'''import json, sys
+if sys.argv[1:] == ["--watch-dialogs"]:
+    print(json.dumps({"dialogs": []}), flush=True)
+    sys.stdin.read()
+    sys.exit(0)
+status = {"state": "awaitingSource", "sessionID": None, "generation": 1, "sourceID": None, "geometryRevision": 0}
+for line in sys.stdin:
+    request = json.loads(line)
+    if "sessionID" in request.get("params", {}):
+        status["sessionID"] = request["params"]["sessionID"]
+    if "stop" in request.get("method", ""):
+        print(json.dumps({"id": request.get("id"), "result": {"status": dict(status, state="ended")}}), flush=True)
+        break
+    result = {"protocolVersion": 1, "control": {"available": False}} if request.get("method") == "capabilities" else {"status": status}
+    if "id" in request:
+        print(json.dumps({"id": request["id"], "result": result}), flush=True)
+'''
+
+
+class Answerer:
+    """One libwebrtc phone stand-in: JSON lines in/out, BENCH stats on stderr."""
+
+    def __init__(self, receiver, allowed):
+        self.allowed = allowed
+        self.out = queue.Queue()
+        self.frames = 0
+        self.first_frame_at = None
+        self.content_at = None
+        self.pair = None
+        self.stats = {}
+        self.errors = []
+        self.process = subprocess.Popen([receiver], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                        text=True, bufsize=1)
+        threading.Thread(target=self._stdout, daemon=True).start()
+        threading.Thread(target=self._stderr, daemon=True).start()
+
+    def _stdout(self):
+        for line in self.process.stdout:
+            try:
+                self.out.put(json.loads(line))
+            except ValueError:
+                pass
+
+    def _stderr(self):
+        for line in self.process.stderr:
+            if not line.startswith('BENCH '):
+                if os.environ.get('COMPUTER_SOAK_DEBUG'):
+                    print('RECEIVER', line.rstrip()[:300], file=sys.stderr, flush=True)
+                continue
+            try:
+                value = json.loads(line[6:])
+            except ValueError:
+                continue
+            kind, now = value.get('k'), time.monotonic()
+            if kind == 'sink_frame' and self.first_frame_at is None:
+                self.first_frame_at = now
+            elif kind == 'content_frame' and self.content_at is None:
+                self.content_at = now
+            elif kind == 'rx_stats':
+                self.stats = value
+                self.frames = value.get('sink_frames', self.frames)
+                if self.frames and self.first_frame_at is None:
+                    self.first_frame_at = now
+            elif kind == 'ice_pair':
+                self.pair = value
+            elif kind == 'error':
+                self.errors.append(value)
+            if os.environ.get('COMPUTER_SOAK_DEBUG'):
+                print('BENCH', json.dumps(value)[:300], file=sys.stderr, flush=True)
+
+    def send(self, value):
+        try:
+            self.process.stdin.write(json.dumps(value) + '\n')
+            self.process.stdin.flush()
+        except (BrokenPipeError, ValueError):
+            pass
+
+    def permits(self, candidate_line):
+        if not self.allowed:
+            return True
+        parts = candidate_line.split()
+        try:
+            return any(ipaddress.ip_address(parts[4]) in network for network in self.allowed)
+        except (IndexError, ValueError):
+            return False
+
+    def close(self):
+        self.send({'stop': True})
+        try:
+            self.process.stdin.close()
+        except OSError:
+            pass
+        try:
+            self.process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            self.process.kill()
+
+
+def percentile(values, fraction):
+    if not values:
+        return None
+    ordered = sorted(values)
+    return ordered[min(len(ordered) - 1, int(round(fraction * (len(ordered) - 1))))]
+
+
+class Session:
+    def __init__(self, args, probe, http, receiver, source):
+        self.args, self.probe, self.http, self.receiver, self.source = args, probe, http, receiver, source
+
+    def run(self, index):
+        """Returns (row, failure). A failure names the first stage that did not complete."""
+        args, probe = self.args, self.probe
+        row = {'i': index}
+        stage = 'create'
+        answerer = Answerer(self.receiver, args.allowed)
+        session = None
+        started = time.monotonic()
+        try:
+            body = {'clientRequestId': str(uuid.uuid4()), 'conversationId': HOST_VIEW,
+                    'hostInstallationId': probe.session['hostInstallationId']}
+            if self.source:
+                body['source'] = self.source
+            session = probe.call('/api/v1/computer/sessions', body)
+            path = '/api/v1/computer/sessions/' + session['id']
+            binding = {'generation': session['generation'], 'conversationId': HOST_VIEW,
+                       'hostInstallationId': probe.session['hostInstallationId']}
+            stage = 'offer'
+            cursor, revision, answered, offered = 0, None, False, False
+            sent_candidates, remote_seen, sequence = 0, set(), 0
+            deadline = started + args.offer_timeout
+            frame_deadline = started + args.frame_deadline
+            while True:
+                now = time.monotonic()
+                if answerer.first_frame_at is not None:
+                    break
+                if now > (frame_deadline if answered else deadline):
+                    raise Failure(stage if not answered else ('frame' if row.get('peer') == 'connected' else 'connect'),
+                                  'no offer' if not offered else 'no decoded frame by ' + str(args.frame_deadline) + 's')
+                poll = probe.call(path + '/signaling', dict(binding, cursor=cursor, **({'peerRevision': revision} if revision else {})))
+                if poll['state'] in ('failed', 'closed') or poll.get('failureReason'):
+                    raise Failure('source' if not offered else 'connect',
+                                  f"session {poll['state']}: {poll.get('failureReason')}")
+                revision = poll.get('peerRevision') or revision
+                cursor = max(cursor, poll['nextCursor'])
+                row['peer'] = poll['peerState']
+                if poll.get('iceServers'):
+                    row['iceServers'] = len(poll['iceServers'])
+                if poll.get('offer') and not offered:
+                    offered = True
+                    row['offerMs'] = round((time.monotonic() - started) * 1000)
+                    answerer.send({'offer': poll['offer']['sdp']})
+                    stage = 'answer'
+                for candidate in poll.get('candidates', []):
+                    if candidate['sequence'] in remote_seen:
+                        continue
+                    remote_seen.add(candidate['sequence'])
+                    kind = candidate['candidate'].split(' typ ')[-1].split()[0] if ' typ ' in candidate['candidate'] else '?'
+                    row.setdefault('helperCandidates', {})
+                    row['helperCandidates'][kind] = row['helperCandidates'].get(kind, 0) + 1
+                    if answerer.permits(candidate['candidate']):
+                        answerer.send({'candidate': {'candidate': candidate['candidate'], 'sdpMid': candidate['sdpMid'],
+                                                      'sdpMLineIndex': candidate['sdpMLineIndex']}})
+                while True:
+                    try:
+                        message = answerer.out.get_nowait()
+                    except queue.Empty:
+                        break
+                    bound = dict(binding, peerRevision=revision)
+                    if 'answer' in message and revision:
+                        result = probe.call(path + '/signaling/answer', dict(bound, type='answer', sdp=message['answer']))
+                        if not result.get('accepted', True):
+                            raise Failure('answer', 'answer rejected: ' + json.dumps(result))
+                        answered = True
+                        stage = 'connect'
+                    elif 'candidate' in message and revision:
+                        if answerer.permits(message['candidate']['candidate']):
+                            sequence += 1
+                            probe.call(path + '/signaling/candidate', dict(
+                                bound, sequence=sequence, candidate=message['candidate']['candidate'],
+                                sdpMid=message['candidate']['sdpMid'], sdpMLineIndex=message['candidate']['sdpMLineIndex']))
+                time.sleep(args.poll_interval)
+            row['firstFrameMs'] = round((answerer.first_frame_at - started) * 1000)
+            stage = 'frame'
+            if row['firstFrameMs'] > args.frame_deadline * 1000:
+                raise Failure('frame', f"first frame after {row['firstFrameMs']} ms")
+            # Hold: the picture must keep flowing, and we keep polling like a phone would.
+            stage = 'hold'
+            first_count = answerer.frames
+            end = time.monotonic() + args.hold
+            while time.monotonic() < end:
+                poll = probe.call(path + '/signaling', dict(binding, cursor=cursor, peerRevision=revision))
+                if poll['state'] in ('failed', 'closed'):
+                    raise Failure('hold', f"session {poll['state']} while holding: {poll.get('failureReason')}")
+                time.sleep(args.poll_interval)
+            row['framesAtHold'] = answerer.frames
+            row['decoded'] = answerer.stats.get('frames_decoded')
+            row['size'] = [answerer.stats.get('width'), answerer.stats.get('height')]
+            row['contentMs'] = round((answerer.content_at - started) * 1000) if answerer.content_at else None
+            # An idle Mac screen delivers about one frame a second (measured:
+            # premise-tailnet i=2 got 1 frame in a 1 s window while the pair was
+            # healthy), so freezing means no new frame across a window of 3 s or more.
+            if answerer.frames <= first_count and args.hold >= 3:
+                raise Failure('hold', f'picture froze: {first_count} -> {answerer.frames} frames in {args.hold}s')
+            if answerer.content_at is None and not args.allow_black:
+                raise Failure('frame', 'only black frames decoded')
+            row['pair'] = answerer.pair and {'local': answerer.pair['local'], 'remote': answerer.pair['remote']}
+            return row, None
+        except Failure as failure:
+            row['pair'] = answerer.pair and {'local': answerer.pair['local'], 'remote': answerer.pair['remote']}
+            return row, {'i': index, 'stage': failure.stage, 'reason': failure.reason}
+        except AssertionError as error:
+            return row, {'i': index, 'stage': stage, 'reason': str(error.args[0])[:300]}
+        except Exception as error:  # a harness crash is a failed session, never a silent pass
+            return row, {'i': index, 'stage': stage, 'reason': f'{type(error).__name__}: {error}'[:300]}
+        finally:
+            answerer.close()
+            if session:
+                self.end(session)
+
+    def end(self, session):
+        """Close like the phone: signaling close, then end the session; it must read ended."""
+        path = '/api/v1/computer/sessions/' + session['id']
+        try:
+            self.probe.call(path + '/signaling/close', {
+                'generation': session['generation'], 'conversationId': HOST_VIEW,
+                'hostInstallationId': self.probe.session['hostInstallationId'], 'reason': 'computer-soak'}, expected=None)
+        except Exception:
+            pass
+        try:
+            self.probe.call(path + '?' + urllib.parse.urlencode({'generation': session['generation']}), method='DELETE')
+        except Exception:
+            pass
+
+
+class Failure(Exception):
+    def __init__(self, stage, reason):
+        super().__init__(stage, reason)
+        self.stage, self.reason = stage, reason
+
+
+def forget_phone(probe):
+    """Live mode: revoke and forget the throwaway phone (owner's local authority)."""
+    device = (getattr(probe, 'session', None) or {}).get('deviceId')
+    if not device:
+        return
+    try:
+        revoke = urllib.request.Request(
+            f'{probe.address}/api/v1/devices/{device}/revoke', data=b'null', method='POST',
+            headers={'Origin': probe.origin, 'Content-Type': 'application/json',
+                     'Host': urllib.parse.urlsplit(probe.origin).netloc,
+                     'x-wonder-loopback-capability': probe.capability})
+        urllib.request.urlopen(revoke, timeout=30).read()
+        probe.call(f'/api/v1/devices/{device}/forget', {}, local=True, expected=204)
+    except Exception as error:
+        print(f'could not remove the throwaway phone {device}: {error}', file=sys.stderr)
+
+
+def start_isolated(args, http, scratch):
+    helper = args.helper
+    if helper == 'fake':
+        path = scratch / 'computer-helper'
+        path.write_text('#!' + sys.executable + '\n' + FAKE_HELPER)
+        path.chmod(0o700)
+        helper = str(path)
+    elif helper is None:
+        helper = str(ROOT / '.local/build/computer-use-dev/release/WonderComputerUse')
+    if not Path(helper).exists():
+        sys.exit(f'Helper missing: {helper} (swift build -c release --package-path native/computer-use --scratch-path .local/build/computer-use-dev -Xswiftc -DCUPOLA_DEV_HELPER, or --helper fake)')
+    daemon = args.daemon or str(ROOT / 'target/debug/wonderd')
+    if not Path(daemon).exists():
+        sys.exit(f'wonderd missing: {daemon} (cargo build -p wonderd, or --daemon PATH)')
+    with socket.socket() as sock:
+        sock.bind(('127.0.0.1', 0))
+        port = sock.getsockname()[1]
+    probe = http.Probe(port)
+    env = {k: v for k, v in os.environ.items() if not k.startswith('WONDER_')}
+    env.update(WONDER_DATA_DIR=str(scratch / 'data'), WONDER_LOG_DIR=str(scratch / 'logs'), TMPDIR=str(scratch / 'tmp'),
+               CODEX_HOME=str(scratch / 'codex-home'), CLAUDE_CONFIG_DIR=str(scratch / 'claude-home'),
+               WONDER_LOOPBACK_CAPABILITY=probe.capability, WONDER_LISTEN_ADDR=f'127.0.0.1:{port}',
+               WONDER_PUBLIC_ORIGIN=probe.origin, WONDER_COMPUTER_USE_ENABLED='1', WONDER_COMPUTER_USE_BIN=helper)
+    for folder in ('codex-home', 'claude-home', 'tmp'):
+        (scratch / folder).mkdir()
+    log = (scratch / 'daemon.log').open('w')
+    process = subprocess.Popen([daemon], env=env, stdout=log, stderr=log, start_new_session=True)
+
+    def listening():
+        if process.poll() is not None:
+            raise AssertionError('Isolated daemon exited during startup; see ' + str(scratch / 'daemon.log'))
+        try:
+            return probe.call('/healthz', local=True)
+        except urllib.error.URLError:
+            return None
+    http.eventually(listening, 'isolated daemon listening', 60)
+    return probe, process
+
+
+def stop_isolated(process):
+    if process.poll() is None:
+        os.killpg(process.pid, signal.SIGTERM)
+        try:
+            process.wait(timeout=15)
+        except subprocess.TimeoutExpired:
+            os.killpg(process.pid, signal.SIGKILL)
+            process.wait()
+
+
+def pick_source(probe, args):
+    """The first display source the helper offers (the host view needs one to publish)."""
+    if args.source == 'simulator':
+        if not args.udid:
+            raise SystemExit('--source simulator needs --udid UDID')
+        return {'id': 'simulator:' + args.udid.upper(), 'name': 'Simulator', 'kind': 'simulator'}
+    sources = probe.call('/api/v1/computer/sources/windows')
+    if not sources.get('available'):
+        raise SystemExit('Computer helper reports no capturable sources: ' + json.dumps(sources)[:300])
+    items = sources.get('sources') or []
+    chosen = next((s for s in items if s.get('kind') == args.source), None)
+    if not chosen:
+        raise SystemExit('Computer helper offered no sources')
+    keys = ('id', 'name', 'kind', 'width', 'height', 'scale')
+    return {k: chosen[k] for k in keys if chosen.get(k) is not None}
+
+
+def main():
+    ensure_dependencies()
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('--sessions', type=int, default=20)
+    parser.add_argument('--isolated', action='store_true', help='Start a private wonderd (default without --base-url)')
+    parser.add_argument('--base-url', help='Live mode: an installed Cupola host, e.g. http://127.0.0.1:PORT')
+    parser.add_argument('--daemon', help='wonderd binary for --isolated (default target/debug/wonderd)')
+    parser.add_argument('--helper', help="Capture helper for --isolated: a path, or 'fake' (never publishes video)")
+    parser.add_argument('--receiver', help='computer-parity-receiver binary')
+    parser.add_argument('--origin', default='https://replay.invalid', help='HTTPS origin the host trusts (live mode)')
+    parser.add_argument('--capability-file', type=Path, help='File holding the host loopback capability (live mode)')
+    parser.add_argument('--udid', help="With --source simulator: the booted simulator to open, like the Simulators pill's choice")
+    parser.add_argument('--source', choices=('display', 'window', 'simulator', 'none'), default='none',
+                        help="'none' (default) lets the helper pick the main display like the phone's Computer entry; 'window' captures the first app window (an owner's window: avoid)")
+    parser.add_argument('--frame-deadline', type=float, default=5.0, help='Seconds from create to first decoded frame')
+    parser.add_argument('--offer-timeout', type=float, default=5.0)
+    parser.add_argument('--hold', type=float, default=3.0)
+    parser.add_argument('--poll-interval', type=float, default=0.1)
+    parser.add_argument('--only-network', action='append', default=[], metavar='CIDR',
+                        help='Forward only ICE candidates inside this network (repeatable)')
+    parser.add_argument('--allow-black', action='store_true', help='Count all-black frames as a picture')
+    parser.add_argument('--output', type=Path, help='Also write the JSON here')
+    args = parser.parse_args()
+    if args.base_url is None:
+        args.isolated = True
+    if args.isolated and args.base_url:
+        parser.error('Use --isolated or --base-url, not both')
+    args.allowed = [ipaddress.ip_network(c) for c in args.only_network]
+    http = load_http()
+    receiver = find_receiver(args.receiver)
+    scratch_owner = None
+    process = None
+    probe = None
+    result = {'sessions': args.sessions, 'withPicture': 0, 'firstFrameMs': {'p50': None, 'p95': None, 'max': None},
+              'failures': [], 'mode': 'isolated' if args.isolated else 'live'}
+    rows = []
+    try:
+        if args.isolated:
+            scratch_owner = tempfile.TemporaryDirectory(prefix='computer-soak-')
+            scratch = Path(scratch_owner.name)
+            probe, process = start_isolated(args, http, scratch)
+            probe.pair()
+            result['helper'] = args.helper or 'native/computer-use release'
+        else:
+            url = urllib.parse.urlsplit(args.base_url)
+            probe = http.Probe(url.port or 80, args.origin)
+            probe.address = args.base_url.rstrip('/')
+            probe.capability = (args.capability_file.read_text().strip() if args.capability_file
+                                else os.environ.get('WONDER_LOOPBACK_CAPABILITY', ''))
+            if not probe.capability:
+                sys.exit('Live mode needs the host loopback capability: set WONDER_LOOPBACK_CAPABILITY or --capability-file')
+            probe.pair()
+        source = pick_source(probe, args) if args.helper != 'fake' and args.source != 'none' else None
+        result['source'] = source and source.get('name')
+        session = Session(args, probe, http, receiver, source)
+        for index in range(args.sessions):
+            row, failure = session.run(index)
+            rows.append(row)
+            if failure:
+                result['failures'].append(failure)
+            print(f"[{index + 1}/{args.sessions}] " + (f"FAIL {failure['stage']}: {failure['reason']}" if failure
+                  else f"ok first frame {row['firstFrameMs']} ms"), file=sys.stderr, flush=True)
+    except BaseException as error:
+        result['error'] = f'{type(error).__name__}: {error}'
+        raise
+    finally:
+        done = len(rows)
+        firsts = [r['firstFrameMs'] for r in rows if 'firstFrameMs' in r and not any(f['i'] == r['i'] for f in result['failures'])]
+        result['withPicture'] = len(firsts)
+        result['firstFrameMs'] = {'p50': percentile(firsts, .5), 'p95': percentile(firsts, .95), 'max': max(firsts) if firsts else None}
+        result['perSession'] = rows
+        if probe and not args.isolated:
+            forget_phone(probe)
+        if process:
+            stop_isolated(process)
+        if scratch_owner:
+            scratch_owner.cleanup()
+        text = json.dumps(result)
+        if args.output:
+            args.output.write_text(text + '\n')
+        print(text)
+    return 0 if result['withPicture'] >= args.sessions else 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())

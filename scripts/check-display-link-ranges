@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+"""Every CADisplayLink sets an explicit frame-rate range. Exits nonzero with one line per problem.
+
+  scripts/check-display-link-ranges
+
+The app sets CADisableMinimumFrameDurationOnPhone, so a link with no range may run at
+120 Hz on a ProMotion iPhone. Give each link `preferredFrameRateRange` within a few lines
+of its creation: 60 for bookkeeping and momentum links, the stream-driven rate for the
+computer view (ComputerDisplayRate).
+"""
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+CREATE = re.compile(r"\bCADisplayLink\(\s*target")
+WINDOW = 6  # lines after the creation
+
+
+def problems(root=ROOT):
+    found = []
+    for base in (root / "apps/ios", root / "apps/native/Sources"):
+        for path in sorted(base.rglob("*.swift")):
+            if ".build" in path.parts:
+                continue
+            lines = path.read_text(errors="replace").splitlines()
+            for number, line in enumerate(lines):
+                if CREATE.search(line) and "preferredFrameRateRange" not in "\n".join(lines[number:number + WINDOW + 1]):
+                    found.append(f"{path.relative_to(root)}:{number + 1}: CADisplayLink without preferredFrameRateRange; "
+                                 "set it right after creating the link (see scripts/check-display-link-ranges)")
+    return found
+
+
+if __name__ == "__main__":
+    sys.dont_write_bytecode = True
+    errors = problems()
+    print("\n".join(errors))
+    sys.exit(1 if errors else 0)

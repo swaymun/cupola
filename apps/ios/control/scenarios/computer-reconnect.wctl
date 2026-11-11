@@ -1,0 +1,89 @@
+# nightly-ipad: retained decoded picture, recovery status and view-only resumption in every interruption
+# devices: iphone ipad
+# Offline, identifiable decoded WebRTC frame. Holds interruptions until a signal;
+# no sleeps, live host calls or model sends. Native taps verify the actions and
+# resulting states; captures prove the picture remains readable and dimmed.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --arg=-computer.fillsViewport --arg unset
+wait --id computer-session-live-status --contains Live --timeout 30
+shot recovery-live-frame
+wait --id computer-session-control-active --timeout 15
+signal computer-brief-disconnect
+wait --id computer-session-preview --contains "showing the last picture" --timeout 10
+wait --id computer-session-notice --contains Reconnecting --timeout 10
+shot recovery-brief-disconnect
+signal computer-recovery-ready
+wait --id computer-session-live-status --contains Live --timeout 10
+wait --id computer-session-notice --gone --timeout 5
+wait --id computer-session-more --timeout 5
+shot recovery-brief-resumed
+# A route change uses the same picture and drops control before any resume.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --arg=-computer.fillsViewport --arg unset
+wait --id computer-session-live-status --contains Live --timeout 30
+wait --id computer-session-control-active --timeout 15
+signal computer-network-change
+wait --id computer-session-preview --contains "showing the last picture" --timeout 10
+wait --id computer-session-live-status --contains Reconnecting --timeout 5
+shot recovery-network-change
+signal computer-recovery-ready
+wait --id computer-session-live-status --contains Live --timeout 10
+wait --id computer-session-more --timeout 5
+shot recovery-network-resumed
+# A held background/foreground transition makes both intermediate states
+# captureable; the actual Home/activate lifecycle is also checked below.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --arg=-computer.fillsViewport --arg unset
+wait --id computer-session-live-status --contains Live --timeout 30
+wait --id computer-session-control-active --timeout 15
+signal computer-background
+wait --id computer-session-live-status --contains Paused --timeout 10
+wait --id computer-session-preview --contains "showing the last picture" --timeout 5
+shot recovery-background-paused
+signal computer-foreground
+wait --id computer-session-notice --contains Reconnecting --timeout 10
+wait --id computer-session-preview --contains "showing the last picture" --timeout 5
+shot recovery-foreground-reconnecting
+# A route can return while the opening request is still pending. Its restored
+# event must clear the outage status without starting a duplicate view.
+signal computer-network-change
+wait --id computer-session-notice --contains interrupted --timeout 10
+shot recovery-foreground-network-change
+signal computer-recovery-ready
+wait --id computer-session-live-status --contains Live --timeout 10
+wait --id computer-session-more --timeout 5
+wait --id computer-session-control-active --timeout 20
+shot recovery-foreground-resumed
+button home
+activate
+wait --id computer-session-live-status --contains Live --timeout 20
+wait --id computer-session-more --timeout 5
+shot recovery-actual-foreground
+# The computer restarts: keep the last picture with a truthful failure and
+# Try again while unavailable, then reopen automatically when it returns.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --arg=-computer.fillsViewport --arg unset
+wait --id computer-session-live-status --contains Live --timeout 30
+wait --id computer-session-control-active --timeout 15
+signal computer-host-restart
+wait --id computer-session-retry --timeout 10
+wait --id computer-session-preview --contains "showing the last picture" --timeout 5
+shot recovery-host-restart
+signal computer-recovery-ready
+wait --id computer-session-live-status --contains Live --timeout 15
+wait --id computer-session-notice --gone --timeout 5
+wait --id computer-session-more --timeout 5
+shot recovery-host-resumed
+# Foreground cannot reopen while the computer remains offline. Try again is
+# actionable, keeps the frame through the new attempt, and never takes control.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --arg=-computer.fillsViewport --arg unset
+wait --id computer-session-live-status --contains Live --timeout 30
+signal computer-background
+wait --id computer-session-live-status --contains Paused --timeout 10
+signal computer-recovery-failed
+signal computer-foreground
+wait --id computer-session-retry --timeout 10
+wait --id computer-session-preview --contains "showing the last picture" --timeout 5
+shot recovery-unavailable-try-again
+signal computer-retry-ready
+tap --id computer-session-retry
+wait --id computer-session-live-status --contains Live --timeout 15
+wait --id computer-session-notice --gone --timeout 5
+wait --id computer-session-more --timeout 5
+shot recovery-try-again-resumed

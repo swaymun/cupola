@@ -1,0 +1,111 @@
+# devices: iphone iphone-27 ipad duo
+# nightly-ipad: pages open full screen; Done returns to the same chat
+# visual-review: page menu, full-screen page, Done returning to the chat
+# The globe is a small menu of this Project folder's pages. WebKit loads the
+# page, script and stylesheet through the host proxy. No host or model sends.
+# Link routing and web-link Done/reading-position checks share this fixture.
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture dev-server-preview --arg=-wonder.links.open --arg=inApp
+wait --id preview-pages-menu --timeout 20
+assert --path thread.id --equals '"preview"'
+assert --path browser --equals null
+shot browser-full-screen-chat-before
+tap --id preview-pages-menu
+wait --id preview-page-5173 --timeout 5
+wait --id preview-check-pages
+shot browser-full-screen-menu
+tap --id preview-page-5173
+wait --id browser-full-screen --timeout 10
+wait --id browser-preview-page-probe --contains "Recipes · " --timeout 15
+wait --id browser-preview-page-probe --contains "Load 1; style: header rgb(47, 93, 80)" --timeout 5
+assert --path browser.fullScreen --equals true
+assert --path browser.url --equals '"wonder-preview://port-5173/"'
+assert --path pane --equals null
+wait --id message-draft --gone
+shot browser-full-screen-page
+tap --id browser-preview-reload
+wait --id browser-preview-page-probe --contains "Load 2; style: header rgb(47, 93, 80)" --timeout 15
+# A public link inside the proxied page opens in the in-Cupola link viewer.
+tap --label "Follow the page’s web link"
+assert --path browser.kind --equals '"link"' --timeout 15
+shot browser-full-screen-web-link-from-page
+tap --id link-viewer-close
+wait --id browser-preview-page-probe --contains "Recipes · " --timeout 10
+assert --path browser.url --equals '"wonder-preview://port-5173/"'
+wait --id browser-preview-page-probe --contains "Load 2; style: header rgb(47, 93, 80)" --timeout 5
+tap --label "Follow the page's Saved link"
+wait --id browser-preview-page-probe --contains "Saved recipes · " --timeout 15
+tap --id browser-done
+wait --id message-draft --timeout 10
+assert --path browser --equals null
+assert --path thread.id --equals '"preview"'
+assert --path composer.text --equals '"Keep the evening free too."'
+assert --path pane --equals null
+shot browser-full-screen-chat-after
+# A server that has stopped gives recovery inside the same full-screen view.
+tap --id preview-pages-menu
+tap --id preview-page-4000
+wait --id browser-preview-failure --contains "This page stopped responding" --timeout 15
+wait --id browser-preview-retry
+shot browser-full-screen-stopped
+tap --id browser-done
+assert --path browser --equals null --timeout 10
+assert --path presented --equals '[]' --timeout 10
+# The fixture routes the reply URLs through the same opener as native link taps.
+# Native link checks cover iPhone/iPad bubble hit targets. Duo uses only the
+# fixture-link-* semantic controls by label here; native Duo input remains
+# limited by #387. These are Diagnostics controls, not native accessibility IDs.
+tap --label "http://localhost:3000/docs"
+driver off
+wait --id chat-notice --contains "Start it there, then tap Preview." --timeout 10
+driver on
+assert --path browser --equals null
+tap --label "http://localhost:5173/?view=plan"
+wait --id browser-preview-page-probe --contains "Recipes · " --timeout 15
+assert --path browser.fullScreen --equals true
+assert --path browser.url --equals '"wonder-preview://port-5173/?view=plan"'
+shot browser-full-screen-localhost-link
+tap --id browser-done
+wait --id message-draft --timeout 10
+assert --path thread.id --equals '"preview"'
+assert --path composer.text --equals '"Keep the evening free too."'
+tap --label "https://example.com"
+assert --path browser.kind --equals '"link"' --timeout 15
+assert --path browser.fullScreen --equals true
+assert --path applicationState --equals '"active"'
+shot browser-full-screen-web-link
+tap --id link-viewer-close
+assert --path browser --equals null --timeout 10
+assert --path thread.id --equals '"preview"'
+assert --path composer.text --equals '"Keep the evening free too."'
+driver off
+wait --id chat-notice --gone --timeout 10
+driver on
+shot browser-full-screen-links-returned
+# Start in the middle of a long chat, using its normal saved reading anchor.
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture dev-server-preview --fixture browser-reading-preview --arg=-wonder.links.open --arg=inApp
+wait --id message-draft --timeout 20
+assert --path timeline.0.id --equals '"reading-20/item-20"' --timeout 15
+shot browser-reading-before
+tap --label "http://localhost:5173/?view=plan"
+wait --id browser-preview-page-probe --contains "Recipes · " --timeout 15
+tap --id browser-done
+wait --id message-draft --timeout 10
+assert --path timeline.0.id --equals '"reading-20/item-20"' --timeout 10
+shot browser-reading-after-localhost
+tap --label "https://example.com"
+assert --path browser.kind --equals '"link"' --timeout 15
+tap --id link-viewer-close
+assert --path browser --equals null --timeout 10
+assert --path timeline.0.id --equals '"reading-20/item-20"' --timeout 10
+shot browser-reading-after-web
+# Native navigation chrome keeps Done and the page at the largest text size,
+# with Nord forcing the app's themed page and navigation background.
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture dev-server-preview --fixture theme --arg nord --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id preview-pages-menu --timeout 20
+tap --id preview-pages-menu
+tap --id preview-page-5173
+wait --id browser-preview-page-probe --contains "Recipes · " --timeout 15
+shot browser-full-screen-largest-text
+tap --id browser-done
+assert --path browser --equals null --timeout 10

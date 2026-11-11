@@ -1,0 +1,47 @@
+# devices: duo
+# The owner's 2026-10-28 recording, replayed with Cmd-Shift-S (the Hide Chats
+# shortcut) for the sidebar close that wonderctl sidebar cannot do on the inner
+# display: upright with Chats, rotate to the stacked posture, close Chats there,
+# reopen, rotate back, close, then toggle several times. Every closed state must
+# show the conversation (its draft and title) and no Chats; every open state
+# must show both. Read the shots for black halves; none may show one.
+hinge 180
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture
+tap --id open-sidebar
+driver off
+wait --id chats-sidebar --timeout 15
+wait --id message-draft --timeout 10
+shot owner-1-upright-chats-open --display primary-1
+orient landscape-right
+wait --id chats-sidebar --timeout 10
+wait --id message-draft --timeout 10
+shot owner-2-stacked-chats-open --display primary-1
+keys e3:down,e1:down,16,e1:up,e3:up
+wait --id chats-sidebar --gone --timeout 10
+wait --id message-draft --timeout 10
+wait --id conversation-title-menu --timeout 10
+shot owner-3-stacked-chats-closed --display primary-1
+keys e3:down,e1:down,16,e1:up,e3:up
+wait --id chats-sidebar --timeout 10
+wait --id message-draft --timeout 10
+shot owner-4-stacked-chats-reopened --display primary-1
+orient portrait
+wait --id chats-sidebar --timeout 10
+keys e3:down,e1:down,16,e1:up,e3:up
+wait --id chats-sidebar --gone --timeout 10
+wait --id message-draft --timeout 10
+shot owner-5-upright-chats-closed --display primary-1
+keys e3:down,e1:down,16,e1:up,e3:up
+wait --id chats-sidebar --timeout 10
+shot owner-6-toggle-open --display primary-1
+keys e3:down,e1:down,16,e1:up,e3:up
+wait --id chats-sidebar --gone --timeout 10
+shot owner-7-toggle-closed --display primary-1
+keys e3:down,e1:down,16,e1:up,e3:up
+wait --id chats-sidebar --timeout 10
+keys e3:down,e1:down,16,e1:up,e3:up
+wait --id chats-sidebar --gone --timeout 10
+wait --id message-draft --timeout 10
+shot owner-8-toggle-closed-again --display primary-1

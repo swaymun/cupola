@@ -1,0 +1,223 @@
+# nightly-ipad: the Simulators tool lists, starts, stops and shows simulators
+# The Simulators rail pill opens a list of each computer's simulators (the one
+# that looks like this device first, then Boot/Stop with Starting… and
+# Stopping…), Opening while it connects, the screen at its native
+# aspect, Take control, then Home, Lock, volume, keyboard and Rotate view; a tap, a
+# long press (a real-time hold), a swipe, buttons and typing reach the simulator;
+# text it can't type is explained (the on-screen keyboard, even where the iPad
+# simulator reports a hardware one) and control stays; Give control back; Close and
+# the pill open the list again, never a simulator unasked. Then view only, failure with recovery,
+# a stopped simulator, an empty list, Start, Stop and their failures, the Duo's
+# hinge menu and the largest text. Synthetic fixtures record input instead of a
+# simulator; nothing reaches a computer.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --fixture simulator-loading --fixture no-hardware-keyboard
+wait --id conversation-simulators-pill --timeout 30
+shot simulator-entry
+tap --id conversation-simulators-pill
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001 --contains "iOS 26.5" --timeout 15
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000002 --contains "iPad"
+wait --id simulator-back --gone
+shot simulator-picker
+tap --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001
+wait --id simulator-loading --contains "Opening iPhone 17 Pro" --timeout 15
+shot simulator-loading
+signal simulator-loaded
+wait --id simulator-screen --label "iPhone 17 Pro screen" --timeout 15
+wait --id simulator-take-control
+wait --id simulator-picker --contains "iOS 26.5"
+shot simulator-ready
+tap --id simulator-take-control
+wait --id simulator-controls-active --timeout 15
+wait --id simulator-home --label "Home"
+wait --id simulator-lock --label "Lock"
+wait --id simulator-volume-down --label "Volume down"
+wait --id simulator-volume-up --label "Volume up"
+wait --id simulator-give-back --label "Give control back"
+wait --id simulator-screen --contains "controlling"
+shot simulator-controlling
+tap --id simulator-screen
+wait --id simulator-fixture-input --contains "touch down, touch up" --timeout 10
+# A hold lifts when the finger does, with no added pause before Home.
+hold --id simulator-screen --seconds 1.2
+tap --id simulator-home
+wait --id simulator-fixture-input --contains "touch up, button home" --timeout 10
+swipe up --in simulator-screen
+wait --id simulator-fixture-input --contains "touch move" --timeout 10
+tap --id simulator-lock
+tap --id simulator-volume-down
+tap --id simulator-volume-up
+wait --id simulator-fixture-input --contains "button lock, button volumeDown, button volumeUp" --timeout 10
+tap --id simulator-keyboard
+wait --id simulator-keyboard --label "Hide keyboard" --timeout 10
+type hi
+wait --id simulator-fixture-input --contains "text hi" --timeout 10
+signal simulator-type-unsupported
+wait --id simulator-control-message --contains "US keyboard" --timeout 10
+wait --id simulator-controls-active
+shot simulator-text-refused
+tap --id simulator-keyboard
+wait --id simulator-keyboard --label "Show keyboard" --timeout 10
+tap --id simulator-rotate
+shot simulator-rotated
+tap --id simulator-rotate
+tap --id simulator-rotate
+tap --id simulator-rotate
+tap --id simulator-give-back
+wait --id simulator-take-control --timeout 10
+# The tool closes with Close on a phone (the pill sits under the cover); the
+# pill then opens the list first, with the simulator last used on top, and
+# only a pick opens a simulator.
+tap --id simulator-close
+wait --id simulator-view --gone
+wait --id conversation-simulators-pill --timeout 15
+tap --id conversation-simulators-pill
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001 --contains "iOS 26.5" --timeout 15
+wait --id simulator-screen --gone
+shot simulator-list-first
+tap --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001
+wait --id simulator-screen --label "iPhone 17 Pro screen" --timeout 15
+# The iPad simulator, from the device picker in the header.
+tap --id simulator-picker
+tap --id simulator-choice:simulator:00000000-0000-0000-0000-000000000002
+wait --id simulator-screen --label "iPad Air 13-inch (M3) screen" --timeout 15
+tap --id simulator-picker
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000002 --contains "Selected"
+wait --id simulator-stop:simulator:00000000-0000-0000-0000-000000000001 --label "Stop iPhone 17 Pro"
+shot simulator-device-picker
+tap --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001
+wait --id simulator-screen --label "iPhone 17 Pro screen" --timeout 15
+# View only: the host's own reason, no Take control.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --fixture simulator-view-only
+wait --id conversation-simulators-pill --timeout 30
+tap --id conversation-simulators-pill
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001 --timeout 15
+tap --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001
+wait --id simulator-view-only --contains "can be viewed but not controlled with this version of Xcode" --timeout 15
+wait --id simulator-take-control --gone
+wait --id simulator-screen --contains "View only"
+shot simulator-view-only
+# Failure: the host's words, what to do, Try again and Choose another simulator.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --fixture simulator-failed
+wait --id conversation-simulators-pill --timeout 30
+tap --id conversation-simulators-pill
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001 --timeout 15
+tap --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001
+wait --id simulator-notice --contains "unavailable" --timeout 15
+wait --id simulator-recovery --contains "still running"
+wait --id simulator-alternative --label "Choose another simulator"
+shot simulator-failed
+signal simulator-recovered
+tap --id simulator-retry
+wait --id simulator-take-control --timeout 15
+# A stopped simulator; Choose another simulator returns to the list.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --fixture simulator-stopped
+wait --id conversation-simulators-pill --timeout 30
+tap --id conversation-simulators-pill
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001 --timeout 15
+tap --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001
+wait --id simulator-notice --contains "stopped" --timeout 15
+shot simulator-stopped
+tap --id simulator-alternative
+wait --id simulator-picker-list --timeout 10
+# No simulators running.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --fixture simulator-none
+wait --id conversation-simulators-pill --timeout 30
+tap --id conversation-simulators-pill
+wait --id simulator-picker-empty --contains "No simulators" --timeout 15
+shot simulator-none
+# A stopped simulator in the list: Start, Starting…, then it opens by itself.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --arg=-diagnostics-simulator-startable
+wait --id conversation-simulators-pill --timeout 30
+tap --id conversation-simulators-pill
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000003 --contains "stopped" --timeout 15
+wait --id simulator-stop:simulator:00000000-0000-0000-0000-000000000003 --gone
+shot simulator-start
+tap --id simulator-choice:simulator:00000000-0000-0000-0000-000000000003
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000003 --contains "Starting" --timeout 5
+shot simulator-starting
+wait --id simulator-screen --label "iPhone 17 screen" --timeout 15
+# Start that fails: the host's words and Retry in the row.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --arg=-diagnostics-simulator-startable --arg=-diagnostics-simulator-boot-fails
+wait --id conversation-simulators-pill --timeout 30
+tap --id conversation-simulators-pill
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000003 --timeout 15
+tap --id simulator-choice:simulator:00000000-0000-0000-0000-000000000003
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000003 --contains "couldn" --timeout 15
+shot simulator-start-failed
+# Stop: the row says Stopping…, then the simulator is stopped and says Boot.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --arg=-diagnostics-simulator-startable
+wait --id conversation-simulators-pill --timeout 30
+tap --id conversation-simulators-pill
+wait --id simulator-stop:simulator:00000000-0000-0000-0000-000000000001 --timeout 15
+tap --id simulator-stop:simulator:00000000-0000-0000-0000-000000000001
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001 --contains "Stopping" --timeout 5
+shot simulator-stopping
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001 --contains "stopped" --timeout 15
+shot simulator-stopped-row
+# Stop that fails: the host's words in the row, the simulator stays running.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --arg=-diagnostics-simulator-stop-fails
+wait --id conversation-simulators-pill --timeout 30
+tap --id conversation-simulators-pill
+wait --id simulator-stop:simulator:00000000-0000-0000-0000-000000000001 --timeout 15
+tap --id simulator-stop:simulator:00000000-0000-0000-0000-000000000001
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001 --contains "couldn" --timeout 15
+shot simulator-stop-failed
+# The device that looks like this one is first: an iPhone Duo on a Duo.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --arg=-diagnostics-simulator-phone-duo
+wait --id conversation-simulators-pill --timeout 30
+tap --id conversation-simulators-pill
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000004 --timeout 15
+shot simulator-list-duo-first
+# Hinge: fold, tent and open presets and Swap screens drive the posture.
+tap --id simulator-choice:simulator:00000000-0000-0000-0000-000000000004
+wait --id simulator-screen --label "iPhone Duo screen" --timeout 15
+wait --id simulator-hinge-menu --timeout 10
+tap --id simulator-hinge-menu
+tap --id simulator-hinge-0
+wait --id simulator-hinge-menu --contains "0 degrees" --timeout 10
+shot simulator-hinge-fold
+tap --id simulator-hinge-menu
+tap --id simulator-hinge-135
+wait --id simulator-hinge-menu --contains "135 degrees" --timeout 10
+shot simulator-hinge-tent
+tap --id simulator-hinge-menu
+tap --id simulator-swap-screens
+wait --id simulator-hinge-menu --contains "swapped" --timeout 10
+shot simulator-swapped
+tap --id simulator-hinge-menu
+tap --id simulator-upright-screens
+wait --id simulator-hinge-menu --contains "135 degrees" --timeout 10
+tap --id simulator-hinge-menu
+tap --id simulator-hinge-180
+wait --id simulator-hinge-menu --contains "180 degrees" --timeout 10
+# A hinge change the computer refuses says so and keeps the last posture.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --arg=-diagnostics-simulator-phone-duo --arg=-diagnostics-simulator-hinge-fails
+wait --id conversation-simulators-pill --timeout 30
+tap --id conversation-simulators-pill
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000004 --timeout 15
+tap --id simulator-choice:simulator:00000000-0000-0000-0000-000000000004
+wait --id simulator-hinge-menu --timeout 15
+tap --id simulator-hinge-menu
+tap --id simulator-hinge-90
+wait --id simulator-hinge-message --contains "couldn" --timeout 10
+shot simulator-hinge-failed
+# A pooled test lane belongs to its scenario: no Stop and no hinge menu.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --arg=-diagnostics-simulator-phone-duo --arg=-diagnostics-simulator-duo-in-use
+wait --id conversation-simulators-pill --timeout 30
+tap --id conversation-simulators-pill
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000004 --timeout 15
+wait --id simulator-stop:simulator:00000000-0000-0000-0000-000000000004 --gone
+tap --id simulator-choice:simulator:00000000-0000-0000-0000-000000000004
+wait --id simulator-screen --label "iPhone Duo screen" --timeout 15
+wait --id simulator-hinge-menu --gone
+shot simulator-duo-in-use
+# Largest text: the header and toolbar keep every control.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-simulator-fixture --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id conversation-simulators-pill --timeout 30
+tap --id conversation-simulators-pill
+wait --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001 --timeout 15
+tap --id simulator-choice:simulator:00000000-0000-0000-0000-000000000001
+tap --id simulator-take-control --timeout 15
+wait --id simulator-give-back --label "Give control back" --timeout 15
+wait --id simulator-home
+shot simulator-large-text

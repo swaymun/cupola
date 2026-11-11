@@ -1,0 +1,112 @@
+# devices: duo
+# A-BELL captures on the Duo, folded then unfolded.
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg cupola-light
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+wait --id needs-you-list --timeout 20
+shot a-bell-folded-cupola-light-list
+tap --id needs-you:diagnostic-host:fixture-opencode-approval
+wait --id approval-accept-fixture-opencode-approval --timeout 20
+shot a-bell-folded-cupola-light-approval-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg cupola-light
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+tap --id needs-you:diagnostic-host:fixture-question
+wait --contains "Which day works best?" --timeout 20
+shot a-bell-folded-cupola-light-question-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture theme --arg cupola-light --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+# Nothing waiting: there is no bell.
+wait --id sidebar-needs-you --gone --timeout 5
+wait --id needs-you-list --gone --timeout 3
+shot a-bell-folded-cupola-light-empty
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg cupola-dark
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+wait --id needs-you-list --timeout 20
+shot a-bell-folded-cupola-dark-list
+tap --id needs-you:diagnostic-host:fixture-opencode-approval
+wait --id approval-accept-fixture-opencode-approval --timeout 20
+shot a-bell-folded-cupola-dark-approval-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg cupola-dark
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+tap --id needs-you:diagnostic-host:fixture-question
+wait --contains "Which day works best?" --timeout 20
+shot a-bell-folded-cupola-dark-question-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture theme --arg cupola-dark --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+# Nothing waiting: there is no bell.
+wait --id sidebar-needs-you --gone --timeout 5
+wait --id needs-you-list --gone --timeout 3
+shot a-bell-folded-cupola-dark-empty
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg nord
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+wait --id needs-you-list --timeout 20
+shot a-bell-folded-nord-list
+tap --id needs-you:diagnostic-host:fixture-opencode-approval
+wait --id approval-accept-fixture-opencode-approval --timeout 20
+shot a-bell-folded-nord-approval-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg nord
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+tap --id needs-you:diagnostic-host:fixture-question
+wait --contains "Which day works best?" --timeout 20
+shot a-bell-folded-nord-question-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture theme --arg nord --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+# Nothing waiting: there is no bell.
+wait --id sidebar-needs-you --gone --timeout 5
+wait --id needs-you-list --gone --timeout 3
+shot a-bell-folded-nord-empty
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg misty-forest
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+wait --id needs-you-list --timeout 20
+shot a-bell-folded-misty-forest-list
+tap --id needs-you:diagnostic-host:fixture-opencode-approval
+wait --id approval-accept-fixture-opencode-approval --timeout 20
+shot a-bell-folded-misty-forest-approval-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg misty-forest
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+tap --id needs-you:diagnostic-host:fixture-question
+wait --contains "Which day works best?" --timeout 20
+shot a-bell-folded-misty-forest-question-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture theme --arg misty-forest --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+# Nothing waiting: there is no bell.
+wait --id sidebar-needs-you --gone --timeout 5
+wait --id needs-you-list --gone --timeout 3
+shot a-bell-folded-misty-forest-empty
+# Unfolded: Duo touch input is not qualified (#387; a tap on the inner display does nothing, measured),
+# so the page opens through the diagnostics launch argument and only the list and empty state are captured.
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --arg=-diagnostics-needs-attention-open --fixture theme --arg cupola-light
+wait --id needs-you-list --timeout 30
+shot a-bell-unfolded-cupola-light-list --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture sidebar-open --arg=-diagnostics-needs-attention-open --fixture theme --arg cupola-light
+wait --id needs-you-list --gone --timeout 30
+shot a-bell-unfolded-cupola-light-empty --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --arg=-diagnostics-needs-attention-open --fixture theme --arg cupola-dark
+wait --id needs-you-list --timeout 30
+shot a-bell-unfolded-cupola-dark-list --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture sidebar-open --arg=-diagnostics-needs-attention-open --fixture theme --arg cupola-dark
+wait --id needs-you-list --gone --timeout 30
+shot a-bell-unfolded-cupola-dark-empty --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --arg=-diagnostics-needs-attention-open --fixture theme --arg nord
+wait --id needs-you-list --timeout 30
+shot a-bell-unfolded-nord-list --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture sidebar-open --arg=-diagnostics-needs-attention-open --fixture theme --arg nord
+wait --id needs-you-list --gone --timeout 30
+shot a-bell-unfolded-nord-empty --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --arg=-diagnostics-needs-attention-open --fixture theme --arg misty-forest
+wait --id needs-you-list --timeout 30
+shot a-bell-unfolded-misty-forest-list --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture sidebar-open --arg=-diagnostics-needs-attention-open --fixture theme --arg misty-forest
+wait --id needs-you-list --gone --timeout 30
+shot a-bell-unfolded-misty-forest-empty --display primary-1

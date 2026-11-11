@@ -1,0 +1,7 @@
+# A notification action that cannot be authenticated never sends or claims success.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-notification-action-failure
+wait --contains "This request is no longer available." --timeout 20
+shot notification-action-unavailable
+tap --label "OK"
+wait --contains "This request is no longer available." --gone --timeout 5
+shot notification-action-recovered

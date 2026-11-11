@@ -1,0 +1,55 @@
+# The per-chat Show choice on iPad and Duo (see chat-detail-per-chat.wctl for the
+# iPhone version). Their menus expose each level by its label and summary instead
+# of an id, and the check mark is only visible in the capture, so the checks are
+# the chat's rows: the fixture Mac shows Thinking for every provider, Conversation
+# hides the thinking group and keeps the reply, Commentary & tools shows the tool
+# rows, and tapping the checked level again clears the choice (Thinking returns).
+# Held fixture only; nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture thinking-detail --fixture open-project-thread
+wait --id activity-group:thinking-turn/measured-thinking --timeout 30
+wait --contains "The layout keeps the message composer available." --timeout 10
+shot chat-detail-per-chat-default
+tap --id conversation-title-menu
+wait --label Show --timeout 10
+shot chat-detail-per-chat-header-menu
+tap --label Show
+wait --contains "Replies, plus the pictures" --timeout 10
+shot chat-detail-per-chat-menu-open
+tap --contains "Replies, plus the pictures"
+wait --id activity-group:thinking-turn/measured-thinking --gone --timeout 10
+wait --id activity-group:thinking-turn/fixture-command-1 --gone --timeout 10
+wait --contains "The layout keeps the message composer available." --timeout 10
+shot chat-detail-per-chat-conversation
+
+# The sidebar row's long-press menu holds the same choice; Conversation is checked.
+hold --id pinned-thread:codex:read-fixture
+wait --label Show --timeout 10
+tap --label Show
+wait --contains "Adds the thinking an agent" --timeout 10
+shot chat-detail-per-chat-sidebar-menu
+tap --contains "Adds the thinking an agent"
+wait --id activity-group:thinking-turn/measured-thinking --timeout 10
+shot chat-detail-per-chat-thinking
+
+# Commentary & tools shows the tool rows without the thinking; tapping it again
+# clears the choice and the provider's Thinking applies.
+tap --id conversation-title-menu
+wait --label Show --timeout 10
+tap --label Show
+wait --contains "Adds the agent’s notes" --timeout 10
+shot chat-detail-per-chat-thinking-checked
+tap --contains "Adds the agent’s notes"
+wait --id activity-group:thinking-turn/measured-thinking --gone --timeout 10
+wait --id activity-group:thinking-turn/fixture-command-1 --timeout 10
+shot chat-detail-per-chat-commentary
+tap --id conversation-title-menu
+wait --label Show --timeout 10
+tap --label Show
+wait --contains "Adds the agent’s notes" --timeout 10
+tap --contains "Adds the agent’s notes"
+wait --id activity-group:thinking-turn/measured-thinking --timeout 10
+tap --id conversation-title-menu
+wait --label Show --timeout 10
+tap --label Show
+wait --contains "Adds the agent’s notes" --timeout 10
+shot chat-detail-per-chat-cleared

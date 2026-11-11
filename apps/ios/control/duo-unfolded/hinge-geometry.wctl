@@ -1,0 +1,85 @@
+# devices: duo
+# Owned AppShell fixtures. Native frames are checked against displayDivision by
+# check-hinge.py after capture-hinge.py saves the matched captures.
+# The cover has ordinary phone sheets; unfolding restores one task per display.
+driver on
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --arg=-wonder.sidebar.hidden --arg=NO
+assert --path pane --equals null --timeout 30
+driver off
+wait --id message-draft --timeout 15
+wait --id conversation-title-menu --timeout 10
+wait --id chats-sidebar --timeout 10
+shot hinge-chat --display primary-1
+orient landscape-right
+driver on
+assert --path displayDivision.x --equals 0 --timeout 15
+driver off
+wait --id message-draft --timeout 10
+shot hinge-chat-stacked --display primary-1
+tree --json
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --arg=-diagnostics-companion-details --arg=-diagnostics-companion-expanded
+assert --path pane.tool --equals '"details"' --timeout 30
+driver off
+wait --id companion-pane-flip --timeout 10
+wait --id companion-pane-expand --gone --timeout 5
+wait --id companion-pane-divider --gone --timeout 5
+wait --id message-draft --timeout 10
+shot hinge-details-restored --display primary-1
+hinge 0
+orient portrait
+wait --id thread-details-rename --timeout 15
+shot hinge-details-folded --display primary
+# This fixture verifies Settings opens one full-width page with its Voice page pushed. settings-navigation.wctl
+# separately owns native selection, nested Back and return to the chat.
+hinge 180
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --arg=-diagnostics-settings-open --arg=-diagnostics-settings-voice
+driver off
+wait --id voice-key-computer --timeout 15
+shot hinge-settings-selected --display primary-1
+
+# Save Hide Chats with the real keyboard action, then verify it after relaunch.
+# A -wonder.sidebar.hidden launch argument would pin NSArgumentDomain and make
+# subsequent AppStorage toggles appear inert even when they save correctly.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture
+tap --id open-sidebar
+driver off
+wait --id chats-sidebar --timeout 15
+keys e3:down,e1:down,16,e1:up,e3:up
+wait --id chats-sidebar --gone --timeout 10
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture
+driver off
+wait --id chats-sidebar --gone --timeout 15
+wait --id open-sidebar --timeout 10
+wait --id message-draft --timeout 10
+shot hinge-chats-hidden --display primary-1
+# HID keyboard events use the active simulator, independently of AXe touch.
+keys e3:down,e1:down,16,e1:up,e3:up
+wait --id chats-sidebar --timeout 10
+wait --id message-draft --timeout 10
+shot hinge-chats-keyboard-shown --display primary-1
+keys e3:down,e1:down,16,e1:up,e3:up
+wait --id chats-sidebar --gone --timeout 10
+wait --id open-sidebar --timeout 10
+shot hinge-chats-keyboard-hidden --display primary-1
+# On the cover, the same shortcut opens/closes the phone drawer.
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture
+driver off
+wait --id message-draft --timeout 20
+keys e3:down,e1:down,16,e1:up,e3:up
+wait --id sidebar-cupola --timeout 10
+shot hinge-cover-chats-keyboard-shown --display primary
+keys e3:down,e1:down,16,e1:up,e3:up
+wait --id sidebar-cupola --gone --timeout 10
+wait --id message-draft --timeout 10
+shot hinge-cover-chats-keyboard-hidden --display primary

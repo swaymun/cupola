@@ -1,0 +1,22 @@
+# Synthetic catalog: no provider work or owner conversations.
+# A thread archived on the computer (the Mac's own archive, another device or
+# a script) leaves the phone's Chats as soon as the host's native_status event
+# arrives, in By Project and in All Chats, not at the 30 s refresh. Owner
+# report 2026-10-22: 243 chats archived from the Mac stayed in the sidebar.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-archive
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id project-thread:claude:7d1c9e42-5b3a-4f60-8e21-0a9b8c7d6e54 --timeout 20
+shot mac-archive-before
+signal mac-archive
+wait --id project-thread:claude:7d1c9e42-5b3a-4f60-8e21-0a9b8c7d6e54 --gone --timeout 5
+wait --id project-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --timeout 5
+shot mac-archive-after
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture sidebar-all-chats --fixture mac-archive
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id chat-thread:claude:7d1c9e42-5b3a-4f60-8e21-0a9b8c7d6e54 --timeout 20
+signal mac-archive
+wait --id chat-thread:claude:7d1c9e42-5b3a-4f60-8e21-0a9b8c7d6e54 --gone --timeout 5
+wait --id chat-thread:codex:0b5e2a10-7c4d-4e1f-9a2b-3c4d5e6f7a80 --timeout 5
+shot mac-archive-all-chats-after

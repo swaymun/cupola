@@ -1,0 +1,22 @@
+# Physical-phone stack check (device-runner): New chat with a provider pill, an open chat and its
+# header menu, Settings, and the computer view must open without the main thread running out of stack.
+# Held fixtures only; nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture diagnostics-theme --arg cupola-light
+wait --id conversation-title-menu --timeout 30
+shot b1-open-chat
+sidebar open
+wait --id sidebar-new-chat --timeout 15
+tap --id sidebar-new-chat
+wait --id project-agent-picker --timeout 15
+wait --id new-chat-access --timeout 15
+shot b1-new-chat
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture settings-open --fixture diagnostics-theme --arg cupola-light
+wait --id settings-computer:diagnostic-host --timeout 30
+shot b1-settings
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture several-computers --fixture companion-computer --fixture companion-expanded --fixture diagnostics-theme --arg cupola-light
+wait --id computer-status-pill --timeout 30
+shot b1-computer-view
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture diagnostics-theme --arg cupola-light
+wait --id conversation-title-menu --timeout 30
+tap --id conversation-title-menu
+shot b1-header-menu

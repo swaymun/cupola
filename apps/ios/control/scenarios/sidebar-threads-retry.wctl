@@ -1,0 +1,43 @@
+# An empty partial page with a continuation is incomplete, not an empty
+# Project. It explains the missing provider and offers Try again, including after
+# a fresh retry still has no rows; once Codex answers, Try again brings its thread
+# in and the notice goes. project-threads-recovers starts each launch without the
+# Project list an earlier launch saved, so the recovered thread is not there yet.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-threads-partial --fixture project-threads-recovers
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --label "Collapse Read status" --timeout 10
+wait --id threads-retry:read-project --timeout 15
+wait --contains "Codex didn’t respond on Synthetic fixture, so some threads may be missing."
+wait --contains "Codex threads could not be loaded" --gone
+wait --contains "No threads yet" --gone
+wait --id project-thread:codex:recovered-fixture --gone
+shot sidebar-threads-notice
+tap --id threads-retry:read-project
+wait --id threads-retry:read-project --timeout 15
+wait --contains "Codex didn’t respond on"
+wait --contains "No threads yet" --gone
+wait --id project-thread:codex:recovered-fixture --gone
+shot sidebar-threads-empty-retried
+signal threads-recover
+tap --id threads-retry:read-project
+wait --id project-thread:codex:recovered-fixture --contains "Recovered thread" --timeout 15
+wait --id threads-retry:read-project --gone --timeout 10
+wait --contains "Codex didn’t respond on" --gone
+shot sidebar-threads-recovered
+# All chats uses the same empty partial page and also keeps an explicit retry.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-threads-partial --fixture project-threads-recovers --fixture sidebar-all-chats
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id chats-retry:read-project --timeout 15
+wait --contains "Codex didn’t respond, so some chats may be missing."
+tap --id chats-retry:read-project
+wait --id chats-retry:read-project --timeout 15
+wait --contains "Codex didn’t respond, so some chats may be missing."
+wait --id chat-thread:codex:recovered-fixture --gone
+shot sidebar-empty-all-chats-retried
+signal threads-recover
+tap --id chats-retry:read-project
+wait --id chat-thread:codex:recovered-fixture --contains "Recovered thread" --timeout 15
+wait --id chats-retry:read-project --gone --timeout 10
+shot sidebar-all-chats-recovered

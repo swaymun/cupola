@@ -1,0 +1,13 @@
+# While a Codex agent works, Update now is unavailable and says why.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture providers-working
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id connection-rename --timeout 10
+tap --id settings-provider:codex
+wait --id provider:codex --timeout 15
+wait --id provider-blocked:codex --contains "An agent is working" --timeout 10
+shot mac-providers-working

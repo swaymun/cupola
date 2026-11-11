@@ -1,0 +1,75 @@
+# devices: ipad
+# Native AX geometry and selected state; semantic toggles use the production tool reducer.
+# IDs: ComputerDock, FilesDock, TerminalPill, ProjectSubagentDock and CompanionExpandButton.
+# Offline fixture only: no model sends or personal computer access.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,pullRequests --arg=-wonder.sidebar.hidden --arg=YES --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+driver off
+wait --id conversation-terminal-pill --timeout 30
+order --axis x --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+driver on
+tap --id computer-status-pill
+assert --path pane.tool --equals '"computer"' --timeout 10
+driver off
+wait --id computer-status-pill --contains "Open" --timeout 10
+order --axis x --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+shot rail-state-ipad-computer
+tap --id companion-pane-expand
+wait --id computer-status-pill --contains "Open" --timeout 10
+order --axis x --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+shot rail-state-ipad-computer-expanded
+driver on
+tap --id computer-status-pill
+assert --path pane --equals null --timeout 10
+driver off
+wait --id computer-status-pill --contains "Closed" --timeout 10
+order --axis x --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+driver on
+tap --id conversation-files-pill
+assert --path pane.tool --equals '"files"' --timeout 10
+driver off
+wait --id conversation-files-pill --contains "Open" --timeout 10
+order --axis x --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+shot rail-state-ipad-files
+tap --id companion-pane-expand
+wait --id conversation-files-pill --contains "Open" --timeout 10
+order --axis x --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+shot rail-state-ipad-files-expanded
+driver on
+tap --id conversation-files-pill
+assert --path pane --equals null --timeout 10
+driver off
+wait --id conversation-files-pill --contains "Closed" --timeout 10
+order --axis x --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+driver on
+tap --id conversation-terminal-pill
+assert --path pane.tool --equals '"terminal"' --timeout 10
+driver off
+wait --id conversation-terminal-pill --contains "Open" --timeout 10
+order --axis x --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+shot rail-state-ipad-terminal
+tap --id companion-pane-expand
+wait --id conversation-terminal-pill --contains "Open" --timeout 10
+order --axis x --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+shot rail-state-ipad-terminal-expanded
+driver on
+tap --id conversation-terminal-pill
+assert --path pane --equals null --timeout 10
+driver off
+wait --id conversation-terminal-pill --contains "Closed" --timeout 10
+order --axis x --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture computer-session-fixture --fixture computer-session-available-fixture --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,pullRequests --arg=-wonder.sidebar.hidden --arg=YES --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --fixture companion-agent-task
+assert --path pane.tool --equals '"agent-task"' --timeout 30
+driver off
+wait --id project-subagent-status-pill --contains "Open" --timeout 10
+wait --id project-subagent-sheet-done --gone --timeout 10
+order --axis x --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+shot rail-state-ipad-agent-task
+tap --id companion-pane-expand
+wait --id project-subagent-status-pill --contains "Open" --timeout 10
+wait --id project-subagent-sheet-done --gone --timeout 10
+shot rail-state-ipad-agent-task-expanded
+driver on
+tap --id project-subagent-status-pill
+assert --path pane --equals null --timeout 10

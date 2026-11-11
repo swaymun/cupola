@@ -1,0 +1,59 @@
+{
+  "manifestVersion": 1,
+  "wonderAdapterVersion": "0.1.0",
+  "codex": {
+    "version": "codex-cli 0.155.0-alpha.9",
+    "transport": "stdio-jsonl",
+    "stableSchemaSha256": "5a4d50ed04afa9cd1b383d011f67ec055960a35ca7fdeab222ed65e70fca8f0b",
+    "experimentalSchemaSha256": "48368bf71d00498557245665dd4581f9b0d5381561a2c8ba1ef4eb26ea4a1632",
+    "testedRange": {
+      "oldest": "codex-cli 0.155.0-alpha.9",
+      "newest": "codex-cli 0.166.0-alpha.6"
+    },
+    "alpha16SchemaSha256": {
+      "stable": "6ca35a4c82645df5cba7b2bba1845d3167c12294317daf1923da1a2e8fa04738",
+      "experimental": "c7291ce922a7e7f5fe5e36902544bbc18b793d6f5a998ef36aeff0b195b0e91d"
+    },
+    "v162SchemaSha256": {
+      "stable": "0c34fd753d5e4498c32db50dbb20e9c142f81cb3f4b186c581d756d6b7e10bac",
+      "experimental": "9be20dabc0516c68cbe7ad4480affd2953c43ad0e7770a3949663967c00f5ca5"
+    },
+    "v162_17SchemaSha256": {
+      "stable": "6f622f94329e648ffcee48be34b78a35da19e55598fd71241dbb08508195c46d",
+      "experimental": "bff504aada804072a51f42c94478375c46273cf30195069ec4514f56a913663c"
+    },
+    "v166SchemaSha256": {
+      "stable": "e025e54fb11354eb82767ea040b40efa17b34dfc706c9433a6115b5f4771c465",
+      "experimental": "f72bb03a3f519cd19b37a030b42453128ff5b88abaad8c1264cf1ca197dbbed0"
+    }
+  },
+  "nativeQueue": {
+    "minVersion": "codex-cli 0.163.0-alpha.10.2",
+    "contract": "thread/queue/add and thread/queue/list shapes Cupola uses, checked in the installed Codex's generated experimental schema",
+    "measuredSchema": "research/codex-app-server/0.163.0/experimental/codex_app_server_protocol.v2.schemas.json"
+  },
+  "requiredCapabilities": [
+    "initialize",
+    "account/read",
+    "model/list",
+    "account/rateLimits/read",
+    "configRequirements/read",
+    "permissionProfile/list",
+    "thread/start",
+    "thread/resume",
+    "thread/read",
+    "thread/turns/list",
+    "thread/items/list",
+    "turn/start",
+    "turn/steer",
+    "turn/interrupt",
+    "clientUserMessageId",
+    "named-permission-profile"
+  ],
+  "policy": {
+    "experimentalApi": true,
+    "allowLegacySandboxComposition": false,
+    "allowUnknownVersions": true,
+    "unknownVersionPolicy": "local-used-contract-check-against-0.155.0-alpha.16.3"
+  }
+}

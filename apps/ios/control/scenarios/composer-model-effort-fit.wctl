@@ -1,0 +1,44 @@
+# Model and effort remain readable. Narrow composers place choices above
+# the action row; wide composers keep one row. No selected value becomes a
+# provider/gauge-only chip, including at AX5. Nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id project-agent-picker --timeout 30
+wait --contains "Fixture model" --timeout 20
+wait --id new-chat-effort --timeout 10
+tap --id project-agent-picker
+wait --id new-chat-speed:default --timeout 10
+swipe up
+wait --id new-chat-speed:fast
+tap --id new-chat-speed:fast
+swipe down --from sheet-top
+wait --contains "Fixture model, Fast" --timeout 10
+wait --id new-chat-effort --timeout 10
+shot composer-model-effort-new-chat-l
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-composer-model --timeout 15
+wait --id project-composer-effort --timeout 10
+tap --id project-composer-model
+wait --id project-speed:default --timeout 10
+swipe up
+wait --id project-speed:fast
+tap --id project-speed:fast
+tap --label Done
+wait --contains "Fixture model, Fast" --timeout 10
+wait --contains "High"
+shot composer-model-effort-thread-l
+# Largest text: choices stay above the action row, with readable values.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id project-agent-picker --timeout 30
+wait --id new-chat-effort --timeout 10
+order --axis y --ids project-agent-picker,new-chat-access
+shot composer-model-effort-new-chat-ax5
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-composer-model --timeout 15
+wait --id project-composer-effort --timeout 10
+wait --contains "High"
+order --axis y --ids project-composer-model,project-composer-access
+shot composer-model-effort-thread-ax5

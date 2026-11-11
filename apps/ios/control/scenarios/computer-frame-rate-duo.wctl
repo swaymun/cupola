@@ -1,0 +1,41 @@
+# devices: duo
+# FPS4: the Duo twin of computer-frame-rate: the frame-rate row sits beside the
+# resolution choice in the computer menu with the unfolded Duo (flat, inner display)
+# and folded (cover display), offers no 120 on its 60 Hz display, and names Low Power Mode when it holds a pick.
+# Synthetic transport; nothing is sent to a computer.
+driver on
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture open-project-thread --fixture rail-fixture --fixture computer-reconnect --fixture computer-dock --fixture no-hardware-keyboard --arg=-wonder.sidebar.hidden --arg=YES --arg=-diagnostics-computer-display-hz --arg 60 --arg=-computer.frameRate --arg unset
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+assert --path computer.hasPicture --equals true --timeout 30
+driver off
+wait --id computer-session-more --timeout 15
+tap --id computer-session-more
+wait --label "Frame rate: Auto" --timeout 15
+shot computer-frame-rate-duo-unfolded --display primary-1
+tap --label "Frame rate: Auto"
+wait --label "60 fps" --timeout 10
+wait --label "120 fps" --gone
+shot computer-frame-rate-duo-unfolded-options --display primary-1
+tap --label "15 fps"
+driver on
+assert --path computer.frameRateChoice --equals '"15"' --timeout 10
+assert --path computer.frameRateOptions --equals '["Auto","15 fps","30 fps","60 fps"]' --timeout 10
+driver off
+driver on
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture open-project-thread --fixture rail-fixture --fixture computer-reconnect --fixture computer-dock --fixture no-hardware-keyboard --arg=-wonder.sidebar.hidden --arg=YES --arg=-diagnostics-computer-display-hz --arg 60 --arg=-diagnostics-computer-low-power --arg=-computer.frameRate --arg 60
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+assert --path computer.hasPicture --equals true --timeout 30
+driver off
+wait --id computer-session-more --timeout 15
+tap --id computer-session-more
+wait --label "Frame rate: 30 fps · Low Power" --timeout 15
+shot computer-frame-rate-duo-folded-low-power
+driver on
+assert --path computer.frameRateAsked --equals 30 --timeout 10
+driver off

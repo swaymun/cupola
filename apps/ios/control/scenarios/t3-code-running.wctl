@@ -1,0 +1,80 @@
+# A reply T3 Code runs in a Claude thread Cupola sends into. Once T3 Code is
+# connected in Settings, touching and holding Send offers Send now and Restart
+# reply in T3 Code. Send now goes into T3 Code's reply; Restart has T3 Code start over
+# with the message while the thread stays in T3 Code; a message T3 Code
+# queues behind its reply shows as Queued, and its Send now steers the reply
+# with it there; Stop asks T3 Code to
+# stop the reply. Stop sits in Send's place while nothing is typed and beside
+# Send while something is, and no
+# note says messages go through T3 Code. The fixture's reply text says which
+# request T3 Code got, as wonderd hands each one to it. Host response fixture
+# only; nothing reaches a real Mac.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-running --arg=-wonder.send.followUp --arg=queue
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id message-draft --timeout 15
+wait --contains "Working on the release notes in T3 Code." --timeout 10
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+tap --id settings-computer:diagnostic-host
+swipe up
+wait --id connection-connected-apps --timeout 10
+tap --id connection-connected-apps
+tap --id t3code-connect
+wait --id t3code-status --contains "Connected" --timeout 15
+# Back through the computer page and Settings to the thread.
+back
+back
+back
+wait --id stop-response --timeout 15
+wait --id open-elsewhere --gone --timeout 5
+wait --id send-message --gone --timeout 5
+tap --id message-draft --type TextArea
+type "Also check the dates"
+wait --label "Queue message" --timeout 15
+wait --id stop-response --timeout 5
+hold --id send-message
+wait --label "Send now" --timeout 5
+wait --id send-restart-t3-code --contains "Restart reply in T3 Code" --timeout 5
+wait --label "Take over" --never 1
+shot t3-running-menu
+tap --label "Send now"
+wait --contains "T3 Code took your message into this reply." --timeout 15
+wait --contains "Also check the dates" --timeout 5
+shot t3-running-steered
+tap --id message-draft --type TextArea
+type "Start over with the tests"
+wait --label "Queue message" --timeout 15
+hold --id send-message
+tap --id send-restart-t3-code
+wait --contains "T3 Code started over with your message." --timeout 15
+wait --contains "Start over with the tests" --timeout 5
+# T3 Code keeps the thread: messages still go through it, and with the
+# draft sent, Stop is back in Send's place.
+wait --id stop-response --timeout 10
+wait --id open-elsewhere --gone --timeout 5
+shot t3-running-restarted
+# Send queues behind T3 Code's reply there: the phone shows it as Queued too,
+# not sent, and its menu's Send now steers T3 Code's reply with it.
+tap --id message-draft --type TextArea
+type "Then update the changelog"
+wait --label "Queue message" --timeout 15
+tap --id send-message
+wait --contains "Queued message: Then update the changelog" --timeout 25
+shot t3-running-queued
+tap --label "Queued message actions"
+wait --label "Send now" --timeout 5
+shot t3-running-queued-menu
+tap --label "Send now"
+wait --contains "Queued message" --gone --timeout 15
+wait --contains "Then update the changelog" --timeout 5
+wait --contains "T3 Code took your message into this reply." --timeout 10
+shot t3-running-queue-steered
+tap --id stop-response
+wait --contains "T3 Code stopped this reply." --timeout 15
+wait --id stop-response --gone --timeout 15
+wait --id send-message --timeout 5
+shot t3-running-stopped

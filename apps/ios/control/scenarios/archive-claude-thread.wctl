@@ -1,0 +1,20 @@
+# A Claude Code thread archives in Cupola only (Claude Code keeps the session):
+# it leaves the sidebar, shows as "Archived in Cupola" and restores.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-read
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+hold --id pinned-thread:claude:read-fixture
+wait --id archive-project-thread --timeout 10
+tap --id archive-project-thread
+wait --id pinned-thread:claude:read-fixture --gone --timeout 10
+hold --id project-row:read-project
+tap --id project-archived-threads
+wait --id archived-thread:claude:read-fixture --timeout 10
+wait --label "Archived in Cupola"
+shot archive-claude-thread-list
+tap --id restore-thread:claude:read-fixture
+wait --id archived-threads-empty --timeout 10
+back
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 10

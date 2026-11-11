@@ -1,0 +1,13 @@
+# A message another thread wrote shows "From <thread title>" in its bubble, and
+# Wonder's report that delegated tasks finished is a compact system row, not a
+# bubble. (Wake deliveries stay out of the queue on the Mac; store tests own that.)
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-source-label --timeout 20
+wait --contains "From Release planner" --timeout 5
+wait --id agent-tasks-finished --timeout 5
+wait --contains "Agent tasks finished: Builder, Scout" --timeout 5
+shot agent-thread-messages

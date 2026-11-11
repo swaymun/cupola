@@ -1,0 +1,555 @@
+#!/usr/bin/env python3
+"""Check that every element a wonderctl scenario waits on or taps still exists in the app.
+
+  scripts/check-scenario-selectors           # fail on unknown selectors
+  scripts/check-scenario-selectors --list    # also print allowlisted ones
+
+A scenario step (`wait`, `tap`, `axe-tap`, `hold`, `reveal`, `assert`, `order --ids`,
+`swipe --in/--from`, `reveal --in`) names an element by `--id` (accessibility identifier), `--label`
+(the whole label) or `--contains` (part of a label or value). When the app renames
+or removes that element, the scenario only fails on a simulator. This check finds
+those steps statically: each selector must match a string literal in the shipped
+Swift sources (apps/ios and apps/native, tests excluded).
+
+Templates: an interpolated literal ("Chats on \\(name)") or a `+` chain of
+literals ("project-row:" + id) matches when each hole holds something plausible:
+a known literal, data (a number, path or address), words from the fixture files
+(Diagnostic*.swift, DemoMode.swift) or an enum case name. In an identifier a hole
+may hold any token, and an identifier may start with any namespace literal ending
+in ":" or "-" ("chat-thread:"), because ids carry fixture ids.
+
+A label the app composes from parts ("Code changes, Branch main, 4 uncommitted
+files") passes when every part between ", ", " · ", " → ", ": ", ". " or a
+newline matches. `--contains` passes when the text sits inside one literal or
+template, or matches the same way. Text the scenario typed is known too. Steps
+with `--gone` or `--never` assert absence and are checked the same way: an absence
+check on an element the app no longer has can never fail. Check a removed feature
+by text the app could show again (`wait --label "Live Activities" --gone`), or
+delete the step.
+
+Anything else (system UI, SF Symbol labels, text the host or a fixture file
+supplies) goes in scripts/scenario-selectors-allowlist.json with a reason. An
+allowlist entry that no longer matches any failing selector is reported, so the
+list stays exact.
+"""
+import argparse
+import functools
+import json
+import re
+import shlex
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+ALLOWLIST = ROOT / "scripts/scenario-selectors-allowlist.json"
+SCENARIO_DIRS = ["apps/ios/control"]
+SOURCE_DIRS = ["apps/ios", "apps/native"]
+# Files whose literals are fixture data (names, titles) that interpolations show.
+FIXTURE_FILE = re.compile(r"^(Diagnostic|DemoMode)")
+# Test targets restate strings; they do not prove the app shows them.
+TEST_PART = re.compile(r"Tests?$")
+CHECKED_VERBS = {"wait", "tap", "axe-tap", "hold", "reveal", "assert"}
+PARTS = re.compile(r", | · | → |: |\. |\n")
+# Fixed letters or digits a template needs, so "\(a), \(b)" cannot match any label
+# with a comma, and that a substring must share with one.
+MIN_FIXED = 2
+
+
+# ---------------------------------------------------------------- Swift literals
+
+def _skip_comment(src, i):
+    if src.startswith("//", i):
+        end = src.find("\n", i)
+        return len(src) if end < 0 else end
+    depth, i = 1, i + 2
+    while i < len(src) and depth:
+        if src.startswith("/*", i):
+            depth, i = depth + 1, i + 2
+        elif src.startswith("*/", i):
+            depth, i = depth - 1, i + 2
+        else:
+            i += 1
+    return i
+
+
+ESCAPES = {"n": "\n", "t": "\t", "r": "\r", "0": "\0", '"': '"', "'": "'", "\\": "\\"}
+
+
+def _string(src, i, out):
+    """Parse the literal starting at src[i]. Appends (start, end, pieces) to `out`,
+    pieces being str fragments and None for each interpolation; returns the end."""
+    start, hashes = i, 0
+    while src[i] == "#":
+        hashes, i = hashes + 1, i + 1
+    multi = src.startswith('"""', i)
+    quote = '"""' if multi else '"'
+    i += len(quote)
+    close, escape = quote + "#" * hashes, "\\" + "#" * hashes
+    pieces, text = [], []
+    while i < len(src):
+        if src.startswith(close, i):
+            i += len(close)
+            break
+        if src.startswith(escape, i):
+            j = i + len(escape)
+            nxt = src[j] if j < len(src) else ""
+            if nxt == "(":
+                if text:
+                    pieces.append("".join(text))
+                    text = []
+                pieces.append(None)
+                i = _code(src, j + 1, out, until=")")
+                continue
+            if nxt == "u" and src.startswith("{", j + 1):
+                end = src.index("}", j)
+                text.append(chr(int(src[j + 2:end], 16)))
+                i = end + 1
+                continue
+            if nxt == "\n":  # multiline line continuation
+                i = j + 1
+                continue
+            text.append(ESCAPES.get(nxt, nxt))
+            i = j + 1
+            continue
+        if not multi and src[i] == "\n":
+            break
+        text.append(src[i])
+        i += 1
+    if text:
+        pieces.append("".join(text))
+    if multi:
+        pieces = _dedent(pieces)
+    out.append((start, i, pieces))
+    return i
+
+
+def _dedent(pieces):
+    """Approximate Swift's multiline indentation stripping on the fixed text."""
+    fixed = [p for p in pieces if p is not None]
+    if not fixed:
+        return pieces
+    if fixed[0].startswith("\n"):
+        pieces[pieces.index(fixed[0])] = fixed[0][1:]
+    last = next(i for i in range(len(pieces) - 1, -1, -1) if pieces[i] is not None)
+    indent = re.search(r"\n([ \t]*)$", pieces[last])
+    if indent:
+        pieces[last] = pieces[last][:indent.start()]
+        width = indent.group(1)
+        pieces = [p if p is None else p.replace("\n" + width, "\n") for p in pieces]
+        if pieces[0] is not None and pieces[0].startswith(width):
+            pieces[0] = pieces[0][len(width):]
+    return pieces
+
+
+def _code(src, i, out, until=None):
+    depth = 0
+    while i < len(src):
+        c = src[i]
+        if src.startswith("//", i) or src.startswith("/*", i):
+            i = _skip_comment(src, i)
+        elif c == '"' or (c == "#" and re.match(r"#+\"", src[i:i + 8])):
+            i = _string(src, i, out)
+        elif until and c == "(":
+            depth, i = depth + 1, i + 1
+        elif until and c == ")":
+            if depth == 0:
+                return i + 1
+            depth, i = depth - 1, i + 1
+        else:
+            i += 1
+    return i
+
+
+# `"a:" + x + ":" + y` builds one string; the code between two literals of a chain.
+JOINED = re.compile(r"\s*\+\s*(?:[^\"\n{};,]*?\s*\+\s*)?")
+JOINS_BEFORE = re.compile(r"\+\s*$")
+JOINS_AFTER = re.compile(r"\s*\+(?!=)")
+
+
+def swift_literals(source):
+    """Every string literal in Swift source as a list of pieces: fixed text, or
+    None where an interpolation or a concatenated expression sits. Literals inside
+    interpolations count too, and a `+` chain of literals counts as one."""
+    found = []
+    _code(source, 0, found)
+    found.sort()
+    out, chain, previous_end = [], None, None
+    for start, end, pieces in found:
+        gap = source[previous_end:start] if previous_end is not None else None
+        if chain is not None and gap is not None and JOINED.fullmatch(gap):
+            if gap.count("+") > 1:
+                chain.append(None)
+            chain.extend(pieces)
+        else:
+            if chain is not None:
+                out.append(_close(chain, source, previous_end))
+            chain = ([None] if JOINS_BEFORE.search(source[max(0, start - 40):start]) else []) + list(pieces)
+        previous_end = end
+    if chain is not None:
+        out.append(_close(chain, source, previous_end))
+    return out
+
+
+def _close(chain, source, end):
+    if JOINS_AFTER.match(source, end):
+        chain.append(None)
+    merged = []
+    for piece in chain:
+        if piece is not None and merged and merged[-1] is not None:
+            merged[-1] += piece
+        elif piece is not None or not merged or merged[-1] is not None:
+            merged.append(piece)
+    return merged
+
+
+def source_files(root):
+    for top in SOURCE_DIRS:
+        for path in sorted((root / top).rglob("*.swift")):
+            parts = path.relative_to(root).parts
+            if any(TEST_PART.search(p) for p in parts[:-1]) or ".build" in parts:
+                continue
+            yield path
+
+
+# ---------------------------------------------------------------- the corpus
+
+class Corpus:
+    """The app's text: whole literals, and templates (interpolated or concatenated
+    literals) whose holes must hold something plausible (see `hole`)."""
+
+    def __init__(self, literals, names=(), fixtures=()):
+        self.exact, self.fragments, templates = set(), [], []
+        for pieces in literals:
+            fixed = [p for p in pieces if p is not None]
+            self.fragments.extend(fixed)
+            if len(fixed) == len(pieces):
+                self.exact.add("".join(fixed))
+            elif _alnum(fixed) >= MIN_FIXED:
+                templates.append(pieces)
+            # Fixtures embed JSON (generative UI specs, history); its strings are app text too.
+            for f in fixed:
+                if '"' in f:
+                    self.exact.update(m.replace('\\"', '"') for m in EMBEDDED.findall(f))
+        self.blob = "\x00".join(self.fragments)
+        # Words a hole may hold: fixture text (names, titles) and enum case names (raw values).
+        # Not every word of the app, or "Copied from \\(name)" would accept any old label.
+        self.words = {w.lower() for pieces in fixtures for p in pieces if p for w in WORD.findall(p)}
+        self.words |= {n.lower() for n in names}
+        # An identifier namespace kept in a variable: `let prefix = "chat-thread:"`.
+        self.prefixes = tuple(sorted(t for t in self.exact if len(t) >= 4 and t[-1] in ":-" and " " not in t))
+        self.templates = [(t, re.compile("".join("(.*?)" if p is None else re.escape(p) for p in t), re.S),
+                           max((p for p in t if p is not None), key=len)) for t in templates]
+        self.cache = {}
+
+    # -- whole strings
+
+    def whole(self, text, loose=False):
+        key = (text, loose)
+        if key not in self.cache:
+            self.cache[key] = text in self.exact or self.composed(text, loose) or self.phrase(text)
+        return self.cache[key]
+
+    def ident(self, text):
+        return self.whole(text, loose=True) or text.startswith(self.prefixes)
+
+    def hole(self, text, loose=False):
+        """What an interpolation may hold: a known literal, data (a number, path or
+        address), words the sources use (fixture names, enum raw values) or, in an
+        identifier, any token."""
+        if text in self.exact or DATA.fullmatch(text) or not LETTER.search(text):
+            return True
+        if loose and ID_TOKEN.fullmatch(text):
+            return True
+        words = WORD.findall(text)
+        return bool(words) and all(w.lower() in self.words for w in words)
+
+    def composed(self, text, loose=False):
+        for pieces, pattern, anchor in self.templates:
+            if anchor in text:
+                found = pattern.fullmatch(text)
+                if found and all(self.hole(h, loose) for h in found.groups()):
+                    return True
+        return False
+
+    def phrase(self, text):
+        # Words joined in code: a verb and the file it acts on ("Read" + " " + name),
+        # or a count and its noun (count + " " + "staged").
+        first, _, rest = text.partition(" ")
+        return ((first in self.exact and bool(FILE_LIKE.fullmatch(rest)))
+                or (first.isdigit() and rest in self.exact))
+
+    # -- selectors
+
+    def part(self, text, typed):
+        return (not text or self.whole(text) or not LETTER.search(text) or bool(DATA.fullmatch(text))
+                or any(text in t for t in typed))
+
+    def label(self, text, typed=()):
+        if self.whole(text) or f"[{text}]" in self.blob:  # Markdown link or image text
+            return True
+        parts = [p.strip() for p in PARTS.split(text)]
+        return len(parts) > 1 and all(self.part(p, typed) for p in parts)
+
+    def contains(self, text, typed=()):
+        if text in self.blob or self.part(text, typed) or self.label(text, typed) or self.inside(text):
+            return True
+        parts = [p.strip() for p in PARTS.split(text)]
+        if len(parts) < 2:
+            return False
+        # The first part may start mid-literal and the last may stop mid-literal.
+        first, *middle, last = parts
+        return ((self.part(first, typed) or self.inside(first) or any(f.endswith(first) for f in self.fragments))
+                and all(self.part(p, typed) for p in middle)
+                and (self.part(last, typed) or last in self.blob or self.inside(last)))
+
+    def inside(self, text):
+        """Text one instance of a template could contain: it may start and stop
+        mid-literal; its holes must be plausible and its fixed text real."""
+        for pieces, _, _ in self.templates:
+            fixed = [p for p in pieces if p is not None]
+            if not any(len(f) >= 3 and (f in text or text[:3] in f or text[-3:] in f) for f in fixed):
+                continue
+            for holes, covered in _template_matches(pieces, text):
+                if _alnum([covered]) >= MIN_FIXED and all(self.hole(h) for h in holes):
+                    return True
+        return False
+
+
+WORD = re.compile(r"[^\W\d_]+")
+LETTER = re.compile(r"[^\W\d_]")
+EMBEDDED = re.compile(r'"((?:[^"\\\n]|\\.){1,200})"')
+FILE_LIKE = re.compile(r"[\w-]+\.[A-Za-z0-9]{1,5}|[\w.-]*/[\w./-]+")
+# Data rather than words: contains a digit or path/address punctuation.
+DATA = re.compile(r"(?=\S*[\d./@_#])[\w./@%+~#:•-]{1,80}")
+ID_TOKEN = re.compile(r"[^\s]{1,120}")
+ENUM_CASE = re.compile(r"^\s*(?:@\w+\s+)*(?:indirect\s+)?case\s+([A-Za-z_]\w*(?:\([^)]*\))?(?:\s*,\s*[A-Za-z_]\w*(?:\([^)]*\))?)*)", re.M)
+
+
+def enum_cases(source):
+    for match in ENUM_CASE.finditer(source):
+        for name in re.split(r"\s*,\s*", re.sub(r"\([^)]*\)", "", match.group(1))):
+            yield name
+
+
+def _alnum(texts):
+    return sum(len(re.sub(r"\W", "", t)) for t in texts)
+
+
+def _template_matches(pieces, text):
+    """Yield (interpolated parts, fixed text) for each way `text` sits inside an
+    instance of `pieces`, starting in one fixed piece and ending in a later one."""
+    slots = []  # alternate fixed text and holes, fixed first and last
+    for p in pieces:
+        if p is None:
+            if not slots or slots[-1] is None:
+                slots.append("")
+            slots.append(None)
+        elif slots and slots[-1] is not None:
+            slots[-1] += p
+        else:
+            slots.append(p)
+    if slots[-1] is None:
+        slots.append("")
+    fixed = slots[0::2]
+    for a in range(len(fixed)):
+        for b in range(a + 1, len(fixed)):
+            inner = fixed[a + 1:b]
+            if any(f not in text for f in inner):
+                continue
+            found = _middle(tuple(inner)).fullmatch(text)
+            if not found:
+                continue
+            head, *holes, tail = found.groups()
+            middle = "".join(inner)
+            if not inner:  # one hole: head and tail are the same span
+                for k in _suffix_splits(fixed[a], text):
+                    for j in _prefix_splits(fixed[b], text[k:]):
+                        yield [text[k:len(text) - j]], text[:k] + text[len(text) - j:]
+                continue
+            for k in _suffix_splits(fixed[a], head):
+                for j in _prefix_splits(fixed[b], tail):
+                    yield [head[k:], *holes, tail[:len(tail) - j]], head[:k] + middle + tail[len(tail) - j:]
+
+
+@functools.lru_cache(maxsize=None)
+def _middle(inner):
+    return re.compile("(.*?)" + "".join(re.escape(f) + "(.*?)" for f in inner) + ("" if inner else "()"), re.S)
+
+
+def _suffix_splits(fixed, text):
+    """Lengths k where text[:k] is a suffix of `fixed` (the text starts inside it)."""
+    return [k for k in range(min(len(fixed), len(text)), -1, -1) if fixed.endswith(text[:k])]
+
+
+def _prefix_splits(fixed, text):
+    """Lengths j where text's last j characters are a prefix of `fixed`."""
+    return [j for j in range(min(len(fixed), len(text)), -1, -1) if fixed.startswith(text[len(text) - j:])]
+
+
+def load_corpus(root):
+    literals, names, fixtures = [], [], []
+    for path in source_files(root):
+        source = path.read_text(errors="replace")
+        found = swift_literals(source)
+        literals.extend(found)
+        names.extend(enum_cases(source))
+        if FIXTURE_FILE.search(path.name):
+            fixtures.extend(found)
+    return Corpus(literals, names, fixtures)
+
+
+# ---------------------------------------------------------------- scenarios
+
+def scenario_files(root):
+    for top in SCENARIO_DIRS:
+        yield from sorted((root / top).rglob("*.wctl"))
+
+
+def _flags(words):
+    flags, i = {}, 1
+    while i < len(words):
+        w = words[i]
+        if w.startswith("--"):
+            if i + 1 < len(words) and not words[i + 1].startswith("--"):
+                flags.setdefault(w, []).append(words[i + 1])
+                i += 2
+                continue
+            flags.setdefault(w, []).append(True)
+        i += 1
+    return flags
+
+
+def selectors(text):
+    """(line number, step, kind, value, typed, absent) for each selector a scenario
+    relies on. `kind` is id, label or contains; `typed` is the text the scenario entered
+    so far; `absent` marks a `--gone`/`--never` step."""
+    typed = []
+    for number, line in enumerate(text.splitlines(), 1):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        try:
+            words = shlex.split(line)
+        except ValueError:
+            continue
+        verb, flags = words[0], _flags(words)
+        if verb == "type" and len(words) > 1:
+            typed.append(words[1])
+            continue
+        if verb in CHECKED_VERBS:
+            absent = "--gone" in flags or "--never" in flags
+            for kind in ("id", "label", "contains"):
+                for value in flags.get(f"--{kind}", []):
+                    if isinstance(value, str):
+                        yield number, line, kind, value, tuple(typed), absent
+        elif verb == "order":
+            for value in flags.get("--ids", []):
+                for ident in filter(None, str(value).split(",")):
+                    yield number, line, "id", ident, (), False
+        if verb in {"swipe", "reveal"}:
+            for value in flags.get("--in", []) + flags.get("--from", []):
+                if isinstance(value, str):
+                    yield number, line, "id", value, (), False
+
+
+def known(corpus, kind, value, typed):
+    if any(value in t for t in typed):
+        return True
+    if kind == "id":
+        return corpus.ident(value)
+    if kind == "label":
+        return corpus.label(value, typed)
+    return corpus.contains(value, typed)
+
+
+# ---------------------------------------------------------------- allowlist
+
+def load_allowlist(path):
+    entries = json.loads(path.read_text()) if path.exists() else []
+    for entry in entries:
+        missing = {"kind", "value", "reason"} - entry.keys()
+        if missing:
+            raise SystemExit(f"{path.name}: entry {entry} needs {', '.join(sorted(missing))}")
+        if entry["kind"] not in {"id", "label", "contains"}:
+            raise SystemExit(f"{path.name}: kind must be id, label or contains: {entry}")
+        if entry.get("pattern"):
+            try:
+                re.compile(entry["value"])
+            except re.error as error:
+                raise SystemExit(f"{path.name}: pattern {entry['value']!r} is not a regular expression: {error}")
+    return entries
+
+
+def allowed(entry, kind, value, scenario):
+    if entry["kind"] != kind:
+        return False
+    if entry.get("scenario") and entry["scenario"] != scenario:
+        return False
+    if entry.get("pattern"):
+        return re.fullmatch(entry["value"], value) is not None
+    return entry["value"] == value
+
+
+def check(root, allowlist_path=ALLOWLIST):
+    """Returns (violations, allowlisted, unused allowlist entries)."""
+    corpus = load_corpus(root)
+    entries = load_allowlist(allowlist_path)
+    used = set()
+    violations, allowlisted = [], []
+    cache = {}
+    for path in scenario_files(root):
+        rel = path.relative_to(root).as_posix()
+        for number, line, kind, value, typed, absent in selectors(path.read_text()):
+            key = (kind, value)
+            ok = known(corpus, kind, value, typed) if typed else cache.setdefault(
+                key, known(corpus, kind, value, ()))
+            hit = next((i for i, e in enumerate(entries) if allowed(e, kind, value, path.name)), None)
+            # OS IDs can coincide with unrelated app literals (e.g. "delete").
+            # Keep the exact provenance record required by preflight while used.
+            system_id = hit is not None and kind == "id" and entries[hit].get("origin") == "system" \
+                and entries[hit].get("scenario") == path.name and not entries[hit].get("pattern")
+            if ok and not system_id:
+                continue
+            finding = {"scenario": rel, "line": number, "kind": kind, "value": value, "step": line, "absent": absent}
+            if hit is None:
+                violations.append(finding)
+            else:
+                used.add(hit)
+                allowlisted.append({**finding, "reason": entries[hit]["reason"]})
+    unused = [e for i, e in enumerate(entries) if i not in used]
+    return violations, allowlisted, unused
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--list", action="store_true", help="also print allowlisted selectors")
+    parser.add_argument("--json", action="store_true", help="print findings as JSON")
+    parser.add_argument("--root", type=Path, default=ROOT, help=argparse.SUPPRESS)
+    parser.add_argument("--allowlist", type=Path, default=None, help=argparse.SUPPRESS)
+    args = parser.parse_args(argv)
+    allowlist = args.allowlist or args.root / "scripts/scenario-selectors-allowlist.json"
+    violations, allowlisted, unused = check(args.root, allowlist)
+    if args.json:
+        print(json.dumps({"violations": violations, "allowlisted": allowlisted, "unused": unused}, indent=2))
+    else:
+        for v in violations:
+            what = "absence check can never fail: " if v["absent"] else ""
+            print(f"{v['scenario']}:{v['line']}: {what}no {v['kind']} {v['value']!r} in apps/ios or apps/native Swift")
+        if args.list:
+            for v in allowlisted:
+                print(f"{v['scenario']}:{v['line']}: allowlisted {v['kind']} {v['value']!r}: {v['reason']}")
+        for e in unused:
+            print(f"{allowlist.name}: entry no longer needed, remove it: {json.dumps(e, ensure_ascii=False)}")
+    if violations or unused:
+        if violations and not args.json:
+            print(f"\n{len(violations)} scenario selector(s) name an element the app no longer has. "
+                  "Update the scenario to the app's current id or label (for an absence check, text the app "
+                  "could show again, or delete the step), or, when the text really comes "
+                  f"from outside the Swift sources, add it to {allowlist.relative_to(args.root) if allowlist.is_relative_to(args.root) else allowlist} with a reason.",
+                  file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

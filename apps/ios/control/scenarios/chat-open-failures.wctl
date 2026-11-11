@@ -1,0 +1,64 @@
+# nightly-ipad: Sidebar stays beside the chat in regular width; recovery and archived history must appear in the chat column.
+# Four owned HTTP failure states, no paired host and no model sends. Every tap
+# uses AXe, including the second busy tap; the driver only counts attach requests.
+# A row read before the computer archived its chat opens its history read-only.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture chat-open-archived --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id archived-chat-restore --timeout 15
+wait --contains "Reply 13. Continuing the project" --timeout 20
+wait --id message-draft --gone
+shot chat-open-archived-read-only
+tap --id archived-chat-restore
+wait --id message-draft --timeout 15
+wait --id archived-chat-restore --gone
+wait --contains "Reply 13. Continuing the project"
+shot chat-open-archived-restored
+# The detail exists, but its history endpoint answers 404.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture chat-open-missing --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "This chat is no longer on your computer" --timeout 15
+wait --id chat-unavailable-back
+wait --id message-draft --gone
+shot chat-open-history-missing
+tap --id chat-unavailable-back
+wait --id sidebar-settings --timeout 10
+wait --id chat-unavailable-back --gone
+wait --id pinned-thread:codex:read-fixture
+shot chat-open-history-back
+# First attach times out; tapping the row again opens the chat.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture chat-open-timeout --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --contains "timed out" --timeout 15
+shot chat-open-attach-timeout
+tap --label OK
+tap --id pinned-thread:codex:read-fixture
+wait --contains "Reply 13. Continuing the project" --timeout 20
+wait --id message-draft
+shot chat-open-attach-retried
+# Hold the first response so a real second tap cannot outrun the busy state.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture chat-open-held --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+tap --id pinned-thread:codex:read-fixture
+wait --id chat-open-busy:pinned-thread:codex:read-fixture --contains "Still opening" --timeout 10
+shot chat-open-second-tap-busy
+driver on
+assert --path "fixtureRequests.POST /api/v1/projects/read-project/threads/attach" --equals 1
+driver off
+signal chat-open
+wait --contains "Reply 13. Continuing the project" --timeout 20
+wait --id message-draft
+shot chat-open-busy-finished

@@ -1,0 +1,18 @@
+# devices: duo
+# MD-FIRSTFRAME (Duo folded): a 690-turn fixture chat opens with its Markdown already
+# formatted on the first frame (no raw "- " list markers or "**" in what a screen
+# reader gets, no reflow), then a 10 KB Markdown reply streams in. Diagnostics
+# builds log one `markdown-prepare` line per parse (subsystem com.swaymun.wonder,
+# category markdown).
+hinge 0
+orient portrait
+launch --fixture open-project-thread --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture large-history --fixture send-states --fixture send-running --fixture stream-reply --fixture stream-long-markdown
+wait --id conversation-title-menu --timeout 15
+shot md-firstframe-opened
+wait --id conversation-loading --gone --timeout 30
+wait --contains "## " --never 1
+wait --contains "- The action" --never 1
+wait --contains "Step 1" --timeout 60
+wait --contains "TokenRefresher" --timeout 90
+wait --contains "**" --never 1
+shot md-firstframe-streamed

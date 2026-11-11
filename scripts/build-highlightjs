@@ -1,0 +1,15 @@
+#!/bin/sh
+# Rebuilds the highlight.js subset Wonder vendors for code blocks, from the
+# pinned versions in tools/highlightjs/package-lock.json. Rerun after changing
+# the language list in tools/highlightjs/entry.js or the span adapter.
+set -eu
+root=$(cd "$(dirname "$0")/.." && pwd)
+src="$root/tools/highlightjs"
+out="$root/apps/native/Sources/WonderPairing/Resources/Highlight"
+cd "$src"
+npm ci --silent --no-audit --no-fund
+mkdir -p "$out"
+npx esbuild entry.js --bundle --minify --format=iife --legal-comments=none --outfile="$out/highlight.min.js"
+cp wonder-spans.js "$out/wonder-spans.js"
+cp node_modules/highlight.js/LICENSE "$out/LICENSE"
+echo "highlight.js $(node -p "require('highlight.js/package.json').version"): $(wc -c < "$out/highlight.min.js") bytes"

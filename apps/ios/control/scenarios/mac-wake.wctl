@@ -1,0 +1,11 @@
+# A native notice updates an existing message: same turn, status and item
+# count before and after. The synthetic Mac write lands 1.5 s after initial
+# history; the next fallback poll is at 5 s, so the 3 s check proves the wake.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture mac-wake --fixture open-project-thread
+wait --id message-draft --timeout 15
+wait --contains "Written on your Mac." --timeout 3
+shot codex-mac-wake
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture mac-wake --fixture open-project-thread
+wait --id message-draft --timeout 15
+wait --contains "Written on your Mac." --timeout 3
+shot claude-mac-wake

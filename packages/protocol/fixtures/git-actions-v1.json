@@ -1,0 +1,38 @@
+{
+  "outcomes": [
+    {
+      "version": 1,
+      "action": "createPullRequest",
+      "ok": true,
+      "reason": null,
+      "message": "Opened draft pull request #41 into main.",
+      "commit": null,
+      "pullRequest": { "number": 41, "url": "https://github.com/example/wonder/pull/41" }
+    },
+    {
+      "version": 1,
+      "action": "push",
+      "ok": false,
+      "reason": "confirmDefaultBranch",
+      "message": "This pushes straight to main, the default branch, without a pull request.",
+      "commit": null,
+      "pullRequest": null
+    }
+  ],
+  "mergeState": {
+    "version": 1,
+    "number": 12,
+    "url": "https://github.com/example/wonder/pull/12",
+    "state": "open",
+    "headRef": "agent/thread-repos",
+    "baseRef": "main",
+    "headOid": "0123456789abcdef0123456789abcdef01234567",
+    "checks": "failing",
+    "conflicting": true,
+    "autoMerge": false,
+    "methods": ["squash", "rebase", "octopus"],
+    "defaultMethod": "squash",
+    "blockedReason": "conflicts",
+    "blocked": "This conflicts with main. Resolve the conflicts first."
+  }
+}

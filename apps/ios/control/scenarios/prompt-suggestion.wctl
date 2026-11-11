@@ -1,0 +1,36 @@
+# Held native SDK suggestion. Synthetic text, no send and no model work. The
+# suggestion is drawn over the empty editor, so its words are read from the
+# draft itself: empty before the tap, exactly the suggestion after, unsent, and
+# still there after a relaunch. The durable store (emptied by the first launch)
+# keeps the draft across launches, which a fixture launch otherwise starts fresh.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-read --fixture prompt-suggestion --fixture durable-store --fixture durable-store-reset
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+tap --id pinned-thread:claude:read-fixture
+wait --id composer-prompt-suggestion --contains "Check the keyboard layout" --timeout 20
+driver on
+assert --path composer.text --equals '""' --timeout 5
+driver off
+shot prompt-suggestion-empty
+tap --id composer-prompt-suggestion
+wait --id message-draft --contains "Check the keyboard layout" --timeout 5
+wait --id composer-prompt-suggestion --gone --timeout 5
+driver on
+assert --path composer.text --equals '"Check the keyboard layout"' --timeout 5
+assert --path "userMessageCounts.Check the keyboard layout" --equals 0 --timeout 5
+driver off
+shot prompt-suggestion-draft
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-read --fixture prompt-suggestion --fixture durable-store
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+tap --id pinned-thread:claude:read-fixture
+wait --id message-draft --contains "Check the keyboard layout" --timeout 20
+driver on
+assert --path composer.text --equals '"Check the keyboard layout"' --timeout 5
+assert --path fixtureSends.messages --equals 0
+driver off
+shot prompt-suggestion-relaunched

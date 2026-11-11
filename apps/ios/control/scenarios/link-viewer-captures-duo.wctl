@@ -1,0 +1,47 @@
+# devices: duo
+# visual-review: the in-Cupola link viewer on the folded cover and the unfolded Duo
+# (portrait and landscape), light and dark. Native input on the inner display is
+# gated (#387), so the link is followed through the fixture's semantic link control
+# and ✕ through the driver; link-opening-duo.wctl covers the native cover taps.
+# Owned dev-server fixture; the page loads from the network.
+driver on
+hinge 0
+orient portrait
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture dev-server-preview --fixture theme --arg cupola-light --arg=-wonder.links.open --arg=inApp
+wait --label "https://example.com" --timeout 20
+tap --label "https://example.com"
+assert --path browser.kind --equals '"link"' --timeout 15
+assert --path browser.title --equals '"Example Domain"' --timeout 20
+shot link-viewer-folded-light
+tap --id link-viewer-close
+assert --path browser --equals null --timeout 10
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture dev-server-preview --fixture theme --arg cupola-dark --arg=-wonder.links.open --arg=inApp
+wait --label "https://example.com" --timeout 20
+tap --label "https://example.com"
+assert --path browser.kind --equals '"link"' --timeout 15
+assert --path browser.title --equals '"Example Domain"' --timeout 20
+shot link-viewer-folded-dark
+tap --id link-viewer-close
+assert --path browser --equals null --timeout 10
+hinge 180
+orient portrait
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture dev-server-preview --fixture theme --arg cupola-light --arg=-wonder.links.open --arg=inApp
+wait --label "https://example.com" --timeout 20
+tap --label "https://example.com"
+assert --path browser.kind --equals '"link"' --timeout 15
+assert --path browser.title --equals '"Example Domain"' --timeout 20
+shot link-viewer-unfolded-portrait-light --display primary-1
+tap --id link-viewer-close
+assert --path browser --equals null --timeout 10
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture dev-server-preview --fixture theme --arg cupola-dark --arg=-wonder.links.open --arg=inApp
+wait --label "https://example.com" --timeout 20
+tap --label "https://example.com"
+assert --path browser.kind --equals '"link"' --timeout 15
+assert --path browser.title --equals '"Example Domain"' --timeout 20
+shot link-viewer-unfolded-portrait-dark --display primary-1
+orient landscape-right
+shot link-viewer-unfolded-landscape-dark --display primary-1
+tap --id link-viewer-close
+assert --path browser --equals null --timeout 10
+orient portrait
+hinge 0

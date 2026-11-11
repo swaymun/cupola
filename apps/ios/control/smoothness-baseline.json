@@ -1,0 +1,18 @@
+{
+  "about": "Simulator smoothness baseline for scripts/nightly-sim (Wonder Control iPhone, iOS 26 simulator, Diagnostics). A metric more than `tolerance` above its baseline fails the night. Update a value only with the measurement that justifies it.",
+  "tolerance": 0.2,
+  "tests": {
+    "testLiveActivityAndScrolling": {
+      "measured": "2026-10-15, main 1ad375f1, 10 iterations",
+      "metrics": {
+        "Duration (Scroll_DraggingAndDeceleration), s": 1.052,
+        "CPU Time, s": 0.346,
+        "Memory Peak Physical, kB": 65673
+      }
+    },
+    "testStreamingReplyAndScrolling": {
+      "measured": "no baseline yet: the first nightly measurement is reported, not judged",
+      "metrics": {}
+    }
+  }
+}

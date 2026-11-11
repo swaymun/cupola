@@ -1,0 +1,17 @@
+# Select the complete held snapshot; completion of the turn does not check off tasks.
+launch --fixture read-preview --fixture send-preview --fixture task-checklist-preview
+wait --label "Tasks, 1 of 3 tasks completed"
+wait --label "Completed: Check the parser"
+wait --label "In progress: Run the focused tests"
+wait --label "Pending: Review the output"
+wait --contains "Implement plan" --gone
+shot task-checklist-current
+tap --id task-updates-checklist-turn/tasks
+wait --label "Update 1"
+wait --label "Pending: Check the parser"
+shot task-checklist-updates
+tap --id task-updates-checklist-turn/tasks
+wait --label "Update 1" --gone
+tap --id tasks-checklist-turn/tasks
+wait --label "Completed: Check the parser" --gone
+shot task-checklist-collapsed

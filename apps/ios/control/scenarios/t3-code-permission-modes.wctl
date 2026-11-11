@@ -1,0 +1,38 @@
+# nightly-ipad: T3 modes and unreadable-mode recovery remain plain and readable in the details pane.
+# devices: iphone ipad duo
+# Each launch owns its mode; Cupola’s native workspace setting stays different.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-running --fixture t3-code-permission --fixture open-project-thread --arg=-diagnostics-companion-details --arg=-diagnostics-t3-permission-mode --arg=approval-required
+driver off
+wait --id thread-permission-mode --contains "Supervised · T3 Code" --timeout 20
+wait --id thread-permission-description --contains "Reads allowed files without asking." --timeout 10
+wait --id thread-approval-location --contains "T3 Code on Synthetic fixture" --timeout 10
+shot t3-permission-mode-approval-required
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-running --fixture t3-code-permission --fixture open-project-thread --arg=-diagnostics-companion-details --arg=-diagnostics-t3-permission-mode --arg=auto
+driver off
+wait --id thread-permission-mode --contains "Auto · T3 Code" --timeout 20
+wait --id thread-permission-description --contains "T3 Code checks actions automatically" --timeout 10
+wait --id thread-approval-location --contains "T3 Code on Synthetic fixture" --timeout 10
+shot t3-permission-mode-auto
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-running --fixture t3-code-permission --fixture open-project-thread --arg=-diagnostics-companion-details --arg=-diagnostics-t3-permission-mode --arg=full-access
+driver off
+wait --id thread-permission-mode --contains "Full access · T3 Code" --timeout 20
+wait --id thread-permission-description --contains "Runs commands and changes files without routine approval." --timeout 10
+wait --id thread-approval-location --contains "T3 Code on Synthetic fixture" --timeout 10
+shot t3-permission-mode-full-access
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-running --fixture t3-code-permission --fixture open-project-thread --arg=-diagnostics-companion-details --arg=-diagnostics-t3-permission-mode --arg=future-mode
+driver off
+wait --id thread-permission-mode --contains "Mode unavailable · T3 Code" --timeout 20
+wait --id thread-permission-description --contains "Cupola couldn’t read this chat’s permission mode." --timeout 10
+wait --id thread-approval-location --contains "T3 Code on Synthetic fixture" --timeout 10
+shot t3-permission-mode-future-mode
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-running --fixture t3-code-permission --fixture open-project-thread --arg=-diagnostics-companion-details --arg=-diagnostics-t3-permission-mode --arg=unreadable
+driver off
+wait --id thread-permission-mode --contains "Mode unavailable · T3 Code" --timeout 20
+wait --id thread-permission-description --contains "Check this chat’s permission mode in T3 Code on Synthetic fixture." --timeout 10
+wait --id thread-approval-location --contains "T3 Code on Synthetic fixture" --timeout 10
+shot t3-permission-mode-unreadable

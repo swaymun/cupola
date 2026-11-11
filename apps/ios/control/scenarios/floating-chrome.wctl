@@ -1,0 +1,29 @@
+# devices: iphone ipad
+# FLOATING-CHROME: the chat title is a floating pill (no header band: messages scroll beneath it), the
+# scroll-to-end control is a centred floating icon with no fill or shadow, the title menu has no "Show full
+# title" row, and a background-command row stays on one line however long its command. Offline fixtures; no sends.
+# Check the shots: pill over the page color, arrow centred under the timeline, the long
+# `Command "cd /Users/..." finished` row on one line.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture task-wakes --fixture task-wakes-long --fixture open-project-thread --fixture long-thread-title --fixture theme --arg cupola-dark
+wait --id conversation-title-menu --timeout 30
+wait --id task-notification:wake-1/wake-1 --timeout 15
+tree --json
+shot floating-chrome-command-row
+tap --id conversation-title-menu
+wait --label "Chat details" --timeout 10
+# The first row is the whole wrapped title (tap copies it); there is no separate "Show full title" row.
+wait --contains "read the plan" --timeout 10
+shot floating-chrome-title-menu
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture open-project-thread --fixture long-thread-title --fixture theme --arg cupola-dark --arg=-diagnostics-scroll-top
+wait --id conversation-title-menu --timeout 30
+wait --id scroll-to-bottom --timeout 30
+tree --json
+shot floating-chrome-top
+# CHAT-CHROME-3: the timeline runs under the arrow (no layout strip), and a tap on the arrow only scrolls:
+# Agent tasks and the Terminal stay closed.
+shot floating-chrome-arrow-before
+tap --id scroll-to-bottom
+wait --id scroll-to-bottom --gone --timeout 10
+wait --id terminal-sheet --gone --timeout 3
+wait --label "Agent tasks" --gone --timeout 3
+shot floating-chrome-arrow-after

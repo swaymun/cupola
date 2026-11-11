@@ -1,0 +1,28 @@
+# devices: duo
+# SCROLL-BUTTON-TAP on the Duo: measure the scroll-to-end arrow against the Terminal button and the rail (frames in the
+# tree; Duo touch is not qualified, #387, so no taps): folded, unfolded wide and tall. Offline fixtures; nothing is sent.
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture several-computers --fixture open-project-thread --fixture long-thread-title --fixture theme --arg cupola-dark --arg=-diagnostics-scroll-top --arg=-diagnostics-terminal-available --arg=-composerPills --arg=computer,files,terminal
+driver off
+wait --id conversation-title-menu --timeout 30
+wait --id scroll-to-bottom --timeout 30
+tree --json
+shot arrow-tap-neighbours-duo-folded
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture several-computers --fixture open-project-thread --fixture long-thread-title --fixture theme --arg cupola-dark --arg=-diagnostics-scroll-top --arg=-diagnostics-terminal-available --arg=-composerPills --arg=computer,files,terminal
+wait --id conversation-title-menu --timeout 30
+wait --id scroll-to-bottom --timeout 30
+tree --json
+shot arrow-tap-neighbours-duo-unfolded-wide --display primary-1
+orient landscape-right
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture several-computers --fixture open-project-thread --fixture long-thread-title --fixture theme --arg cupola-dark --arg=-diagnostics-scroll-top --arg=-diagnostics-terminal-available --arg=-composerPills --arg=computer,files,terminal
+wait --id conversation-title-menu --timeout 30
+wait --id scroll-to-bottom --timeout 30
+tree --json
+shot arrow-tap-neighbours-duo-unfolded-tall --display primary-1
+# Leave the shared Duo folded for the input canary.
+hinge 0
+orient portrait

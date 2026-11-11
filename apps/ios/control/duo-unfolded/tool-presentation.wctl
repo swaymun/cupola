@@ -1,0 +1,32 @@
+# devices: duo
+# Real AppShell launch fixture: no taps, model work or live computer connection. Capture
+# the final inner display with simctl screenshot --display=primary-1, since shot
+# deliberately captures the cover. The selected Terminal must migrate both ways.
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-files-send --fixture open-project-thread --fixture companion-terminal --arg=-composerPills --arg=terminal,computer,files,git --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL --arg=-wonder.sidebar.hidden --arg=NO --arg=-wonder.companionPane.flipped --arg=NO --arg=-diagnostics-theme --arg=cupola-light --arg=-AppleInterfaceStyle --arg=Light --arg=-wonder.companionPane.fraction.portrait --arg=0.5 --arg=-wonder.companionPane.fraction.landscape --arg=0.5
+assert --path sheets --equals '["terminal"]' --timeout 20
+assert --path pane --equals null --timeout 10
+shot tool-presentation-duo-folded
+hinge 180
+orient landscape-right
+assert --path pane.tool --equals '"terminal"' --timeout 20
+assert --path sheets --equals '[]' --timeout 10
+assert --path presented --equals '[]' --timeout 10
+hinge 0
+orient portrait
+assert --path pane --equals null --timeout 20
+assert --path sheets --equals '["terminal"]' --timeout 10
+shot tool-presentation-duo-refolded
+hinge 180
+orient landscape-right
+assert --path pane.tool --equals '"terminal"' --timeout 20
+assert --path sheets --equals '[]' --timeout 10
+assert --path presented --equals '[]' --timeout 10
+driver off
+wait --id conversation-terminal-pill --contains "Open" --timeout 10
+wait --id computer-status-pill --contains "Closed" --timeout 10
+tree --json
+driver on
+state

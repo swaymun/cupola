@@ -1,0 +1,41 @@
+# devices: iphone ipad
+# visual-review: a web link in a message opens the in-Cupola link viewer (✕, page
+# title, one menu), light and dark; ✕ returns to the same chat.
+# Owned fixture: the scroll fixture's newest reply ends with a link to https://example.com. The page
+# itself loads from the network, so the shots judge the viewer's chrome, not the page.
+driver on
+launch --fixture read-preview --fixture scroll-performance-preview --fixture theme --arg cupola-light --arg=-wonder.links.open --arg=inApp
+driver off
+wait --contains "Message 300" --timeout 20
+tap --label "link" --nth -1
+driver on
+assert --path browser.kind --equals '"link"' --timeout 15
+assert --path browser.title --equals '"Example Domain"' --timeout 20
+driver off
+wait --id link-viewer-close --timeout 10
+shot link-viewer-light
+tap --id link-viewer-menu
+shot link-viewer-menu-light
+tap --label "Reload"
+tap --id link-viewer-close
+driver on
+assert --path browser --equals null --timeout 10
+driver off
+wait --contains "Message 300" --timeout 10
+driver on
+launch --fixture read-preview --fixture scroll-performance-preview --fixture theme --arg cupola-dark --arg=-wonder.links.open --arg=inApp
+driver off
+wait --contains "Message 300" --timeout 20
+tap --label "link" --nth -1
+driver on
+assert --path browser.kind --equals '"link"' --timeout 15
+assert --path browser.title --equals '"Example Domain"' --timeout 20
+driver off
+wait --id link-viewer-close --timeout 10
+shot link-viewer-dark
+tap --id link-viewer-close
+driver on
+assert --path browser --equals null --timeout 10
+driver off
+wait --contains "Message 300" --timeout 10
+shot link-viewer-chat-after-dark

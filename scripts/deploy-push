@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+# Deploy the push Worker (services/push) in one command.
+#
+#   scripts/deploy-push            test, apply remote D1 migrations, deploy
+#   scripts/deploy-push --dry-run  test and bundle with `wrangler deploy --dry-run`;
+#                                  touches nothing remote
+#
+# The tracked wrangler.jsonc keeps its database_id placeholder for self-hosters.
+# The ID comes from a gitignored services/push/wrangler.local.jsonc when present
+# (a complete config, used as is), otherwise from `wrangler d1 list --json` by the
+# template's database_name. The resolved config is a temporary gitignored file.
+#
+# Refuses to run from a checkout with uncommitted changes or one that is behind
+# origin/main, so a deploy never ships stale or unreviewed Worker code.
+set -euo pipefail
+
+usage() { sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; }
+
+dry_run=0
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) dry_run=1 ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "deploy-push: unknown argument '$arg'" >&2; usage >&2; exit 64 ;;
+  esac
+done
+
+repo=$(git -C "$(dirname "$0")" rev-parse --show-toplevel)
+service="$repo/services/push"
+cd "$service"
+
+fail() { echo "deploy-push: $*" >&2; exit 1; }
+
+# 1. Checkout state.
+if [ -n "$(git -C "$repo" status --porcelain --untracked-files=normal)" ]; then
+  git -C "$repo" status --short >&2
+  fail "the checkout has uncommitted changes; commit or remove them, or deploy from a clean worktree of origin/main."
+fi
+git -C "$repo" fetch --quiet origin main || fail "could not fetch origin/main to check this checkout is current."
+if ! git -C "$repo" merge-base --is-ancestor origin/main HEAD; then
+  behind=$(git -C "$repo" rev-list --count HEAD..origin/main)
+  fail "HEAD is $behind commit(s) behind origin/main; update it (git pull --ff-only) or deploy from a fresh worktree of origin/main."
+fi
+echo "deploy-push: deploying $(git -C "$repo" rev-parse --short HEAD) ($(git -C "$repo" log -1 --format=%s))"
+
+# 2. Dependencies and tests.
+npm ci --no-audit --no-fund
+npm run check
+npm test
+
+# 3. Config with the real D1 ID.
+wrangler=(npx --no-install wrangler)
+local_config="$service/wrangler.local.jsonc"
+if [ -f "$local_config" ]; then
+  config="$local_config"
+  echo "deploy-push: using local config $(basename "$local_config")"
+else
+  database_name=$(node -e '
+    const fs = require("fs");
+    // wrangler.jsonc may contain // line comments; the template has none today.
+    const text = fs.readFileSync("wrangler.jsonc", "utf8").replace(/^\s*\/\/.*$/gm, "");
+    const dbs = JSON.parse(text).d1_databases || [];
+    if (dbs.length !== 1) { console.error("expected exactly one d1_databases entry"); process.exit(1); }
+    process.stdout.write(dbs[0].database_name);
+  ')
+  list_json=$("${wrangler[@]}" d1 list --json) || fail "wrangler d1 list failed; run 'npx wrangler login' in services/push."
+  database_id=$(DB_NAME="$database_name" node -e '
+    let input = ""; process.stdin.on("data", c => input += c).on("end", () => {
+      const matches = JSON.parse(input).filter(db => db.name === process.env.DB_NAME);
+      if (matches.length !== 1) { console.error(`found ${matches.length} D1 databases named ${process.env.DB_NAME}`); process.exit(1); }
+      process.stdout.write(matches[0].uuid);
+    });
+  ' <<<"$list_json") || fail "no unique D1 database named '$database_name' in this Cloudflare account; create it (npx wrangler d1 create $database_name) or add services/push/wrangler.local.jsonc."
+  echo "deploy-push: D1 database $database_name is $database_id"
+  # Same directory as the template so main, migrations_dir and \$schema resolve.
+  config="$service/wrangler.deploy.jsonc"
+  trap 'rm -f "$service/wrangler.deploy.jsonc"' EXIT
+  DB_ID="$database_id" node -e '
+    const fs = require("fs");
+    const text = fs.readFileSync("wrangler.jsonc", "utf8");
+    const placeholder = "\"database_id\":\"REPLACE_WITH_YOUR_D1_ID\"";
+    if (!text.includes(placeholder)) { console.error("wrangler.jsonc no longer has the database_id placeholder"); process.exit(1); }
+    fs.writeFileSync("wrangler.deploy.jsonc", text.replace(placeholder, `"database_id":${JSON.stringify(process.env.DB_ID)}`));
+  '
+fi
+
+# 4. Migrations, then deploy.
+if [ "$dry_run" = 1 ]; then
+  echo "deploy-push: dry run; skipping remote migrations"
+  "${wrangler[@]}" deploy --dry-run --config "$config"
+  exit 0
+fi
+database_name=$(node -e '
+  const text = require("fs").readFileSync(process.argv[1], "utf8").replace(/^\s*\/\/.*$/gm, "");
+  process.stdout.write(JSON.parse(text).d1_databases[0].database_name);
+' "$config")
+"${wrangler[@]}" d1 migrations apply "$database_name" --remote --config "$config"
+"${wrangler[@]}" deploy --config "$config"

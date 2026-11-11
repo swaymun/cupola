@@ -1,0 +1,50 @@
+# Synthetic OpenCode Project: native permissions, model choices and Plan.
+# No provider session or model work is started.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture opencode-fixture --fixture open-project-thread --fixture theme --arg nord
+wait --id project-composer-access --contains "OpenCode settings" --timeout 20
+wait --id project-composer-model --contains "Local fixture" --timeout 10
+wait --id project-composer-effort --gone --timeout 2
+shot opencode-conversation
+# Nothing measured: no ring in the header.
+wait --id context-usage-ring --gone --timeout 5
+# The menu's own row, labelled with exactly these words: the shield behind it
+# is labelled "Permissions" (its value says the same words), so the row is absent
+# until the menu opens.
+wait --label "OpenCode settings" --gone --timeout 2
+tap --id project-composer-access
+wait --label "OpenCode settings" --timeout 5
+wait --id access-choice-readOnly --gone --timeout 2
+wait --id access-choice-fullAccess --gone --timeout 2
+shot opencode-access
+tap --xy 200,300
+tap --id project-composer-model
+wait --id project-model:opencode:opencode/free-fixture --timeout 10
+# This Mac found Cursor not installed: the agent list leaves it out (O11).
+wait --id project-agent:opencode --timeout 5
+assert --id project-agent:cursor --gone
+shot opencode-models
+tap --id project-model:opencode:opencode/free-fixture
+wait --id project-composer-model --contains "Free fixture" --timeout 10
+wait --id project-model:opencode:opencode/free-fixture --gone --timeout 5
+tap --id project-composer-access
+wait --id access-choice-plan --timeout 5
+tap --id access-choice-plan
+wait --id plan-mode-chip --timeout 10
+wait --id project-composer-access --contains "OpenCode settings"
+shot opencode-plan
+tap --id plan-mode-chip
+wait --id plan-mode-chip --gone --timeout 10
+wait --id project-composer-model --contains "Free fixture"
+shot opencode-saved
+# Settings lists the uninstalled Cursor greyed, and its page gives install steps.
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-computer:diagnostic-host --timeout 10
+tap --id settings-computer:diagnostic-host
+wait --id settings-provider:cursor --contains "Not installed" --timeout 10
+swipe up
+shot opencode-settings-cursor-not-installed
+tap --id settings-provider:cursor
+wait --contains "curl https://cursor.com/install" --timeout 15
+shot opencode-cursor-install-steps

@@ -1,0 +1,55 @@
+{
+  "purpose": "Ten paired skill evaluations with fixed supplied facts. No live lookup or image generation is needed.",
+  "cases": [
+    {
+      "id": "01-compare",
+      "prompt": "I am reading this in Wonder on my phone. Compare these supplied walking routes and suggest the gentler choice: Riverside — 45 minutes, mostly level; Hilltop — 70 minutes, steep climb. I prefer an easier walk. Offer one useful next step.",
+      "review": "Keep time and terrain together, choose Riverside from the stated preference, and label any action as a draft."
+    },
+    {
+      "id": "02-chart",
+      "prompt": "I am reading this in Wonder on my phone. Show the difference in these measured weekly walking distances: Monday 3 km, Wednesday 5 km, Saturday 8 km. What stands out?",
+      "review": "Use the same km unit, keep all exact values, and communicate Saturday is highest without inventing a trend."
+    },
+    {
+      "id": "03-process",
+      "prompt": "I am reading this in Wonder on my phone. Explain this actual Wonder interaction visually: tap a suggested follow-up, review the proposed text in the composer, tap Send yourself, then the agent receives it. Make the authority boundary clear.",
+      "review": "A short vertical flow preserves the user review and Send steps; tapping the suggestion must not imply delivery."
+    },
+    {
+      "id": "04-details",
+      "prompt": "I am reading this in Wonder on my phone. Make these supplied workshop details easy to scan: Tuesday 20 October 2026; 14:00–15:30 local time; Studio B; bring a laptop; step-free entrance on Oak Street. Do not add a booking action.",
+      "review": "Named facts about one event suit stacked labeled values; preserve the date, local time qualifier and entrance detail."
+    },
+    {
+      "id": "05-checklist",
+      "prompt": "I am reading this in Wonder on my phone. Show my supplied launch-day checklist: verify the backup, test the restore, record the checksum, then ask the owner before publishing. Nothing has been done yet.",
+      "review": "A compact list preserves the supplied order without implying interactive checkboxes, completion or permission to publish."
+    },
+    {
+      "id": "06-progress",
+      "prompt": "I am reading this in Wonder on my phone. Seven of twelve fixtures have passed. Five have not run. Show where we stand; say exactly what the percentage means.",
+      "review": "Use 7/12 as completion only of the listed fixture checks, distinguish not run from failure and avoid a release-readiness claim."
+    },
+    {
+      "id": "07-form",
+      "prompt": "I am reading this in Wonder on my phone. Before suggesting a walking plan, gather these related preferences together: pace (Relaxed or Brisk, default Relaxed), whether to include lunch (default no), and optional route notes. Let me review the request before sending.",
+      "review": "One small form uses select/toggle/optional text with supported defaults; submitting must draft and must not save or send preferences."
+    },
+    {
+      "id": "08-branch",
+      "prompt": "I am reading this in Wonder on my phone. Diagram this decision accurately: if a backup exists, verify its checksum; otherwise create a backup. In either case, ask the owner before publishing. A single chain would misrepresent the alternatives.",
+      "review": "Do not flatten alternatives into one diagram chain or invent graph edges. A labeled branch table/list can preserve both paths and the common approval boundary."
+    },
+    {
+      "id": "09-unsupported-chart",
+      "prompt": "I am reading this in Wonder on my phone. Visualize these supplied daily balance changes: Monday +12, Tuesday −4, Wednesday unknown. Keep the negative value and missing value honest.",
+      "review": "Use labeled values or a table; v1 bars cannot show negatives and unknown is not zero. Do not fabricate a progress value."
+    },
+    {
+      "id": "10-prose",
+      "prompt": "I am reading this in Wonder on my phone. Is 7 greater than 5? Just answer in one sentence.",
+      "review": "A one-sentence answer earns its space; no component, form or follow-up action is needed."
+    }
+  ]
+}

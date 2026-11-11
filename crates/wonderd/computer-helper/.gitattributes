@@ -1,0 +1,2 @@
+# These include audited upstream payloads (including Windows CRLF) verbatim.
+notices/*.md -text -whitespace

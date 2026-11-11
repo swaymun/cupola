@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "githubAvailable": true,
+  "truncated": false,
+  "detail": null,
+  "repositories": [
+    {
+      "id": "local:4f1c2b7a9d3e5f60",
+      "name": "wonder",
+      "roles": ["workspace", "edited"],
+      "local": true,
+      "location": { "rootId": "workspace", "path": "" },
+      "writable": true,
+      "defaultBranch": "main",
+      "remote": "example/wonder",
+      "branch": "agent/thread-repos",
+      "detached": false,
+      "noCommits": false,
+      "baseRef": "origin/main",
+      "upstream": "origin/agent/thread-repos",
+      "ahead": 2,
+      "behind": 0,
+      "changes": { "staged": 1, "unstaged": 2, "untracked": 1, "limited": false },
+      "pullRequests": [
+        {
+          "number": 12,
+          "repository": "example/wonder",
+          "url": "https://github.com/example/wonder/pull/12",
+          "relation": "opened",
+          "title": "Show every repository a thread worked in",
+          "state": "draft",
+          "checks": "pending"
+        }
+      ],
+      "detail": null
+    },
+    {
+      "id": "local:8a0d6e1f2b3c4d59",
+      "name": "parser-kit",
+      "roles": ["created"],
+      "local": true,
+      "location": { "rootId": "workspace", "path": "parser-kit" },
+      "writable": true,
+      "defaultBranch": null,
+      "remote": null,
+      "branch": "main",
+      "detached": false,
+      "noCommits": true,
+      "baseRef": null,
+      "upstream": null,
+      "ahead": null,
+      "behind": null,
+      "changes": { "staged": 0, "unstaged": 0, "untracked": 3, "limited": false },
+      "pullRequests": [],
+      "detail": null
+    },
+    {
+      "id": "github:example/compiler",
+      "name": "example/compiler",
+      "roles": ["reviewed"],
+      "local": false,
+      "location": null,
+      "writable": false,
+      "defaultBranch": null,
+      "remote": "example/compiler",
+      "branch": null,
+      "detached": false,
+      "noCommits": false,
+      "baseRef": null,
+      "upstream": null,
+      "ahead": null,
+      "behind": null,
+      "changes": null,
+      "pullRequests": [
+        {
+          "number": 7,
+          "repository": "example/compiler",
+          "url": "https://github.com/example/compiler/pull/7",
+          "relation": "reviewing",
+          "title": "Fix the parser's error recovery",
+          "state": "open",
+          "checks": "passing"
+        }
+      ],
+      "detail": null
+    }
+  ]
+}

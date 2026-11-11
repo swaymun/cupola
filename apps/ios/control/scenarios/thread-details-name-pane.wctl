@@ -1,0 +1,39 @@
+# nightly-ipad: a name typed in Thread details in the companion pane is not lost when switching tools or closing
+# devices: ipad
+# Thread details in the companion pane: a typed name is saved before another
+# tool replaces details or the pane closes, as Done does. The fixture has no
+# computer, so the save fails: details stay open with the typed name and the
+# reason, and Cancel puts the stored name back and closes.
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture terminal-preview
+wait --id conversation-title-menu --timeout 20
+tap --id conversation-title-menu
+tap --label "Chat details"
+wait --id thread-details-rename --timeout 10
+tap --id thread-details-rename
+wait --id thread-details-name --timeout 10
+wait --id companion-pane --timeout 5
+wait --id thread-details-cancel --gone --timeout 2
+tap --id thread-details-name
+type " renamed"
+wait --id thread-details-cancel --timeout 5
+shot ipad-details-name-typed
+# Another tool: the name is saved first; the failed save keeps details.
+tap --id conversation-terminal-pill
+wait --contains "The name wasn" --timeout 20
+wait --id thread-details-name --contains "renamed" --timeout 2
+wait --id terminal-output --gone --timeout 2
+shot ipad-details-switch-kept
+# Trying again is held the same way while the save keeps failing.
+tap --id conversation-terminal-pill
+wait --id thread-details-name --contains "renamed" --timeout 10
+wait --id terminal-output --gone --timeout 2
+# Cancel restores the stored name and closes the pane.
+tap --id thread-details-cancel
+wait --id companion-pane --gone --timeout 5
+tap --id conversation-title-menu
+tap --label "Chat details"
+wait --id thread-details-rename --timeout 10
+tap --id thread-details-rename
+wait --id thread-details-name --timeout 10
+wait --id thread-details-cancel --gone --timeout 2
+shot ipad-details-reopened-stored-name

@@ -1,0 +1,82 @@
+{
+  "voiceSessionRequest": { "panelId": "panel-3F2A9C41" },
+  "voiceSession": {
+    "provider": "openai",
+    "clientSecret": "ek_fixture",
+    "expiresAt": 1792000120,
+    "model": "gpt-realtime-2.1",
+    "url": "wss://api.openai.com/v1/realtime?model=gpt-realtime-2.1",
+    "panelId": "panel-3F2A9C41",
+    "sessionLimitSeconds": 900,
+    "sessionEndsAt": 1792000900,
+    "sessionEndsFor": "sessionLimit"
+  },
+  "voiceSettings": {
+    "sessionLimitMinutes": 15,
+    "sessionLimitMaxMinutes": 55,
+    "dailyMinutes": 60,
+    "dailyDollars": null,
+    "keepTranscripts": true,
+    "today": { "spokenSeconds": 312, "estimatedDollars": 0.42 }
+  },
+  "voiceSettingsChange": { "dailyMinutes": 60, "dailyDollars": null },
+  "voiceUsageReport": {
+    "connectedSeconds": 95,
+    "events": [
+      {
+        "source": "response",
+        "id": "resp_fixture1",
+        "usage": {
+          "total_tokens": 2250,
+          "input_tokens": 1500,
+          "output_tokens": 750,
+          "input_token_details": {
+            "text_tokens": 1000,
+            "audio_tokens": 500,
+            "image_tokens": 0,
+            "cached_tokens": 800,
+            "cached_tokens_details": { "text_tokens": 800, "audio_tokens": 0, "image_tokens": 0 }
+          },
+          "output_token_details": { "text_tokens": 50, "audio_tokens": 700 }
+        }
+      },
+      {
+        "source": "transcription",
+        "id": "item_fixture1",
+        "usage": { "type": "duration", "seconds": 4 }
+      }
+    ]
+  },
+  "voiceUsageResult": { "today": { "spokenSeconds": 95, "estimatedDollars": 0.07 } },
+  "voiceTranscriptReport": {
+    "entries": [
+      { "id": "item_fixture1", "speaker": "owner", "text": "Tell the release chat the build is green.", "atMs": 1792000010000 },
+      { "id": "item_fixture2", "speaker": "voice", "text": "Sent to Release checklist.", "atMs": 1792000014000 }
+    ],
+    "threadIds": ["conversation-release"]
+  },
+  "voiceTranscriptSaved": { "saved": true },
+  "voiceTranscriptList": {
+    "sessions": [
+      {
+        "id": "panel-3F2A9C41",
+        "startedAtMs": 1792000000000,
+        "endedAtMs": 1792000095000,
+        "entryCount": 2,
+        "preview": "Tell the release chat the build is green.",
+        "threadIds": ["conversation-release"]
+      }
+    ]
+  },
+  "voiceTranscript": {
+    "id": "panel-3F2A9C41",
+    "startedAtMs": 1792000000000,
+    "endedAtMs": 1792000095000,
+    "threadIds": ["conversation-release"],
+    "entries": [
+      { "id": "item_fixture1", "speaker": "owner", "text": "Tell the release chat the build is green.", "atMs": 1792000010000 },
+      { "id": "item_fixture2", "speaker": "voice", "text": "Sent to Release checklist.", "atMs": 1792000014000 }
+    ]
+  },
+  "voiceTranscriptsDeleted": { "deletedSessions": 1 }
+}

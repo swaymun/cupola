@@ -1,0 +1,13 @@
+# devices: duo
+# visual-review: Settings > computer > Codex shows the Codex row with its installed and newest version, Update and the plain-words warning; check wrapping, clipping and that nothing sits under the hinge.
+# The Codex page opens from the launch (search-row seed), so no Duo taps (#387). Host response fixture only; nothing is sent.
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture open-project-thread --fixture rail-fixture --fixture provider-versions --fixture host-update --arg=-diagnostics-settings-open --arg=-diagnostics-settings-search-row --arg=settings-provider:codex
+driver off
+wait --id provider-versions:codex --contains "Latest 0.170.0" --timeout 30
+wait --id provider-versions:codex --contains "Latest 0.170.0" --timeout 5
+wait --id provider-warning:codex --contains "Message search" --timeout 5
+wait --id provider-action:codex --contains "Update" --timeout 5
+shot provider-versions-codex

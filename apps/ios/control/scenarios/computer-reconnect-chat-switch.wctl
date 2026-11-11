@@ -1,0 +1,46 @@
+# nightly-ipad: returning to a chat keeps its last computer picture while the pane reopens view-only
+# devices: iphone ipad
+# The actual shell owns selection and pane restoration (W1-PANES). Offline A/B
+# chats, a decoded picture, and a held reopen; no model work or live host input.
+driver on
+launch --fixture chat-layout --fixture project-actions --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-reconnect --fixture durable-store --fixture open-project-thread --fixture durable-store-reset
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+driver off
+tap --id computer-status-pill
+wait --id computer-session-live-status --contains Live --timeout 20
+shot recovery-chat-original
+wait --id computer-session-control-active --timeout 15
+signal computer-chat-switch
+driver on
+open-thread fixture-fork-conversation --host diagnostic-host
+assert --path selection.id --equals '"fixture-fork-conversation"' --timeout 30
+assert --path thread.id --equals '"fixture-fork-conversation"' --timeout 30
+driver off
+wait --id computer-session-container --gone --timeout 10
+driver on
+open-thread fixture-parent-conversation --host diagnostic-host
+assert --path selection.id --equals '"fixture-parent-conversation"' --timeout 30
+driver off
+wait --id computer-session-notice --contains Reconnecting --timeout 20
+wait --id computer-session-preview --contains "showing the last picture" --timeout 10
+assert --id computer-session-control-active --gone
+assert --id computer-session-control-active --gone
+shot recovery-chat-restored-paused
+# Leave again while the replacement is still opening, then return immediately:
+# its cancelled opening cannot erase the frame or revive control.
+driver on
+open-thread fixture-fork-conversation --host diagnostic-host
+open-thread fixture-parent-conversation --host diagnostic-host
+driver off
+wait --id computer-session-notice --contains Reconnecting --timeout 20
+wait --id computer-session-preview --contains "showing the last picture" --timeout 10
+assert --id computer-session-control-active --gone
+shot recovery-chat-fast-return
+signal computer-recovery-ready
+wait --id computer-session-live-status --contains Live --timeout 15
+wait --id computer-session-more --timeout 10
+wait --id computer-session-notice --gone --timeout 5
+wait --id computer-session-control-active --timeout 15
+shot recovery-chat-restored-view-only
+# Opening the restored view retakes control by itself.
+wait --id computer-session-more --timeout 10

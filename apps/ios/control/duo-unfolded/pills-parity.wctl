@@ -1,0 +1,50 @@
+# devices: duo
+# visual-review: paired pill captures, one theme per pair: the side posture draws the pills in the system's vertical bar (rail), the upright posture in the composer row.
+# Compare icon, tint and order between each pair; the second launch of each theme has the roster's Agent tasks pill selected. No taps (#387), nothing is sent.
+#   scripts/wonderctl --device duo run apps/ios/control/duo-unfolded/pills-parity.wctl
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture goal-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture project-pull-requests --fixture open-project-thread --arg=-diagnostics-theme --arg=cupola-light --arg=-AppleInterfaceStyle --arg=Light
+wait --id message-draft --timeout 30
+shot pills-parity-cupola-light-plain-rail --display primary-1
+orient landscape-right
+wait --id message-draft --timeout 30
+shot pills-parity-cupola-light-plain-row --display primary-1
+orient portrait
+launch --fixture subagent-fixture --fixture goal-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture project-pull-requests --fixture open-project-thread --fixture task-roster-open --fixture task-roster-in-bar --arg=-diagnostics-theme --arg=cupola-light --arg=-AppleInterfaceStyle --arg=Light
+wait --id message-draft --timeout 30
+shot pills-parity-cupola-light-selected-rail --display primary-1
+orient landscape-right
+wait --id message-draft --timeout 30
+shot pills-parity-cupola-light-selected-row --display primary-1
+orient portrait
+launch --fixture subagent-fixture --fixture goal-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture project-pull-requests --fixture open-project-thread --arg=-diagnostics-theme --arg=cupola-dark --arg=-AppleInterfaceStyle --arg=Dark
+wait --id message-draft --timeout 30
+shot pills-parity-cupola-dark-plain-rail --display primary-1
+orient landscape-right
+wait --id message-draft --timeout 30
+shot pills-parity-cupola-dark-plain-row --display primary-1
+orient portrait
+launch --fixture subagent-fixture --fixture goal-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture project-pull-requests --fixture open-project-thread --fixture task-roster-open --fixture task-roster-in-bar --arg=-diagnostics-theme --arg=cupola-dark --arg=-AppleInterfaceStyle --arg=Dark
+wait --id message-draft --timeout 30
+shot pills-parity-cupola-dark-selected-rail --display primary-1
+orient landscape-right
+wait --id message-draft --timeout 30
+shot pills-parity-cupola-dark-selected-row --display primary-1
+orient portrait
+launch --fixture subagent-fixture --fixture goal-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture project-pull-requests --fixture open-project-thread --arg=-diagnostics-theme --arg=nord --arg=-AppleInterfaceStyle --arg=Dark
+wait --id message-draft --timeout 30
+shot pills-parity-nord-plain-rail --display primary-1
+orient landscape-right
+wait --id message-draft --timeout 30
+shot pills-parity-nord-plain-row --display primary-1
+orient portrait
+launch --fixture subagent-fixture --fixture goal-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture project-pull-requests --fixture open-project-thread --fixture task-roster-open --fixture task-roster-in-bar --arg=-diagnostics-theme --arg=nord --arg=-AppleInterfaceStyle --arg=Dark
+wait --id message-draft --timeout 30
+shot pills-parity-nord-selected-rail --display primary-1
+orient landscape-right
+wait --id message-draft --timeout 30
+shot pills-parity-nord-selected-row --display primary-1
+orient portrait
+hinge 0
+orient portrait

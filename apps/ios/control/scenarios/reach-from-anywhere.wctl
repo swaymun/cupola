@@ -1,0 +1,78 @@
+# Reach from anywhere, in the computer's settings: until the owner runs
+# cupola relay on, the switch is off and says so; once allowed, a computer
+# paired with a code (the synthetic host has no saved security key) keeps the
+# switch off, asks to pair again with the QR code or link and offers Pair
+# again, which opens pairing on the QR/link page; when on, it shows its state
+# in plain words and how to turn it off on the computer.
+# Pair again sits right under the switch, on screen without scrolling; a
+# `reveal` there misreads the page's rows as covering it and scrolls it away
+# (measured on iPad: step 18 pushed it off screen).
+# Turning a key-paired computer on shows progress, then a failure in plain words.
+# Synthetic host and account only: no grant, relay, Cloudflare or agent work.
+# The signed-out and available states of a key-paired computer, and the
+# turn-on request itself (grant, signature), are covered by RemoteAccessTests
+# and SealedRPCTests.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+tap --id settings-computer:diagnostic-host
+wait --id connection-remote-access --timeout 10
+wait --contains "allow it on the computer" --timeout 10
+shot reach-from-anywhere-not-allowed
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture relay-allowed --fixture account-fixture --fixture account-signed-in
+wait --id open-sidebar --timeout 30
+sidebar open
+tap --id sidebar-settings
+tap --id settings-computer:diagnostic-host
+wait --id connection-remote-access --timeout 10
+wait --contains "Pair with the QR code or link to use this" --timeout 10
+wait --id connection-remote-access-pair-again --timeout 10
+shot reach-from-anywhere-code-paired
+tap --id connection-remote-access-pair-again
+wait --id pairing-link --timeout 10
+shot reach-from-anywhere-pair-again
+
+# Turning it on: the switch reads on and says it is turning on while the
+# computer works on it; when the computer fails, the switch is off again and
+# says what to check. The fixture pins the computer's key (turning on needs it),
+# answers its proof and the stand-in account's grant, and holds the signed request.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture relay-allowed --fixture account-fixture --fixture account-signed-in --fixture relay-turn-on-held
+wait --id open-sidebar --timeout 30
+sidebar open
+tap --id sidebar-settings
+tap --id settings-computer:diagnostic-host
+wait --id connection-remote-access --contains "0" --timeout 10
+wait --contains "when the home network and Tailscale aren’t available" --timeout 10
+# A switch reads its label then 1 (on) or 0 (off); press its trailing switch.
+hold --id connection-remote-access --x-fraction 0.9 --seconds 0.15
+wait --id connection-remote-access-working --contains "Turning on" --timeout 5
+wait --id connection-remote-access --contains "1"
+shot reach-from-anywhere-turning-on
+signal relay-turn-on
+wait --id connection-remote-access-failure --contains "Couldn’t turn on Reach from anywhere" --timeout 15
+wait --id connection-remote-access-working --gone --timeout 5
+wait --id connection-remote-access --contains "0"
+shot reach-from-anywhere-turn-on-failed
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture relay-on
+wait --id open-sidebar --timeout 30
+sidebar open
+tap --id sidebar-settings
+tap --id settings-computer:diagnostic-host
+wait --id connection-remote-access --contains "On" --timeout 10
+wait --contains "can turn it off" --timeout 10
+wait --contains "Pair with the QR code or link to use this" --timeout 10
+wait --id connection-remote-access-pair-again --timeout 10
+shot reach-from-anywhere-on
+
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture relay-unavailable
+wait --id open-sidebar --timeout 30
+sidebar open
+tap --id sidebar-settings
+tap --id settings-computer:diagnostic-host
+wait --id connection-remote-access --contains "Not reachable now" --timeout 10
+wait --contains "relay is full right now" --timeout 10
+shot reach-from-anywhere-unavailable

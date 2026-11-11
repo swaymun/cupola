@@ -1,0 +1,82 @@
+# devices: iphone ipad
+# A-BELL captures: bell page, each row's destination and the empty state, per theme.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg cupola-light
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+wait --id needs-you-list --timeout 20
+shot a-bell-page-cupola-light-list
+tap --id needs-you:diagnostic-host:fixture-opencode-approval
+wait --id approval-accept-fixture-opencode-approval --timeout 20
+shot a-bell-page-cupola-light-approval-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg cupola-light
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+tap --id needs-you:diagnostic-host:fixture-question
+wait --contains "Which day works best?" --timeout 20
+shot a-bell-page-cupola-light-question-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture theme --arg cupola-light --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+# Nothing waiting: there is no bell.
+wait --id sidebar-needs-you --gone --timeout 5
+wait --id needs-you-list --gone --timeout 3
+shot a-bell-page-cupola-light-empty
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg cupola-dark
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+wait --id needs-you-list --timeout 20
+shot a-bell-page-cupola-dark-list
+tap --id needs-you:diagnostic-host:fixture-opencode-approval
+wait --id approval-accept-fixture-opencode-approval --timeout 20
+shot a-bell-page-cupola-dark-approval-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg cupola-dark
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+tap --id needs-you:diagnostic-host:fixture-question
+wait --contains "Which day works best?" --timeout 20
+shot a-bell-page-cupola-dark-question-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture theme --arg cupola-dark --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+# Nothing waiting: there is no bell.
+wait --id sidebar-needs-you --gone --timeout 5
+wait --id needs-you-list --gone --timeout 3
+shot a-bell-page-cupola-dark-empty
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg nord
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+wait --id needs-you-list --timeout 20
+shot a-bell-page-nord-list
+tap --id needs-you:diagnostic-host:fixture-opencode-approval
+wait --id approval-accept-fixture-opencode-approval --timeout 20
+shot a-bell-page-nord-approval-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg nord
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+tap --id needs-you:diagnostic-host:fixture-question
+wait --contains "Which day works best?" --timeout 20
+shot a-bell-page-nord-question-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture theme --arg nord --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+# Nothing waiting: there is no bell.
+wait --id sidebar-needs-you --gone --timeout 5
+wait --id needs-you-list --gone --timeout 3
+shot a-bell-page-nord-empty
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg misty-forest
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+wait --id needs-you-list --timeout 20
+shot a-bell-page-misty-forest-list
+tap --id needs-you:diagnostic-host:fixture-opencode-approval
+wait --id approval-accept-fixture-opencode-approval --timeout 20
+shot a-bell-page-misty-forest-approval-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture opencode-approval --fixture question-resolution --fixture several-computers --fixture sidebar-open --fixture theme --arg misty-forest
+wait --id sidebar-needs-you --contains "requests" --timeout 30
+tap --id sidebar-needs-you
+tap --id needs-you:diagnostic-host:fixture-question
+wait --contains "Which day works best?" --timeout 20
+shot a-bell-page-misty-forest-question-row
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture opencode-fixture --fixture theme --arg misty-forest --fixture sidebar-open
+wait --id sidebar-search --timeout 30
+# Nothing waiting: there is no bell.
+wait --id sidebar-needs-you --gone --timeout 5
+wait --id needs-you-list --gone --timeout 3
+shot a-bell-page-misty-forest-empty

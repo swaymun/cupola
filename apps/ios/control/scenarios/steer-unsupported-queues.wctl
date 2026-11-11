@@ -1,0 +1,51 @@
+# devices: iphone ipad
+# While an OpenCode reply runs (its capability record has no steer), Send is
+# the Queue glyph, no "can't take a message" sentence shows above the composer,
+# and the message lands in the quiet queued row under it. Codex keeps steering
+# (queue-and-steer.wctl). Owned synthetic computer only; no model work.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture opencode-fixture --fixture open-project-thread --fixture theme --arg cupola-light
+assert --path composer.steers --equals false --timeout 20
+assert --path composer.placeholder --equals '"Queue a message"'
+driver off
+wait --id message-draft --timeout 15
+wait --contains "can’t take a message" --gone --timeout 2
+shot steer-unsupported-light-idle
+tap --id message-draft --type TextArea
+type "Then update the docs"
+wait --label "Queue message" --timeout 10
+shot steer-unsupported-light-typed
+tap --id send-message
+wait --contains "Queued message: Then update the docs" --timeout 15
+wait --label "Queued message actions" --timeout 15
+driver on
+assert --path fixtureSends.queued --equals 1 --timeout 10
+assert --path fixtureSends.steered --equals 0
+assert --path fixtureSends.duplicates --equals 0
+driver off
+wait --contains "can’t take a message" --gone --timeout 2
+shot steer-unsupported-light-queued
+# Dark theme: the same three states.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-running --fixture opencode-fixture --fixture open-project-thread --fixture theme --arg cupola-dark
+assert --path composer.steers --equals false --timeout 20
+assert --path composer.placeholder --equals '"Queue a message"'
+driver off
+wait --id message-draft --timeout 15
+wait --contains "can’t take a message" --gone --timeout 2
+shot steer-unsupported-dark-idle
+tap --id message-draft --type TextArea
+type "Then update the docs"
+wait --label "Queue message" --timeout 10
+shot steer-unsupported-dark-typed
+tap --id send-message
+wait --contains "Queued message: Then update the docs" --timeout 15
+wait --label "Queued message actions" --timeout 15
+wait --contains "can’t take a message" --gone --timeout 2
+driver on
+assert --path fixtureSends.queued --equals 1 --timeout 10
+assert --path fixtureSends.steered --equals 0
+assert --path fixtureSends.duplicates --equals 0
+driver off
+wait --contains "can’t take a message" --gone --timeout 2
+shot steer-unsupported-dark-queued

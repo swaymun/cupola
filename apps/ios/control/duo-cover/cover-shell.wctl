@@ -1,0 +1,55 @@
+# Offline real AppShell, with four pills including two agent tasks.
+# Queue with orch --device duo. The shell stays mounted while Chats replaces
+# the folded conversation; inner screenshots must select primary-1 explicitly.
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture terminal-available --fixture project-claude-tasks --fixture current-step --fixture current-step-finished --fixture project-files-send --fixture sidebar-status --fixture several-computers --fixture open-project-thread --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git --arg=-wonder.sidebar.hidden --arg=NO
+driver off
+wait --id open-sidebar --timeout 30
+wait --id project-subagent-status-pill --contains "2 agent tasks running" --timeout 10
+wait --id conversation-terminal-pill --timeout 10
+wait --id composer-pill-row --gone --timeout 5
+order --ids computer-status-pill,conversation-files-pill,conversation-terminal-pill,project-subagent-status-pill
+shot duo-cover-layout-after-four-pills
+tree --json
+# Select the real shell's list state explicitly; the folded input canary
+# separately owns native taps (#387). Assertions and captures here use AX.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture goal-fixture --fixture project-files-send --fixture sidebar-status --fixture several-computers --fixture open-project-thread --arg=-composerPills --arg=computer,files,goal,agentTasks,-terminal,-preview,-git --arg=-wonder.sidebar.hidden --arg=NO --fixture sidebar-open
+driver off
+wait --id cover-chats --timeout 10
+wait --id open-sidebar --contains "Hide Chats" --timeout 5
+wait --id sidebar-scrim --gone --timeout 5
+wait --id computer-status-pill --gone --timeout 5
+wait --id project-subagent-status-pill --gone --timeout 5
+wait --id message-draft --gone --timeout 5
+shot duo-cover-layout-after-cover-chats
+tree --json
+# The same rail control returns from the full-width list; no extra X.
+# Driver dismissal below only selects the closed fixture state, not a native tap.
+driver on
+dismiss
+driver off
+wait --id computer-status-pill --timeout 10
+wait --id message-draft --timeout 5
+shot duo-cover-layout-after-cover-return
+tree --json
+tree --json
+hinge 180
+# These rig orientations are physical-device orientation; inspect primary-1
+# rather than inferring the inner framebuffer's aspect from their names.
+orient portrait
+wait --id composer-pill-row --timeout 10
+wait --id sidebar-cupola --timeout 10
+shot duo-cover-layout-after-inner-landscape-sidebar
+tree --json
+tree --json
+orient landscape-right
+wait --id sidebar-cupola --timeout 10
+shot duo-cover-layout-after-inner-portrait-sidebar
+tree --json
+tree --json
+# Leave the shared Duo folded for the input canary.
+hinge 0
+orient portrait

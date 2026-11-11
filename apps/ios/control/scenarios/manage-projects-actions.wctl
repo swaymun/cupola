@@ -1,0 +1,23 @@
+# devices: iphone
+# Manage Projects (merged page): hide/show acts per Project and per computer, and the edit sheet opens. Offline fixtures only, no sends.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-session-filter --timeout 30
+tap --id sidebar-session-filter
+tap --label "Manage Projects" --type Button
+wait --id project-include:diagnostic-host:read-project --contains "1" --timeout 15
+wait --id project-include:diagnostic-host-studio:read-project --contains "1" --timeout 15
+# Hide the first computer's Project: only its switch turns off, and the row says Hidden.
+hold --id project-include:diagnostic-host:read-project --seconds 0.15
+wait --id project-include:diagnostic-host:read-project --contains "0" --timeout 10
+wait --id project-include:diagnostic-host-studio:read-project --contains "1" --timeout 5
+wait --label "Hidden" --timeout 10
+shot manage-projects-actions-hidden
+hold --id project-include:diagnostic-host:read-project --seconds 0.15
+wait --id project-include:diagnostic-host:read-project --contains "1" --timeout 10
+wait --label "Hidden" --gone --timeout 10
+shot manage-projects-actions-shown
+tap --label "Read status" --type Button --nth 0
+wait --label "Edit Project" --timeout 10
+shot manage-projects-actions-edit

@@ -1,0 +1,45 @@
+# nightly-ipad: AX5 layout: wrapped sidebar names and stacked context panel at iPad width
+# visual-review: no word breaks across lines at the largest text size
+# Feature: at the largest accessibility text size (AX5, set by launch argument so the
+# simulator's own setting does not matter) the sidebar's names wrap, the context panel
+# stacks each value under its label, reasoning effort is a list of levels instead of a
+# slider with names under its stops, the agent-task list fills the space above its pill with
+# Stop under each title, and the question pill is icon-only. Check the shots for words
+# broken across lines.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch --fixture context-usage --fixture usage-fixture --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+shot accessibility-text-sidebar
+tap --id pinned-thread:codex:read-fixture
+wait --id context-usage-ring --timeout 15
+tap --id context-usage-ring
+wait --id context-usage-window --timeout 10
+wait --contains "33 percent used"
+shot accessibility-text-usage
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch --fixture context-usage --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id project-composer-effort --timeout 15
+tap --id project-composer-effort
+wait --id project-composer-effort:medium --timeout 5
+wait --id project-composer-effort-slider --gone
+shot accessibility-text-effort
+wait --id project-composer-effort:high
+tap --id project-composer-effort:high
+wait --id project-composer-effort --contains "High" --timeout 10
+shot accessibility-text-effort-selected
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture open-project-thread --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id project-subagent-status-pill --timeout 30
+tap --id project-subagent-status-pill
+wait --id project-subagent-section:running --timeout 10
+wait --id project-subagent-stop:fixture-child-thread --timeout 5
+shot accessibility-text-agent-tasks
+launch --fixture read-preview --fixture send-preview --fixture question-preview --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryAccessibilityXXXL
+wait --id question-dock-open --timeout 20
+# VoiceOver reads "Question" at every size, so the label cannot show that the
+# word is gone: the shot shows the pill as its icon only.
+wait --id question-dock-open --label Question
+shot accessibility-text-question-pill

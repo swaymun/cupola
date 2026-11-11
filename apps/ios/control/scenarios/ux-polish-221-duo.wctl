@@ -1,0 +1,52 @@
+# devices: duo
+# UX-POLISH-221 on the Duo: Settings is one full-width page unfolded (no list + detail split), the reasoning-effort popover has no grab line,
+# and New chat's computer and Project pills are one group flush with the composer's leading edge, folded and unfolded.
+# Duo taps are gated (#387), so every state opens by launch flag. Unfolded shots use --display primary-1.
+hinge 0
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults --fixture several-computers --fixture theme --arg cupola-light
+wait --id new-chat-access --timeout 30
+check-layout newchat-pills
+shot ux-polish-221-newchat-duo-folded-light
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults --fixture several-computers --fixture theme --arg cupola-light --arg=-diagnostics-effort-open
+wait --id new-chat-effort-slider --timeout 20
+shot ux-polish-221-effort-duo-folded-light
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture settings-open --fixture theme --arg cupola-light
+wait --id settings-search-field --timeout 30
+check-layout settings-column
+shot ux-polish-221-settings-duo-folded-light
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults --fixture several-computers --fixture theme --arg cupola-dark
+wait --id new-chat-access --timeout 30
+check-layout newchat-pills
+shot ux-polish-221-newchat-duo-folded-dark
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults --fixture several-computers --fixture theme --arg cupola-dark --arg=-diagnostics-effort-open
+wait --id new-chat-effort-slider --timeout 20
+shot ux-polish-221-effort-duo-folded-dark
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture settings-open --fixture theme --arg cupola-dark
+wait --id settings-search-field --timeout 30
+check-layout settings-column
+shot ux-polish-221-settings-duo-folded-dark
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults --fixture several-computers --fixture theme --arg cupola-light
+wait --id new-chat-access --timeout 30
+check-layout newchat-pills-hinge
+shot ux-polish-221-newchat-duo-unfolded-light --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults --fixture several-computers --fixture theme --arg cupola-light --arg=-diagnostics-effort-open
+wait --id new-chat-effort-slider --timeout 20
+shot ux-polish-221-effort-duo-unfolded-light --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture settings-open --fixture theme --arg cupola-light
+wait --id settings-search-field --timeout 30
+check-layout settings-column
+shot ux-polish-221-settings-duo-unfolded-light --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults --fixture several-computers --fixture theme --arg cupola-dark
+wait --id new-chat-access --timeout 30
+check-layout newchat-pills-hinge
+shot ux-polish-221-newchat-duo-unfolded-dark --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-speed --fixture fresh-agent-defaults --fixture several-computers --fixture theme --arg cupola-dark --arg=-diagnostics-effort-open
+wait --id new-chat-effort-slider --timeout 20
+shot ux-polish-221-effort-duo-unfolded-dark --display primary-1
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture several-computers --fixture settings-open --fixture theme --arg cupola-dark
+wait --id settings-search-field --timeout 30
+check-layout settings-column
+shot ux-polish-221-settings-duo-unfolded-dark --display primary-1

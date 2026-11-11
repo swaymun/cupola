@@ -1,0 +1,124 @@
+# nightly-ipad: timeline tap dismissal preserves the draft, message menus, selection and links
+# devices: iphone iphone-27 ipad
+# Focus the real editor after the reading position settles, with no model send.
+# A single tap in the reading pane dismisses only that editor. A long press still
+# opens the message menu and Select text; a link still opens the system browser.
+# Duo cover reuses these assertions through layout-reachability-duo.py.
+# Inner-display input remains unqualified under #387; use the posture captures.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture fresh-agent-defaults --fixture layout-frames --arg=-wonder.sidebar.hidden --arg=YES
+driver off
+wait --id new-chat-draft --timeout 30
+tap --id new-chat-draft
+type "New chat reachability draft"
+driver on
+assert --path layout.composerFocused --equals true --timeout 10
+driver off
+shot layout-new-chat-keyboard
+# Blank page space above the setup on both the iPhone and iPad fixtures.
+tap --xy 40,150
+driver on
+assert --path layout.composerFocused --equals false --timeout 10
+driver off
+wait --label q --gone --timeout 10
+wait --label Q --gone --timeout 10
+wait --id new-chat-draft --contains "New chat reachability draft" --timeout 10
+shot layout-new-chat-dismissed
+driver on
+launch --fixture read-preview --fixture layout-reachability-preview --fixture layout-frames --arg=-wonder.links.open --arg=inApp
+driver off
+wait --contains "Layout reply" --timeout 20
+tap --id message-draft
+type "Layout reachability draft"
+wait --id message-draft --contains "Layout reachability draft" --timeout 10
+driver on
+assert --path layout.composerFocused --equals true --timeout 10
+driver off
+# A real completed-command disclosure still opens and closes while either tap
+# also dismisses composer editing. This is not a hidden-thinking fixture.
+tap --id activity-group:layout-turn/layout-command
+wait --id activity-group:layout-turn/layout-command --contains "Expanded" --timeout 10
+driver on
+assert --path layout.composerFocused --equals false --timeout 10
+driver off
+wait --id message-draft --contains "Layout reachability draft" --timeout 10
+shot layout-disclosure-expanded
+tap --id message-draft
+driver on
+assert --path layout.composerFocused --equals true --timeout 10
+driver off
+tap --id activity-group:layout-turn/layout-command
+wait --id activity-group:layout-turn/layout-command --contains "Collapsed" --timeout 10
+driver on
+assert --path layout.composerFocused --equals false --timeout 10
+driver off
+wait --id message-draft --contains "Layout reachability draft" --timeout 10
+shot layout-disclosure-collapsed
+tap --id message-draft
+driver on
+assert --path layout.composerFocused --equals true --timeout 10
+driver off
+shot layout-keyboard-before-tap
+tap --contains "Layout reply"
+driver on
+assert --path layout.composerFocused --equals false --timeout 10
+driver off
+wait --label q --gone --timeout 10
+wait --label Q --gone --timeout 10
+wait --id message-draft --contains "Layout reachability draft" --timeout 10
+shot layout-keyboard-dismissed
+tap --id message-draft
+driver on
+assert --path layout.composerFocused --equals true --timeout 10
+driver off
+# The timeline's leading margin counts as outside, too.
+tap --xy 4,250
+driver on
+assert --path layout.composerFocused --equals false --timeout 10
+driver off
+wait --label q --gone --timeout 10
+wait --label Q --gone --timeout 10
+wait --id message-draft --contains "Layout reachability draft" --timeout 10
+shot layout-margin-dismissed
+tap --id message-draft
+driver on
+assert --path layout.composerFocused --equals true --timeout 10
+driver off
+# The short reply remains visible on both devices while the keyboard is up.
+hold --contains "Layout reply"
+wait --id select-message-text-action --timeout 10
+tap --id select-message-text-action
+wait --id select-message-text --timeout 10
+wait --contains "Layout reply" --timeout 10
+shot layout-selection
+hold --id select-message-text
+wait --label "Copy" --timeout 10
+clipboard --clear
+tap --label "Copy" --nth 0
+# iPad selects a word; iPhone's native menu may copy the whole text block.
+clipboard --contains "reply" --not-contains "Layout reachability draft"
+shot layout-selection-copied
+tap --id select-message-done --type Button
+wait --id select-message-text --gone --timeout 10
+tap --id message-draft
+driver on
+assert --path layout.composerFocused --equals true --timeout 10
+driver off
+# This fixture has exactly one link, fully inside the reading pane.
+tap --label "link" --nth 0
+driver on
+assert --path browser.kind --equals '"link"' --timeout 10
+assert --path openedLinks.0.url --equals '"https://example.com"'
+assert --path openedLinks.0.opening --equals '"inApp"'
+driver off
+shot layout-link-from-keyboard
+wait --id link-viewer-close --timeout 10
+tap --id link-viewer-close
+driver on
+assert --path browser --equals null --timeout 10
+driver off
+wait --id message-draft --contains "Layout reachability draft" --timeout 10
+driver on
+assert --path fixtureSends.messages --equals 0
+assert --path fixtureSends.uploads --equals 0
+driver off

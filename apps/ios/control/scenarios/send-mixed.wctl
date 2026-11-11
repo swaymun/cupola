@@ -1,0 +1,21 @@
+# Mixed sequence: a message sent while nothing runs goes straight into the
+# conversation; a second one sent while the first one's reply runs is decided
+# up front as queued and never shows as being sent first.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --arg=-wonder.send.followUp --arg=queue
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 15
+tap --id message-draft --type TextArea
+type "First request"
+tap --id send-message
+wait --contains "Queued message" --never 6
+tap --id message-draft --type TextArea
+type "Second request"
+wait --label "Queue message" --timeout 10
+tap --id send-message
+wait --contains "Queued message: Second request" --timeout 3
+wait --label "Sending message" --never 4
+wait --contains "Queued message: First request" --gone --timeout 2
+shot send-mixed

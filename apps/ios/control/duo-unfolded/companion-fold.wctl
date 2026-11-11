@@ -1,0 +1,62 @@
+# devices: duo
+# Native input uses the measured inner-display rig mapping.
+# Unfolded (flat), the companion pane splits exactly on the fold and follows it:
+# upright the fold runs across, so the tool sits above it and the chat with its
+# composer below; on its side the fold runs down the middle and they sit side by
+# side. The swap button sits inside the tool header; the fold has no target. Launch fixtures open the tool in the
+# pane, so the layout is checked even without input; the taps come last.
+hinge 180
+orient landscape-right
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture project-subagents --fixture open-project-thread --fixture companion-files --arg=-wonder.sidebar.hidden --arg=NO --arg=-wonder.companionPane.flipped --arg=NO --arg=-composerPills --arg=computer,files,terminal,preview,attention,goal,agentTasks,git
+wait --id companion-pane --timeout 30
+wait --id workspace-file-list --timeout 10
+wait --id message-draft --timeout 5
+wait --id open-sidebar --timeout 5
+wait --id companion-pane-expand --gone --timeout 5
+wait --id companion-pane-flip --timeout 5
+order --ids workspace-file-list,message-draft
+shot duo-inner-files --display primary-1
+tree --json
+# Capture the other inner orientation and the list over an open pane.
+orient portrait
+wait --id open-sidebar --timeout 10
+wait --id companion-pane-expand --gone --timeout 5
+shot duo-inner-landscape-files --display primary-1
+tree --json
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture project-subagents --fixture open-project-thread --fixture companion-files --fixture sidebar-open --arg=-wonder.sidebar.hidden --arg=NO --arg=-wonder.companionPane.flipped --arg=NO
+wait --id sidebar-cupola --timeout 30
+wait --id open-sidebar --timeout 10
+shot duo-inner-files-chats --display primary-1
+tree --json
+# The URLProtocol shell host has no terminal service; its failure state still
+# needs a reachable Chats control. The preview below owns actual terminal output.
+orient landscape-right
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture project-subagents --fixture open-project-thread --fixture companion-terminal --arg=-wonder.sidebar.hidden --arg=NO --arg=-wonder.companionPane.flipped --arg=NO
+wait --id companion-pane --timeout 30
+wait --id open-sidebar --timeout 10
+shot duo-inner-terminal-shell --display primary-1
+tree --json
+# Keep the existing Terminal output/input contract in its preview transport.
+# read-preview deliberately bypasses AppShell; the Files block above exercises
+# both shell controls through the real ChatShell.
+orient portrait
+driver on
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture project-git-preview --fixture terminal-preview --fixture companion-terminal
+driver off
+wait --id companion-pane --timeout 30
+wait --id terminal-output --contains "build.sh" --timeout 10
+wait --id message-draft --timeout 5
+wait --id companion-pane-flip --timeout 5
+shot duo-inner-terminal --display primary-1
+tree --json
+# The unfolded Duo has no native touchscreen path in the simulator (#387), so Swap and the
+# keyboard-hide key are not tapped here; the Terminal pill closes the pane through the driver.
+orient landscape-right
+wait --id terminal-output --contains "build.sh" --timeout 10
+shot hinge-terminal-stacked --display primary-1
+driver on
+tap --id conversation-terminal-pill
+assert --path pane --equals null --timeout 10
+driver off
+wait --id companion-pane --gone --timeout 5
+shot hinge-native-terminal-closed --display primary-1

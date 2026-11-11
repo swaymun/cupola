@@ -1,0 +1,12 @@
+# Git status and reply edits alone do not create a pull requests pill.
+# The reply's saved edits remain reachable from its timeline row.
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture project-files-conversation-preview --fixture project-git-actions-preview
+wait --id conversation-files-pill --timeout 20
+reveal down --id "reply-changes:turn"
+wait --label "Changed 2 files, 5 added lines, 1 removed lines" --timeout 10
+tap --id "reply-changes:turn"
+wait --id reply-changes --timeout 10
+wait --id "reply-file:comic/index.html" --timeout 10
+tap --id "reply-file:comic/index.html"
+wait --contains "<title>Comic</title>" --timeout 10
+shot code-changes-git-actions-reply-diff

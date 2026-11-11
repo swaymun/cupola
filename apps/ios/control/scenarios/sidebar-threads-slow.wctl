@@ -1,0 +1,20 @@
+# A Mac that scans Codex's saved threads answers a project's thread list in
+# 13-24 s (measured; current Macs read Codex's index instead). The fixture takes
+# 17 s: the list waits instead of timing out and showing "Threads could not be
+# loaded". When the Mac really cannot list threads, the error and Try again still show.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-threads-slow
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --label "Collapse Read status" --timeout 10
+wait --contains "Threads could not be loaded" --never 22
+wait --id threads-retry:read-project --gone --timeout 3
+shot sidebar-threads-slow-answered
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-threads-down
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --label "Collapse Read status" --timeout 10
+wait --contains "Threads could not be loaded." --timeout 15
+wait --id threads-retry:read-project --timeout 5
+shot sidebar-threads-down
+tap --id threads-retry:read-project
+wait --contains "Threads could not be loaded." --timeout 15

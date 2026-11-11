@@ -1,0 +1,10 @@
+{
+  "connection-details-revealed": {
+    "fixtures": [
+      "ux6-settings-fixture",
+      "ux6-routes",
+      "ux6-routes-revealed"
+    ],
+    "ready": "connection-routes"
+  }
+}

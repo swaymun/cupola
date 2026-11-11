@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "available": true,
+  "detail": "Some pull requests could not be loaded.",
+  "total": 5,
+  "counts": { "open": 0, "draft": 1, "merged": 1, "closed": 1 },
+  "complete": false,
+  "branch": {
+    "name": "agent/thread-pull-requests",
+    "pushed": true,
+    "pullRequest": { "number": 12, "url": "https://github.com/example/wonder/pull/12" }
+  },
+  "pullRequests": [
+    {
+      "number": 12,
+      "repository": "example/wonder",
+      "title": "Show a thread's pull requests",
+      "state": "draft",
+      "headRef": "agent/thread-pull-requests",
+      "baseRef": "main",
+      "headOid": "0123456789abcdef0123456789abcdef01234567",
+      "additions": 120,
+      "deletions": 14,
+      "author": "alex",
+      "updatedAt": "2026-10-25T09:30:00Z",
+      "checks": { "state": "pending", "passed": 3, "failed": 0, "pending": 2 },
+      "details": {
+        "checks": [
+          { "name": "Unit tests", "workflow": "CI", "state": "passing", "result": "SUCCESS", "url": "https://github.com/example/wonder/actions/runs/1/job/2" },
+          { "name": "Package tests", "state": "passing", "result": "SUCCESS" },
+          { "name": "Documentation", "state": "passing", "result": "SKIPPED" },
+          { "name": "iOS build", "state": "pending", "result": "IN_PROGRESS" },
+          { "name": "Privacy audit", "state": "pending", "result": "QUEUED" }
+        ],
+        "reviewDecision": "REVIEW_REQUIRED",
+        "reviewRequests": [{ "name": "alex", "kind": "user" }, { "name": "example/mobile", "kind": "team" }],
+        "mergeStateStatus": "BLOCKED", "mergeable": "MERGEABLE", "changedFiles": 7
+      },
+      "url": "https://github.com/example/wonder/pull/12"
+    },
+    {
+      "number": 9,
+      "repository": "example/wonder",
+      "title": "Fix the composer inset",
+      "state": "merged",
+      "checks": { "state": "failing", "passed": 4, "neutral": 0, "failed": 1, "pending": 0 },
+      "url": "https://github.com/example/wonder/pull/9"
+    },
+    {
+      "number": 3,
+      "repository": "example/site.docs",
+      "title": "Document pairing",
+      "state": "closed",
+      "checks": { "state": "none", "passed": 0, "failed": 0, "pending": 0 },
+      "url": "https://github.com/example/site.docs/pull/3"
+    }
+  ]
+}

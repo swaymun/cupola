@@ -1,0 +1,680 @@
+#!/usr/bin/env python3
+"""Decide which CI jobs a change needs. Prints one `job=true|false` line per job.
+
+  scripts/ci-changes BASE HEAD         # changed files from git diff
+  scripts/ci-changes --files a b c     # explicit file list (for checks)
+  scripts/ci-changes --plan BASE HEAD  # exact current groups, without legacy aliases
+  scripts/ci-changes --rust-packages BASE HEAD  # affected Cargo package arguments
+
+Each job lists the paths that can change its result. A file that matches no job
+and is not known to be outside CI runs every job, so a new area is never silently
+untested. Changing this script also runs everything.
+"""
+import re
+import fnmatch
+import json
+import shlex
+import runpy
+import subprocess
+import sys
+from pathlib import Path
+
+PLAN_VERSION = 2
+ROOT = Path(__file__).resolve().parents[1]
+
+JOBS = {
+    # Copy can reach users through prepared Swift values and Rust HTTP/CLI errors.
+    "docs": [r"^apps/ios/", r"^apps/native/Sources/", r"^crates/", r"^services/", r"^native/",
+             r"^distribution/", r"^(?:un)?install\.(sh|ps1)$", r"^site/", r"^llms\.txt$",
+             r"^scripts/(check-platform-wording|platform-wording-allowlist\.json|land)$",
+             r"^scripts/", r"^tests/", r"^fastlane/", r"\.md$"],
+    "rust": [r"^crates/(?!wonderd/computer-helper/)", r"^tests/fixtures/protocol/", r"^Cargo\.(toml|lock)$", r"^rust-toolchain", r"^\.cargo/", r"^packages/protocol/",
+             r"^compatibility-manifest\.json$", r"^scripts/(check-provider-routing|provider-routing-baseline\.json)$"],
+    # This MSVC/libwebrtc crate is deliberately outside the gnullvm workspace.
+    "computer_helper": [r"^crates/wonderd/computer-helper/",
+                        r"^scripts/(package-cli-release\.py|test-cli-distribution\.py|release-cli-linux\.sh|release-cli-windows\.ps1)$"],
+    # Windows tiers 1-2 on a Boat box (scripts/vms/boat-windows): cross-build, clippy and Wine tests for the
+    # Windows cfg paths, the MSVC computer helper via cargo-xwin, and install.ps1 under PowerShell 7. Rust sources join by content (windows_source).
+    "windows": [r"^scripts/windows/", r"^scripts/vms/(?:boat-windows|test-boat-windows\.py)$", r"^(?:un)?install\.ps1$",
+                r"^scripts/release-cli-windows\.ps1$", r"^Cargo\.(toml|lock)$", r"^rust-toolchain", r"^\.cargo/",
+                r"^crates/(?!wonderd/computer-helper/)[^/]+/Cargo\.toml$",
+                r"^crates/wonderd/computer-helper/(?:src/|tests/|\.cargo/|vendor/|Cargo\.(?:toml|lock)$|build\.rs$)"],
+    "native": [r"^apps/native/", r"^packages/protocol/", r"^tests/fixtures/protocol/"],
+    "computer_use": [r"^native/computer-use/", r"^scripts/verify-computer-use\.mjs$", r"^packages/protocol/"],
+    # Tooling tests run only when their subject changes (test-orch alone took ~77 s per land).
+    "orch": [r"^scripts/(orch|visual-gate|check-test-timeouts|overnight|cloud-setup\.sh|test-orch\.py|verify-main|sim-jobs|test-verify-main\.py|check-stack-depth|stack_depth_lldb\.py)$",
+             r"^scripts/vms/"],
+    "land_cleanup": [r"^scripts/(land|prune-merged-worktrees|(?:test-)?clean-build-artifacts\.py)$"],
+    "land_tools": [r"^scripts/(land|ci-changes|preflight|test-land\.py)$", r"^crates/wonderd/computer-helper/check\.py$"],
+    # Privacy/protocol fixture guards stay owning checks, rather than running for every copy edit.
+    "session_fixtures": [r"^scripts/(?:generate-session-fixtures|replay-session-fixture|test-session-fixtures|test-replay-session-fixture|test-session-replay-http|run-live-fixtures|test-live-fixtures)\.py$",
+                         r"^scripts/(preflight-live-fixtures|project-claude-fixtures)\.mjs$",
+                         r"^scripts/(live-fixtures-requirements\.txt|fixtures/session-shapes\.json)$",
+                         r"^research/codex-app-server/", r"^tests/fixtures/(session|code-mode-host\.py)", r"^packages/protocol/",
+                         r"^services/claude-runtime/"],
+    "nightly_tools": [r"^scripts/(nightly-sim|run-live-fixtures\.py|setup-nightly-sim|run-scenarios|check-cli-codex|"
+                      r"live-fixtures-requirements\.txt|test-nightly-live-fixtures\.py|wonderctl|test-wonderctl\.py)$"],
+    "push": [r"^services/push/"],
+    "claude_runtime": [r"^services/(claude|acp)-runtime/"],
+    # Landing stays static; the lead explicitly runs the bounded simulator smoke.
+    "ios_checks": [r"^apps/ios/", r"^apps/native/", r"^scripts/(check-theme|check-project-language|check-provider-branches|check-privacy-manifests)$",
+                   r"^scripts/(check-scenario-selectors|scenario-selectors-allowlist\.json|test-check-scenario-selectors\.py)$"],
+    "ios_release": [r"^apps/ios/", r"^apps/native/"],
+}
+EVERYTHING = [r"^scripts/ci-changes$"]
+# Areas no CI job builds or tests; changing them alone runs nothing.
+OUTSIDE_CI = [r"\.md$", r"^\.github/", r"^\.claude/", r"^\.gitignore$", r"^fastlane/", r"^Gemfile",
+              r"^docs/", r"^research/", r"^assets/", r"^evidence/", r"^artifacts/", r"^output/",
+              r"^dist/", r"^licenses/", r"^LICENSE$", r"^provenance\.json$", r"^justfile$",
+              r"^apps/pwa/",
+              r"^scripts/"]
+
+
+WINDOWS_CFG = re.compile(r'\bcfg(?:_attr)?!?\s*\(.*\b(?:windows|unix)\b|target_os\s*=\s*"windows"|windows[-_]sys|\bwindows::|os::windows')
+
+
+def windows_source(path, root=None):
+    """A workspace Rust file whose text selects or gates code by Windows/unix, or that is gone (a deletion can
+    remove a Windows item). Plain portable files do not need the Windows tier; the Rust job covers them."""
+    if not path.endswith('.rs') or not path.startswith('crates/') or path.startswith('crates/wonderd/computer-helper/'):
+        return False
+    try:
+        return bool(WINDOWS_CFG.search(((root or ROOT) / path).read_text(errors='replace')))
+    except OSError:
+        return True
+
+
+def decide(files, root=None):
+    needed = {job: False for job in JOBS}
+    for path in files:
+        if any(re.search(p, path) for p in EVERYTHING):
+            needed = {job: True for job in JOBS}
+            break
+        matched = [job for job, patterns in JOBS.items() if any(re.search(p, path) for p in patterns)]
+        for job in matched:
+            needed[job] = True
+        if not matched and not any(re.search(p, path) for p in OUTSIDE_CI):
+            needed = {job: True for job in JOBS}
+            break
+    if needed['orch']:  # the full suite already owns the land/cleanup subset
+        needed['land_cleanup'] = False
+    # Rust sources outside the declared patterns still select Cargo; unknown paths and
+    # changes to this selector already failed closed to every job above.
+    needed['rust'] |= any(rust_path(path) for path in files)
+    needed['windows'] |= any(windows_source(path, root) for path in files)
+    return needed
+
+
+def rust_path(path):
+    return (any(re.search(pattern, path) for pattern in JOBS['rust']) or
+            path.endswith('.rs') and not path.startswith('crates/wonderd/computer-helper/'))
+
+
+def rust_graph(root):
+    result = subprocess.run(['cargo', 'metadata', '--no-deps', '--offline', '--locked', '--format-version', '1'],
+                            cwd=root, capture_output=True, text=True, check=True)
+    metadata = json.loads(result.stdout)
+    members = {p['name']: p for p in metadata['packages'] if p['id'] in metadata['workspace_members']}
+    directories = {name: Path(p['manifest_path']).resolve().parent for name, p in members.items()}
+    by_directory = {directory: name for name, directory in directories.items()}
+    dependencies = {name: {by_directory[Path(dep['path']).resolve()] for dep in package['dependencies']
+                          if dep.get('path') and Path(dep['path']).resolve() in by_directory}
+                    for name, package in members.items()}
+    return members, directories, dependencies
+
+
+def rust_dependents(owners, dependencies):
+    selected = set(owners)
+    while True:
+        consumers = {name for name, deps in dependencies.items() if deps & selected}
+        if consumers <= selected:
+            return selected
+        selected.update(consumers)
+
+
+def rust_package_args(root, files):
+    """Use Cargo's local dependency graph; never guess test names from filenames.
+
+    A crate and its transitive dependents run all their tests/targets. Workspace manifests/lockfiles,
+    protocol inputs and unrecognized/deleted members retain the workspace gate.
+    --no-deps includes workspace path dependencies (normal, build, dev, optional
+    and target-specific) without fetching the registry or pruning by host cfg.
+    """
+    paths = [p for p in files if rust_path(p)]
+    if not paths or any(not p.startswith('crates/') for p in paths):
+        return ['--workspace']
+    try:
+        _, directories, dependencies = rust_graph(root)
+        owners = set()
+        for path in paths:
+            matches = [name for name, directory in directories.items() if (root / path).resolve().is_relative_to(directory)]
+            if len(matches) != 1:
+                return ['--workspace']
+            owners.update(matches)
+        return [arg for name in sorted(rust_dependents(owners, dependencies)) for arg in ('-p', name)] or ['--workspace']
+    except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
+        print(f'Cargo metadata unavailable; keeping workspace checks: {error}', file=sys.stderr)
+        return ['--workspace']
+
+
+def rust_macos_package_args(root, scope):
+    """Keep platform-dependent Rust checks on the Mac as well as Linux.
+
+    Whole owning packages are intentional: comparing test names misses cfg! in
+    test bodies and tests of platform-specific production code with equal names.
+    Include consumers of platform-dependent local dependencies, even unchanged
+    dependencies outside the selected set. Unknown graph/build inputs fail closed.
+    """
+    try:
+        members, directories, dependencies = rust_graph(root)
+        selected = set(members) if scope == ['--workspace'] else set(scope[1::2])
+        sensitive = set()
+        for name, directory in directories.items():
+            sources = [Path(members[name]['manifest_path']), *directory.rglob('*.rs')]
+            if any(target['kind'] == ['custom-build'] for target in members[name]['targets']) or any(
+                    re.search(r'\btarget_|\b(?:macos|darwin|apple)\b', path.read_text()) for path in sources):
+                sensitive.add(name)
+        local = selected & rust_dependents(sensitive, dependencies)
+        return [arg for name in sorted(local) for arg in ('-p', name)]
+    except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
+        print(f'macOS Rust split unavailable; keeping selected checks locally too: {error}', file=sys.stderr)
+        return scope
+
+
+# Screen owners. Shared trust, protocol, storage and refresh scheduling fall back to full.
+
+IOS_OWNERS = {'smoke': {'xctests': ['WonderDiagnosticsTests/DiagnosticTestDriverTests/*',
+                       'WonderUITests/DeepLinkUITests/testExactConversationLinkOpensProjectThread',
+                       'WonderUITests/DeepLinkUITests/testUnpairedAndMalformedLinksGiveRecovery']},
+ 'owners': [{'name': 'automations',
+             'paths': ['apps/ios/Wonder/AutomationsView.swift'],
+             'xctests': ['WonderDiagnosticsTests/Automation*/*', 'WonderUITests/AutomationUITests/*'],
+             'scenarios': ['apps/ios/control/scenarios/automations*.wctl',
+                           'apps/ios/control/scenarios/sidebar-automations.wctl']},
+            {'name': 'terminal',
+             'paths': ['apps/ios/Wonder/TerminalSheet.swift', 'apps/ios/Wonder/DiagnosticTerminalFixture.swift',
+                       'apps/native/Sources/*/Terminal.swift'],
+             'xctests': ['WonderDiagnosticsTests/TerminalSessionModelTests/*',
+                         'WonderDiagnosticsTests/ToolPresentationTests/*'],
+             'native': ['apps/native/Tests/*/TerminalTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/terminal*.wctl']},
+            {'name': 'widgets-shortcuts',
+             'paths': ['apps/ios/Wonder/ProjectShortcuts.swift', 'apps/ios/Wonder/ProjectWidgetSnapshotPublisher.swift',
+                       'apps/ios/WonderWidget/*'],
+             'xctests': ['WonderDiagnosticsTests/ProjectWidgetSnapshotTests/*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/testCatalogWriter*']},
+            {'name': 'live-activities',
+             'paths': ['apps/ios/Wonder/AgentLiveActivities.swift'],
+             'xctests': ['WonderDiagnosticsTests/AgentLiveActivityTests/*'],
+             'scenarios': ['apps/ios/control/scenarios/sidebar-push.wctl', 'apps/ios/control/scenarios/ui-polish.wctl',
+                           'apps/ios/control/scenarios/live-activity*.wctl']},
+            {'name': 'notifications',
+             'paths': ['apps/ios/Wonder/PushNotifications.swift', 'apps/ios/Wonder/NotificationAccountView.swift',
+                       'apps/ios/Wonder/WonderAccount.swift', 'apps/native/Sources/*/InAppAlerts.swift'],
+             'xctests': ['WonderDiagnosticsTests/WonderDiagnosticsTests/test*Notification*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/testPush*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/testAccount*',
+                         'WonderDiagnosticsTests/AgentLiveActivityTests/*'],
+             'scenarios': ['apps/ios/control/scenarios/notification*.wctl',
+                           'apps/ios/control/scenarios/sidebar-push.wctl']},
+            {'name': 'onboarding',
+             'paths': ['apps/ios/Wonder/OnboardingView.swift', 'apps/ios/Wonder/ReleaseNotes.swift'],
+             'xctests': ['WonderDiagnosticsTests/AcknowledgementsTests/*'],
+             'scenarios': ['apps/ios/control/scenarios/first-launch.wctl',
+                           'apps/ios/control/scenarios/settings-about.wctl']},
+            {'name': 'theme',
+             'paths': ['apps/ios/Wonder/WonderTheme.swift', 'apps/ios/Wonder/WonderTypography.swift',
+                       'apps/native/Sources/*/WonderTheme.swift', 'apps/native/Sources/*/WonderThemeCatalog.swift'],
+             'native': ['apps/native/Tests/*/WonderThemeTests.swift'],
+             'snapshots': ['apps/ios/SnapshotTests/PresentationSnapshotTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/theme*.wctl', 'apps/ios/control/scenarios/font*.wctl',
+                           'apps/ios/control/scenarios/accessibility-text.wctl']},
+            {'name': 'browser-preview',
+             'paths': ['apps/ios/Wonder/BrowserPreview.swift', 'apps/ios/Wonder/WorkspacePreviews.swift',
+                       'apps/native/Sources/*/DevServerPreview.swift'],
+             'xctests': ['WonderDiagnosticsTests/BrowserPreviewLinkRoutingTests/*',
+                         'WonderDiagnosticsTests/HTMLArtifactWebViewTests/*',
+                         'WonderUITests/WorkspacePreviewUITests/*'],
+             'native': ['apps/native/Tests/*/DevServerPreviewTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/browser*.wctl', 'apps/ios/control/scenarios/loopback*.wctl',
+                           'apps/ios/control/scenarios/html-render*.wctl']},
+            {'name': 'workspace-files',
+             'paths': ['apps/ios/Wonder/WorkspaceBrowser.swift', 'apps/ios/Wonder/DocumentPreviews.swift',
+                       'apps/ios/Wonder/PhotoViewer.swift', 'apps/ios/Wonder/TextFileViewers.swift',
+                       'apps/ios/Wonder/InlineMediaViews.swift', 'apps/ios/Wonder/MacFileAccess.swift',
+                       'apps/native/Sources/*/WorkspaceMediaResourceLoader.swift', 'apps/native/Sources/*/Files.swift',
+                       'apps/native/Sources/*/TextViewing.swift', 'apps/native/Sources/*/MarkdownReferences.swift'],
+             'xctests': ['WonderDiagnosticsTests/HTMLArtifactWebViewTests/*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/test*Preview*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/testOpenWorkspace*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/test*File*', 'WonderUITests/*/*Files*',
+                         'WonderUITests/*/*Preview*', 'WonderUITests/*/*Attachment*'],
+             'native': ['apps/native/Tests/*/WorkspaceMediaTransportTests.swift', 'apps/native/Tests/*/FileTests.swift',
+                        'apps/native/Tests/*/TextViewingTests.swift',
+                        'apps/native/Tests/*/MarkdownReferencesTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/workspace*.wctl', 'apps/ios/control/scenarios/markdown*.wctl',
+                           'apps/ios/control/scenarios/file*.wctl', 'apps/ios/control/scenarios/copy-markdown.wctl']},
+            {'name': 'sketch',
+             'paths': ['apps/ios/Wonder/SketchSheet.swift'],
+             'xctests': ['WonderDiagnosticsTests/SketchExportTests/*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/testSketch*'],
+             'scenarios': ['apps/ios/control/scenarios/sketch-sheet.wctl']},
+            {'name': 'camera-attachments',
+             'paths': ['apps/ios/Wonder/CameraCapture.swift', 'apps/ios/Wonder/ComposerAttachments.swift',
+                       'apps/native/Sources/*/AttachmentImagePolicy.swift'],
+             'xctests': ['WonderDiagnosticsTests/WonderDiagnosticsTests/test*Camera*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/test*Photo*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/test*Paste*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/test*Attachment*',
+                         'WonderUITests/*/*Attachment*'],
+             'native': ['apps/native/Tests/*/ConversationPicturePreviewTests.swift',
+                        'apps/native/Tests/*/ConversationFileContentTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/workspace-media-previews.wctl',
+                           'apps/ios/control/scenarios/composer-draft.wctl']},
+            {'name': 'native-reply-ui',
+             'paths': ['apps/ios/Wonder/NativeReplyUI/*.swift', 'apps/ios/Wonder/NativeReplyUI/*'],
+             'xctests': ['WonderDiagnosticsTests/HTMLArtifactWebViewTests/*'],
+             'snapshots': ['apps/ios/SnapshotTests/PresentationSnapshotTests.swift',
+                           'apps/ios/SnapshotTests/HTMLVisualPageTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/genui*.wctl', 'apps/ios/control/scenarios/visual-tool.wctl',
+                           'apps/ios/control/scenarios/html-render*.wctl']},
+            {'name': 'computer',
+             'paths': ['apps/ios/Wonder/ComputerSessionView.swift', 'apps/ios/Wonder/ComputerInput.swift',
+                       'apps/ios/Wonder/SimulatorSessionView.swift', 'apps/native/Sources/*/ComputerSession.swift',
+                       'apps/native/Sources/*/ComputerAgentActivity.swift',
+                       'apps/native/Sources/WonderComputerView/*'],
+             'xctests': ['WonderDiagnosticsTests/WonderDiagnosticsTests/test*Computer*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/testMacDialog*',
+                         'WonderUITests/*/*Computer*'],
+             'native': ['apps/native/Tests/*/Computer*Tests.swift', 'apps/native/Tests/*/SimulatorScreenTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/computer*.wctl',
+                           'apps/ios/control/scenarios/simulator-view.wctl']},
+            {'name': 'computer-settings',
+             'paths': ['apps/ios/Wonder/ManagementViews.swift', 'apps/native/Sources/*/Management.swift',
+                       'apps/native/Sources/*/AgentInstructionSettings.swift', 'apps/ios/Wonder/SettingsSearch.swift'],
+             'xctests': ['WonderDiagnosticsTests/ComputerUseSettingsTests/*'],
+             'native': ['apps/native/Tests/*/ManagementTests.swift',
+                        'apps/native/Tests/*/AgentInstructionSettingsTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/settings-about.wctl',
+                           'apps/ios/control/scenarios/settings-search.wctl',
+                           'apps/ios/control/scenarios/settings-search-clear.wctl']},
+            {'name': 'code-changes',
+             'paths': ['apps/ios/Wonder/CodeChangesSheet.swift', 'apps/ios/Wonder/DiffViews.swift',
+                       'apps/ios/Wonder/DiffCommentEditor.swift', 'apps/ios/Wonder/PullRequestDetailView.swift',
+                       'apps/ios/Wonder/DiagnosticPullRequestDetails.swift', 'apps/native/Sources/*/CodeChanges.swift',
+                       'apps/native/Sources/*/PullRequests.swift',
+                       'apps/native/Sources/*/ConversationPullRequests.swift',
+                       'apps/native/Sources/*/PullRequestDetails.swift', 'apps/native/Sources/*/GitActions.swift',
+                       'apps/native/Sources/*/FileChangeSummary.swift', 'apps/native/Sources/*/WorkspaceBranch.swift',
+                       'apps/native/Sources/*/ThreadRepositories.swift', 'apps/native/Sources/*/DiffAnnotation.swift'],
+             'xctests': ['WonderUITests/*/*Diff*'],
+             'native': ['apps/native/Tests/*/PullRequestsTests.swift',
+                        'apps/native/Tests/*/GitActionsTests.swift', 'apps/native/Tests/*/FileChangeSummaryTests.swift',
+                        'apps/native/Tests/*/WorkspaceBranchTests.swift',
+                        'apps/native/Tests/*/ThreadRepositoriesTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/pull-request*.wctl',
+                           'apps/ios/control/scenarios/code-changes*.wctl', 'apps/ios/control/scenarios/diff*.wctl']},
+            {'name': 'voice-dictation',
+             'paths': ['apps/ios/Wonder/VoiceMode.swift', 'apps/ios/Wonder/DictationViews.swift',
+                       'apps/native/Sources/*/Dictation.swift', 'apps/native/Sources/WonderVoice/*'],
+             'xctests': ['WonderDiagnosticsTests/WonderDiagnosticsTests/testVoice*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/test*Dictation*'],
+             'native': ['apps/native/Tests/*/Voice*Tests.swift', 'apps/native/Tests/*/AudioSessionTests.swift',
+                        'apps/native/Tests/*/DictationTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/voice*.wctl']},
+            {'name': 'composer',
+             'paths': ['apps/ios/Wonder/ComposerEditor.swift', 'apps/ios/Wonder/ComposerCompletion.swift',
+                       'apps/ios/Wonder/ComposerPromptSuggestion.swift',
+                       'apps/ios/Wonder/ComposerApprovalSettings.swift', 'apps/ios/Wonder/SelectedCodexSkills.swift',
+                       'apps/ios/Wonder/DiagnosticComposerCompletion.swift',
+                       'apps/ios/Wonder/DiagnosticPromptSuggestion.swift',
+                       'apps/native/Sources/*/ComposerCompletion.swift', 'apps/native/Sources/*/ComposerPills.swift',
+                       'apps/native/Sources/*/PromptSuggestion.swift', 'apps/native/Sources/*/CodexSkills.swift'],
+             'xctests': ['WonderUITests/*/*Composer*'],
+             'native': ['apps/native/Tests/*/Composer*Tests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/composer*.wctl', 'apps/ios/control/scenarios/prompt*.wctl',
+                           'apps/ios/control/scenarios/wonder-skills.wctl']},
+            {'name': 'attention-queue',
+             'paths': ['apps/ios/Wonder/AttentionViews.swift', 'apps/ios/Wonder/QueueViews.swift',
+                       'apps/native/Sources/*/Attention.swift', 'apps/native/Sources/*/Queue.swift',
+                       'apps/native/Sources/*/FollowUpBehavior.swift'],
+             'xctests': ['WonderDiagnosticsTests/WonderDiagnosticsTests/test*AsyncReply*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/testQueued*'],
+             'native': ['apps/native/Tests/*/AttentionTests.swift', 'apps/native/Tests/*/FollowUpBehaviorTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/approval*.wctl', 'apps/ios/control/scenarios/queue*.wctl',
+                           'apps/ios/control/scenarios/claude-queued*.wctl']},
+            {'name': 'activity',
+             'paths': ['apps/ios/Wonder/ActivityViews.swift', 'apps/ios/Wonder/ToolActivityViews.swift',
+                       'apps/ios/Wonder/ToolActivityViews.swift', 'apps/ios/Wonder/TaskChecklistView.swift',
+                       'apps/ios/Wonder/SubagentDock.swift', 'apps/native/Sources/*/ActivityAction.swift',
+                       'apps/native/Sources/*/ActivityPresentation.swift',
+                       'apps/native/Sources/*/ActivityDisclosurePolicy.swift',
+                       'apps/native/Sources/*/TaskChecklist.swift', 'apps/native/Sources/*/ConversationMinimap.swift'],
+             'xctests': ['WonderDiagnosticsTests/ToolPresentationTests/*'],
+             'native': ['apps/native/Tests/*/Activity*Tests.swift', 'apps/native/Tests/*/TurnCollapseTests.swift',
+                        'apps/native/Tests/*/ComputerAgentActivityTests.swift'],
+             'snapshots': ['apps/ios/SnapshotTests/PresentationSnapshotTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/tool*.wctl', 'apps/ios/control/scenarios/task*.wctl',
+                           'apps/ios/control/scenarios/minimap*.wctl', 'apps/ios/control/scenarios/turn-collapse.wctl',
+                           'apps/ios/control/scenarios/thinking*.wctl']},
+            {'name': 'markdown-code',
+             'paths': ['apps/ios/Wonder/MessageViews.swift', 'apps/ios/Wonder/CodeBlockView.swift',
+                       'apps/native/Sources/*/ConversationMarkdown.swift', 'apps/native/Sources/*/MarkdownBlocks.swift',
+                       'apps/native/Sources/*/SourceSyntax.swift', 'apps/native/Sources/*/SyntaxHighlighting.swift',
+                       'apps/native/Sources/*/HighlightJS.swift', 'apps/native/Sources/*/JSONFormatting.swift',
+                       'apps/native/Sources/*/ClaudeCommandBlock.swift'],
+             'native': ['apps/native/Tests/*/MarkdownBlocksTests.swift',
+                        'apps/native/Tests/*/FileChangeSummaryTests.swift',
+                        'apps/native/Tests/*/JSONFormattingTests.swift'],
+             'snapshots': ['apps/ios/SnapshotTests/PresentationSnapshotTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/markdown*.wctl',
+                           'apps/ios/control/scenarios/claude-command-blocks.wctl',
+                           'apps/ios/control/scenarios/copy-markdown.wctl']},
+            {'name': 'SendIntent',
+             'paths': ['apps/native/Sources/*/SendIntent.swift'],
+             'native': ['apps/native/Tests/*/SendIntentTests.swift', 'apps/native/Tests/*/GuideTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/send*.wctl', 'apps/ios/control/scenarios/guide*.wctl']},
+            {'name': 'Outbox',
+             'paths': ['apps/native/Sources/*/Outbox.swift'],
+             'native': ['apps/native/Tests/*/SendIntentTests.swift', 'apps/native/Tests/*/SendTransportTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/offline-outbox.wctl', 'apps/ios/control/scenarios/send*.wctl']},
+            {'name': 'ConversationFork',
+             'paths': ['apps/native/Sources/*/ConversationFork.swift'],
+             'native': ['apps/native/Tests/*/ConversationForkTests.swift']},
+            {'name': 'ConversationRewind',
+             'paths': ['apps/native/Sources/*/ConversationRewind.swift'],
+             'native': ['apps/native/Tests/*/ConversationRewindTests.swift']},
+            {'name': 'Search',
+             'paths': ['apps/native/Sources/*/Search.swift'],
+             'native': ['apps/native/Tests/*/SearchTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/sidebar-search.wctl']},
+            {'name': 'ProjectProviderSwitch',
+             'paths': ['apps/native/Sources/*/ProjectProviderSwitch.swift'],
+             'native': ['apps/native/Tests/*/ProjectProviderSwitchTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/provider-switch*.wctl']},
+            {'name': 'DefaultModels',
+             'paths': ['apps/native/Sources/*/DefaultModels.swift'],
+             'native': ['apps/native/Tests/*/DefaultModelsTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/composer-controls.wctl']},
+            {'name': 'ProviderMark',
+             'paths': ['apps/native/Sources/*/ProviderMark.swift'],
+             'scenarios': ['apps/ios/control/scenarios/composer-controls.wctl',
+                           'apps/ios/control/scenarios/opencode-controls.wctl',
+                           'apps/ios/control/scenarios/cursor-controls.wctl']},
+            {'name': 'ShareDestinations',
+             'paths': ['apps/native/Sources/*/ShareDestinations.swift'],
+             'native': ['apps/native/Tests/*/ShareDestinationsTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/share-sheet*.wctl']},
+            {'name': 'ShareRecovery',
+             'paths': ['apps/native/Sources/*/ShareRecovery.swift'],
+             'native': ['apps/native/Tests/*/ShareRecoveryTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/share-sheet*.wctl']},
+            {'name': 'T3CodeLaunch',
+             'paths': ['apps/native/Sources/*/T3CodeLaunch.swift'],
+             'native': ['apps/native/Tests/*/T3CodeLaunchTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/t3-code*.wctl']},
+            {'name': 'ReadAcknowledgement',
+             'paths': ['apps/native/Sources/*/ReadAcknowledgement.swift'],
+             'native': ['apps/native/Tests/*/ReadAcknowledgementTests.swift',
+                        'apps/native/Tests/*/ReadTimestampTests.swift']},
+            {'name': 'ChatDetailLevel',
+             'paths': ['apps/native/Sources/*/ChatDetailLevel.swift'],
+             'native': ['apps/native/Tests/*/ChatDetailSettingsTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/chat-detail*.wctl']},
+            {'name': 'LinkOpening',
+             'paths': ['apps/native/Sources/*/LinkOpening.swift'],
+             'native': ['apps/native/Tests/*/LinkOpeningTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/link-opening.wctl']},
+            {'name': 'chat-shell',
+             'paths': ['apps/ios/Wonder/AppShell.swift', 'apps/ios/Wonder/SidebarPresenter.swift'],
+             'xctests': ['WonderDiagnosticsTests/WonderDiagnosticsTests/testSidebar*', 'WonderUITests/*/*RootScene*'],
+             'native': ['apps/native/Tests/*/ProjectsTests.swift', 'apps/native/Tests/*/SavedConnectionsTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/sidebar*.wctl', 'apps/ios/control/scenarios/layout*.wctl',
+                           'apps/ios/control/scenarios/companion*.wctl', 'apps/ios/control/scenarios/ui-polish.wctl',
+                           'apps/ios/control/scenarios/first-launch.wctl']},
+            {'name': 'conversation-view',
+             'paths': ['apps/ios/Wonder/ConversationView.swift'],
+             'xctests': ['WonderDiagnosticsTests/WonderDiagnosticsTests/test*Media*',
+                         'WonderUITests/*/*Composer*'],
+             'native': ['apps/native/Tests/*/ActivityLayoutTests.swift',
+                        'apps/native/Tests/*/MessageProjectionTests.swift',
+                        'apps/native/Tests/*/TurnCollapseTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/composer*.wctl', 'apps/ios/control/scenarios/minimap*.wctl',
+                           'apps/ios/control/scenarios/layout*.wctl', 'apps/ios/control/scenarios/chat*.wctl',
+                           'apps/ios/control/scenarios/approval*.wctl', 'apps/ios/control/scenarios/tool*.wctl',
+                           'apps/ios/control/scenarios/stream-reply.wctl',
+                           'apps/ios/control/scenarios/turn-collapse.wctl',
+                           'apps/ios/control/scenarios/context-usage.wctl',
+                           'apps/ios/control/scenarios/context-usage-persist.wctl',
+                           'apps/ios/control/scenarios/context-usage-persist-duo.wctl']},
+            {'name': 'new-chat',
+             'paths': ['apps/ios/Wonder/NewChatView.swift'],
+             'xctests': ['WonderDiagnosticsTests/WonderDiagnosticsTests/testNewChat*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/testCreationMessage*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/testProjectPreparation*',
+                         'WonderUITests/DeepLinkUITests/testExactProjectLink*'],
+             'native': ['apps/native/Tests/*/ProjectsTests.swift', 'apps/native/Tests/*/DefaultModelsTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/first-launch.wctl', 'apps/ios/control/scenarios/new-chat*.wctl',
+                           'apps/ios/control/scenarios/composer-controls.wctl']},
+            {'name': 'projects',
+             'paths': ['apps/ios/Wonder/ProjectViews.swift', 'apps/ios/Wonder/ProjectsModel.swift'],
+             'xctests': ['WonderDiagnosticsTests/WonderDiagnosticsTests/testProject*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/testSidebar*',
+                         'WonderDiagnosticsTests/WonderDiagnosticsTests/test*Read*', 'WonderUITests/*/*Project*',
+                         'WonderUITests/DeepLinkUITests/*'],
+             'native': ['apps/native/Tests/*/ProjectsTests.swift',
+                        'apps/native/Tests/*/ProjectProviderSwitchTests.swift',
+                        'apps/native/Tests/*/ReadAcknowledgementTests.swift'],
+             'scenarios': ['apps/ios/control/scenarios/project*.wctl', 'apps/ios/control/scenarios/sidebar*.wctl',
+                           'apps/ios/control/scenarios/provider*.wctl', 'apps/ios/control/scenarios/chat-detail*.wctl',
+                           'apps/ios/control/scenarios/opencode*.wctl', 'apps/ios/control/scenarios/cursor*.wctl']},
+            {'name': 'demo',
+             'paths': ['apps/ios/Wonder/DemoMode.swift'],
+             'xctests': ['WonderDiagnosticsTests/WonderDiagnosticsTests/testDemo*'],
+             'scenarios': ['apps/ios/control/scenarios/demo-mode.wctl', 'apps/ios/control/scenarios/demo-tour.wctl',
+                           'apps/ios/control/scenarios/demo-tour-ipad.wctl']}],
+ 'shared_test_files': ['apps/ios/WonderDiagnosticsTests/WonderDiagnosticsTests.swift']}
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+def changed_files(root=ROOT, base="origin/main"):
+    # Include staged and unstaged work as well as commits; use NULs for spaces.
+    files = set()
+    for arguments in (["diff", "--name-only", "-z", f"{base}...HEAD"],
+                      ["diff", "--name-only", "-z", "HEAD"],
+                      ["ls-files", "--others", "--exclude-standard", "-z"]):
+        result = subprocess.run(["git", "-C", str(root), *arguments], capture_output=True, text=True)
+        if result.returncode:
+            raise ValueError(f"Cannot select tests: {result.stderr.strip()}")
+        files.update(filter(None, result.stdout.split("\0")))
+    return sorted(files)
+
+
+def matches(value, patterns):
+    return any(fnmatch.fnmatchcase(value, pattern) for pattern in patterns)
+
+
+def catalog(root=ROOT):
+    # Reuse the existing Swift-aware discovery (comments, raw strings, extensions,
+    # inheritance). A new test need not be in the retired nightly manifest to run.
+    scanner = runpy.run_path(str(root / "scripts/nightly-sim"))
+    tests = scanner["xctest_ids"](root)
+    lanes = {test: (lane, reason) for lane, test, reason, _ in
+             scanner["read_xctest_manifest"](root / "apps/ios/control/xctests.txt")}
+    native, snapshots, files = {}, {}, {}
+    for folder, owners in [("apps/native/Tests", native), ("apps/ios/SnapshotTests", snapshots)]:
+        for path in sorted((root / folder).rglob("*.swift")):
+            code = scanner["swift_code"](path.read_text())
+            names = re.findall(r"\b(?:class|struct)\s+(\w+)\s*(?::\s*XCTestCase\b|\{)", code)
+            # Swift Testing suites use @Suite; helper types are not filters.
+            if "@Suite" in code:
+                names += re.findall(r"@Suite(?:\([^\n]*\))?\s+(?:@MainActor\s+)?struct\s+(\w+)", code)
+            owners[str(path.relative_to(root))] = sorted(set(n for n in names if n.endswith("Tests")))
+    for target in ("WonderDiagnosticsTests", "WonderUITests"):
+        for path in (root / "apps/ios" / target).glob("*.swift"):
+            code = scanner["swift_code"](path.read_text())
+            classes = set(re.findall(r"\b(?:class|extension)\s+(\w+)", code))
+            files[str(path.relative_to(root))] = [test for test in tests if test.split("/")[1] in classes]
+    scenarios = sorted(str(path.relative_to(root)) for path in
+                       (root / "apps/ios/control/scenarios").glob("*.wctl"))
+    return tests, lanes, native, snapshots, files, scenarios
+
+
+def select(files, phase="worker", device="iphone", root=ROOT):
+    normalized = []
+    for value in files:
+        path = Path(value)
+        if path.is_absolute():
+            path = path.relative_to(root)
+        if ".." in path.parts:
+            raise ValueError(f"Test selection path escapes the checkout: {value}")
+        normalized.append(path.as_posix())
+    files = normalized
+    config = IOS_OWNERS
+    tests, lanes, native, snapshots, test_files, scenarios = catalog(root)
+    plan = {"phase": phase, "device": device, "files": sorted(set(files)),
+            "xctests": [], "native": [], "snapshots": [], "scenarios": [],
+            "fallback": [], "opt_in": [], "not_applicable": []}
+    selected = {key: set() for key in ("xctests", "native", "snapshots", "scenarios")}
+
+    def add(rule):
+        missing = []
+        if not any(rule.get(key) for key in selected):
+            missing.append("no declared test owner")
+        for pattern in rule.get("xctests", []):
+            found = [test for test in tests if matches(test, [pattern])]
+            if not found:
+                missing.append(pattern)
+            selected["xctests"].update(found)
+        for key, owners in (("native", native), ("snapshots", snapshots)):
+            for pattern in rule.get(key, []):
+                found = [name for path, names in owners.items() if matches(path, [pattern]) for name in names]
+                if not found:
+                    missing.append(pattern)
+                selected[key].update(found)
+        for pattern in rule.get("scenarios", []):
+            found = [path for path in scenarios if matches(path, [pattern])]
+            if not found:
+                missing.append(pattern)
+            selected["scenarios"].update(found)
+        return missing
+
+    def full():
+        selected["xctests"].update(tests)
+        selected["native"].update(name for names in native.values() for name in names)
+        selected["snapshots"].update(name for names in snapshots.values() for name in names)
+        selected["scenarios"].update(scenarios)
+
+    if phase == "release":
+        full()
+    elif phase == "landing":
+        if any((path.startswith(("apps/ios/", "apps/native/", "packages/protocol/")) and not path.endswith(".md")) or
+               path in ("scripts/wonderctl", "scripts/ci-changes") for path in files):
+            missing = add(config["smoke"])
+            if missing:
+                raise ValueError("Landing smoke owner is stale; update IOS_OWNERS: " + ", ".join(missing))
+    else:
+        for path in files:
+            if path in config.get("shared_test_files", []):
+                target = path.split("/")[2]
+                selected["xctests"].update(test for test in tests if test.startswith(target + "/"))
+            elif path in test_files:
+                if test_files[path]:
+                    selected["xctests"].update(test_files[path])
+                else:  # A shared XCTest helper has no test methods of its own.
+                    target = path.split("/")[2]
+                    selected["xctests"].update(test for test in tests if test.startswith(target + "/"))
+            elif path in native or path in snapshots:
+                key, owners = ("native", native) if path in native else ("snapshots", snapshots)
+                if owners[path]:
+                    selected[key].update(owners[path])
+                else:  # Shared test helpers affect every suite in their package.
+                    selected[key].update(name for names in owners.values() for name in names)
+            elif path in scenarios:
+                selected["scenarios"].add(path)
+            elif path.endswith(".md"):
+                continue
+            else:
+                rules = [rule for rule in config["owners"] if matches(path, rule["paths"])]
+                if rules:
+                    for rule in rules:
+                        if add(rule):
+                            plan["fallback"].append(path + " (stale owner: " + rule["name"] + ")")
+                            full()
+                elif path.startswith(("apps/ios/", "apps/native/", "packages/protocol/")) or path in (
+                        "scripts/wonderctl", "scripts/ci-changes"):
+                    # New/renamed production files and shared contracts fail broad.
+                    plan["fallback"].append(path)
+                    full()
+    for test in sorted(selected["xctests"]):
+        lane, reason = lanes.get(test, ("iphone", "new test; no retired-nightly classification"))
+        if lane == "duo" and device == "duo":
+            plan["xctests"].append(test)
+        elif lane not in ("iphone", "ipad", "smoothness"):
+            plan["opt_in"].append({"test": test, "lane": lane, "reason": reason})
+        elif lane == "ipad" and device != "ipad":
+            plan["not_applicable"].append(test)
+        else:
+            plan["xctests"].append(test)
+    for path in sorted(selected["scenarios"]):
+        text = (root / path).read_text()
+        allowed = re.search(r"^# devices:\s*(.+)$", text, re.M)
+        if allowed and device not in allowed[1].split():
+            plan["not_applicable"].append(path)
+        else:
+            plan["scenarios"].append(path)
+    for key in ("native", "snapshots"):
+        plan[key] = sorted(selected[key])
+    return plan
+
+
+
+def main(argv):
+    if argv[:1] == ["--ios"]:
+        import argparse
+        parser = argparse.ArgumentParser(description="Select iOS checks by contract owner")
+        parser.add_argument("--ios", choices=["worker", "landing", "release"], required=True)
+        parser.add_argument("--device", choices=["iphone", "iphone-27", "ipad", "duo"], default="iphone")
+        parser.add_argument("--base", default="origin/main")
+        parser.add_argument("--files", nargs="*")
+        args = parser.parse_args(argv)
+        files = args.files if args.files is not None else changed_files(base=args.base)
+        print(json.dumps(select(files, args.ios, args.device), indent=2))
+        return
+    exact_plan = argv[:1] == ['--plan']
+    if exact_plan:
+        argv = argv[1:]
+    rust_only = argv[:1] == ['--rust-packages']
+    if rust_only:
+        argv = argv[1:]
+
+    if argv[:1] == ["--files"]:
+        files = argv[1:]
+    elif len(argv) == 2:
+        diff = subprocess.run(["git", "diff", "--name-only", "--no-renames", "-z", f"{argv[0]}...{argv[1]}"],
+                              text=True, capture_output=True)
+        if diff.returncode != 0:
+            print(f"git diff failed ({diff.stderr.strip()}); running everything", file=sys.stderr)
+            files = ["<unknown>"]
+        else:
+            files = [p for p in diff.stdout.split('\0') if p]
+    else:
+        sys.exit(__doc__)
+    if rust_only:
+        root = Path(subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], text=True).strip())
+        print(shlex.join(rust_package_args(root, files)))
+        return
+    needed = decide(files)
+    if not exact_plan:
+        # An already-running pre-v2 land can rebase onto this selector. Its
+        # original composite groups must still cover the newly split owners.
+        needed['native'] |= needed['computer_use']
+        needed['orch'] |= needed['land_cleanup']
+        needed['docs'] |= needed['session_fixtures']
+    for job, run in needed.items():
+        print(f"{job}={'true' if run else 'false'}")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

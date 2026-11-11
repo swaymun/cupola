@@ -1,0 +1,8 @@
+# Actual Settings shell, deterministic offline fixture. Assert resulting screen.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture settings-open
+wait --id settings-search-field --timeout 30
+shot ux6-settings-before-edge-swipe
+swipe right --edge-of settings-root-list
+wait --id settings-search-field --gone --timeout 10
+wait --id new-chat-draft --timeout 10
+shot ux6-settings-after-edge-swipe

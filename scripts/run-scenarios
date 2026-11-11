@@ -1,0 +1,510 @@
+#!/usr/bin/env python3
+"""Run every feature-map scenario on one simulator and report the results.
+
+  scripts/run-scenarios --device duo            # run all, print a summary
+  scripts/run-scenarios --device iphone --pr 42 # also post the table to the PR
+  scripts/run-scenarios --device ipad --only first-launch --results out.json
+  scripts/run-scenarios --device duo --only duo-cover --only duo-unfolded
+
+Each scenario keeps its last screenshot (the failing step's on failure). With --pr the
+screenshots go up through scripts/pr-evidence and one comment per device is updated.
+A scenario during which the app crashed reports result "crashed" (passed false) with the
+simulator's crash report, the matching dSYMs and the faulting app frames.
+Exits nonzero if any scenario fails or crashes.
+The Duo map also includes control/duo-cover and control/duo-unfolded. Select either
+directory explicitly for posture qualification before attempting the full map.
+"""
+import argparse
+import datetime as dt
+import json
+import os
+import re
+import shlex
+import shutil
+import signal
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+ROOT = Path(os.environ.get("WONDER_SCENARIO_ROOT") or Path(__file__).resolve().parent.parent).resolve()
+SCENARIOS = ROOT / "apps/ios/control/scenarios"
+DUO_COLLECTIONS = ("duo-cover", "duo-unfolded")
+EVIDENCE = ROOT / ".local/control/evidence"
+SHOT = re.compile(r"(\.local/control/evidence/\S+\.png)")
+CONTEXT = re.compile(r"native context: (\.local/control/evidence/\S+\.json)")
+# `simctl launch` (wonderctl launch and activate) prints the app's process ID.
+LAUNCHED = re.compile(r"^com\.swaymun\.wonder: (\d+)$", re.MULTILINE)
+STEP = re.compile(r"^\[\d+/\d+\] (\S+)")
+# The simulator's app crashes land in the host's reports (2026-10-23: a crash read as the
+# app losing the foreground because nothing looked here).
+CRASH_REPORTS = Path.home() / "Library/Logs/DiagnosticReports"
+CRASH_WAIT = 20  # seconds ReportCrash may take to write a report after the crash
+APP_IMAGES = {"Wonder", "Wonder.debug.dylib"}
+VERDICT = {"passed": "PASS", "failed": "FAIL", "crashed": "CRASH"}
+
+
+def products():
+    """The build wonderctl installs (its WONDER_CONTROL_DERIVED), where its dSYMs are."""
+    derived = os.environ.get("WONDER_CONTROL_DERIVED")
+    base = Path(os.path.expanduser(derived)) if derived else ROOT / ".local/build/control-sim"
+    return base / "Build/Products/Diagnostics-iphonesimulator"
+
+
+def binary_uuids(path):
+    """UUIDs of a Mach-O file or dSYM bundle; empty when dwarfdump cannot read it."""
+    try:
+        output = subprocess.run(["xcrun", "dwarfdump", "--uuid", str(path)], text=True,
+                                capture_output=True, timeout=60).stdout
+    except (OSError, subprocess.SubprocessError):
+        return set()
+    return {u.upper() for u in re.findall(r"UUID: ([0-9A-Fa-f-]{36})", output)}
+
+
+def app_pids(output):
+    """(every app PID the scenario launched, whether an activate found a different process).
+
+    A launch always starts a new process; an activate that prints a new PID means the
+    previous one died during the scenario."""
+    pids, changed, step, last = [], False, None, None
+    for line in output.splitlines():
+        if match := STEP.match(line):
+            step = match.group(1)
+        elif match := LAUNCHED.match(line):
+            pid = int(match.group(1))
+            changed |= step == "activate" and last is not None and pid != last
+            pids.append(pid)
+            last = pid
+    return pids, changed
+
+
+def read_crash_report(path):
+    """(header, body) of a .ips crash report, or None for anything else."""
+    try:
+        header, _, body = path.read_text(errors="replace").partition("\n")
+        header, body = json.loads(header), json.loads(body)
+    except (OSError, ValueError):
+        return None
+    if not isinstance(header, dict) or not isinstance(body, dict) or str(header.get("bug_type")) != "309":
+        return None
+    return header, body
+
+
+def crash_time(header, body, path):
+    for value in (body.get("captureTime"), header.get("timestamp")):
+        try:
+            return dt.datetime.strptime(value, "%Y-%m-%d %H:%M:%S.%f %z").timestamp()
+        except (TypeError, ValueError):
+            continue
+    return path.stat().st_mtime
+
+
+def faulting_frames(body, limit=8):
+    """The crashed thread's app frames, top first; its first frames when none are the app's."""
+    images = body.get("usedImages") or []
+    threads = body.get("threads") or []
+    index = body.get("faultingThread")
+    thread = (threads[index] if isinstance(index, int) and 0 <= index < len(threads)
+              else next((t for t in threads if t.get("triggered")), {}))
+    frames = []
+    for frame in thread.get("frames") or []:
+        image = images[frame["imageIndex"]] if 0 <= frame.get("imageIndex", -1) < len(images) else {}
+        name = image.get("name") or "?"
+        where = (f"{frame['symbol']} + {frame.get('symbolLocation', 0)}" if frame.get("symbol")
+                 else f"0x{frame.get('imageOffset', 0):x}")
+        frames.append({"image": name, "frame": f"{name}: {where}", "app": name in APP_IMAGES})
+    own = [f["frame"] for f in frames if f["app"]]
+    return own[:limit] if own else [f["frame"] for f in frames[:3]]
+
+
+def crash_summary(path, header, body):
+    exception = body.get("exception") or {}
+    app_uuids = sorted({(i.get("uuid") or "").upper() for i in body.get("usedImages") or []
+                        if i.get("name") in APP_IMAGES and i.get("uuid")})
+    return {"report": str(path), "pid": body.get("pid"), "time": body.get("captureTime") or header.get("timestamp"),
+            "device_udid": device_of(body), "build_uuids": app_uuids,
+            "exception": " / ".join(str(exception[k]) for k in ("type", "signal") if exception.get(k)) or "unknown",
+            "reason": str((body.get("termination") or {}).get("indicator") or "")[:200],
+            "frames": faulting_frames(body)}
+
+
+def device_of(body):
+    match = re.search(r"/CoreSimulator/Devices/([0-9A-Fa-f-]{36})/", body.get("procPath") or "")
+    return match.group(1).upper() if match else None
+
+
+def recent_crashes(directory, since, claimed=()):
+    """Unclaimed Wonder crash reports written since SINCE, oldest first."""
+    found = []
+    for path in sorted(Path(directory).glob("Wonder*.ips")) if Path(directory).is_dir() else []:
+        if str(path) in claimed or path.stat().st_mtime < since - 5:
+            continue
+        parsed = read_crash_report(path)
+        if not parsed:
+            continue
+        header, body = parsed
+        when = crash_time(header, body, path)
+        if when >= since - 5:
+            found.append((when, crash_summary(path, header, body)))
+    return [summary for _, summary in sorted(found, key=lambda item: item[0])]
+
+
+def matching_crashes(directory, since, udid, pids, build_uuids, claimed=()):
+    """Wonder crash reports from this scenario: this device, one of its processes and its build.
+
+    Every criterion must be known; without one, nothing is attributed to the scenario."""
+    if not (udid and pids and build_uuids):
+        return []
+    builds = {u.upper() for u in build_uuids}
+    return [c for c in recent_crashes(directory, since, claimed)
+            if c["device_udid"] == udid.upper() and c["pid"] in pids and set(c["build_uuids"]) & builds]
+
+
+def unused(path):
+    """PATH, or PATH with -2, -3… before its suffix when it already exists."""
+    candidate, n = path, 1
+    while candidate.exists():
+        n += 1
+        candidate = path.with_name(f"{path.stem}-{n}{path.suffix}")
+    return candidate
+
+
+def preserve_crash(crash, name, products_dir):
+    """Copies the raw report and the dSYMs whose UUIDs match it before a rebuild replaces them."""
+    EVIDENCE.mkdir(parents=True, exist_ok=True)
+    report = unused(EVIDENCE / f"{time.strftime('%Y%m%d-%H%M%S')}-{name}-crash.ips")
+    shutil.copy2(crash["report"], report)
+    crash["original_report"], crash["report"] = crash["report"], str(report)
+    crash["dsyms"] = []
+    wanted = set(crash["build_uuids"])
+    for dsym in sorted(Path(products_dir).glob("*.dSYM")) if Path(products_dir).is_dir() else []:
+        if wanted and binary_uuids(dsym) & wanted:
+            target = EVIDENCE / f"{report.stem}-dSYMs" / dsym.name
+            shutil.copytree(dsym, target, dirs_exist_ok=True)
+            crash["dsyms"].append(str(target))
+    return crash
+
+
+def update_context(result, key, value, device=None, udid=None):
+    """Sets KEY in RESULT's native context (0600), creating it next to the evidence when absent."""
+    context = Path(result["context"]) if result.get("context") else None
+    try:
+        data = json.loads(context.read_text()) if context and context.exists() else {}
+    except (OSError, ValueError):
+        data = {}
+    if not context:
+        EVIDENCE.mkdir(parents=True, exist_ok=True)
+        context = unused(EVIDENCE / f"{time.strftime('%Y%m%d-%H%M%S')}-{result['name']}-context.json")
+        data["device"] = {"udid": udid, "name": device}
+    data[key] = value
+    with os.fdopen(os.open(context, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w") as handle:
+        json.dump(data, handle, indent=2, ensure_ascii=False)
+    result["context"] = str(context)
+
+
+def attach_crashes(result, crashes, device):
+    """Marks RESULT crashed (still passed=false) and records every crash in its native context."""
+    first = crashes[0]
+    frame = first["frames"][0] if first["frames"] else "no app frame"
+    more = f" (and {len(crashes) - 1} more crash report{'s' if len(crashes) > 2 else ''})" if len(crashes) > 1 else ""
+    previous = result["failure"]
+    result.update(passed=False, result="crashed", crashes=crashes,
+                  failure=(f"The app crashed ({first['exception']}) at {frame}; crash report: {first['report']}{more}"
+                           + (f"; the scenario then failed: {previous}" if previous else ""))[:600])
+    update_context(result, "crashes", crashes, device, first["device_udid"])
+
+
+class CrashFinder:
+    """Finds the crash reports behind a scenario, reading the device and build only when one exists."""
+
+    def __init__(self, device, directory=CRASH_REPORTS, wait=CRASH_WAIT, products_dir=None):
+        self.device, self.directory, self.wait = device, Path(directory), wait
+        self.products = Path(products_dir) if products_dir else products()
+        self.claimed = set()
+        self.poll = 2
+        self._udid = self._build = None
+
+    def udid(self, result):
+        try:
+            return json.loads(Path(result["context"]).read_text())["device"]["udid"]
+        except (TypeError, OSError, ValueError, KeyError):
+            pass
+        if self._udid is None:
+            doctor = subprocess.run([str(ROOT / "scripts/wonderctl"), "--device", self.device, "doctor"],
+                                    cwd=ROOT, text=True, capture_output=True)
+            try:
+                self._udid = json.loads(doctor.stdout[doctor.stdout.index("{"):])["device"]["udid"]
+            except (ValueError, KeyError, TypeError):
+                self._udid = ""
+        return self._udid
+
+    def build_uuids(self):
+        if self._build is None:
+            app = self.products / "Wonder.app"
+            self._build = set().union(*(binary_uuids(app / n) for n in APP_IMAGES if (app / n).exists()))
+        return self._build
+
+    def check(self, result, started):
+        pids, changed = app_pids(result["output"])
+        # Only a failure or a replaced process waits for a report the crash may still be writing.
+        # The whole window is used even after a first report: a second crashed process may still be writing.
+        deadline = time.time() + (self.wait if not result["passed"] or changed else 0)
+        found = []
+        while True:
+            if self.directory.is_dir() and any(p.stat().st_mtime >= started - 5
+                                               for p in self.directory.glob("Wonder*.ips")):
+                udid, build = self.udid(result), self.build_uuids()
+                missing = [what for what, known in (("device", udid), ("app process ID", pids), ("build", build))
+                           if not known]
+                if missing:
+                    return self.unattributed(result, started, missing)
+                crashes = matching_crashes(self.directory, started, udid, pids, build, self.claimed)
+                self.claimed.update(c["report"] for c in crashes)
+                found += [preserve_crash(c, result["name"], self.products) for c in crashes]
+            if time.time() >= deadline:
+                if found:
+                    attach_crashes(result, found, self.device)
+                return result
+            time.sleep(self.poll)
+
+    def unattributed(self, result, started, missing):
+        """Keeps a failure as a failure when a crash report exists but cannot be tied to this run."""
+        reports = [c["report"] for c in recent_crashes(self.directory, started, self.claimed)]
+        if result["passed"] or not reports:
+            return result
+        result["unattributed_crash_reports"] = {"reports": reports, "unknown": missing}
+        result["failure"] = (f"{result['failure']}; a Wonder crash report from this time could not be tied to "
+                             f"this run (unknown {', '.join(missing)}): {reports[0]}")[:600]
+        if result.get("context"):
+            update_context(result, "unattributed_crash_reports", result["unattributed_crash_reports"])
+        return result
+
+
+def scenario_name(scenario):
+    # Keep result/evidence names flat and distinct from feature-map names.
+    if scenario.parent == SCENARIOS:
+        return scenario.stem
+    # Match verify-main/ci-changes for saved fixture recipes too. Multiple
+    # folders contain capture.wctl; its stem alone loses result/retry identity.
+    return f"{scenario.parent.name}--{scenario.stem}"
+
+
+def select_scenarios(device, only=None):
+    """Resolve a device map or explicit names, paths and Duo posture collections."""
+    scenarios = []
+    if not only:
+        scenarios = sorted(SCENARIOS.glob("*.wctl"))
+        if device == "duo":
+            for collection in DUO_COLLECTIONS:
+                scenarios += sorted((SCENARIOS.parent / collection).glob("*.wctl"))
+    else:
+        for name in only:
+            if name in DUO_COLLECTIONS:
+                if device != "duo":
+                    raise ValueError(f"{name} covers duo, not {device}")
+                paths = sorted((SCENARIOS.parent / name).glob("*.wctl"))
+                if not paths:
+                    raise ValueError(f"no scenarios in {name}")
+                scenarios += paths
+            elif name.endswith(".wctl"):
+                scenarios.append(Path(name).resolve())
+            else:
+                collection, separator, stem = name.partition("--")
+                scenarios.append(SCENARIOS.parent / collection / f"{stem}.wctl"
+                                 if separator and collection in DUO_COLLECTIONS
+                                 else SCENARIOS / f"{name}.wctl")
+    missing = [str(s) for s in scenarios if not s.is_file()]
+    if missing:
+        raise ValueError(f"no such scenario: {', '.join(missing)}")
+
+    selected = []
+    for scenario in dict.fromkeys(scenarios):
+        match = re.search(r"^# devices: (.+)$", scenario.read_text(), re.MULTILINE)
+        devices = match.group(1).split() if match else None
+        if scenario.parent in [SCENARIOS.parent / name for name in DUO_COLLECTIONS]:
+            devices = ["duo"] if devices is None else devices
+        if devices and device not in devices:
+            if only:
+                raise ValueError(f"{scenario.name} covers {' '.join(devices)}, not {device}")
+            print(f"NOT APPLICABLE {scenario_name(scenario)}: covers {' '.join(devices)}", flush=True)
+        else:
+            selected.append(scenario)
+    if not selected:
+        raise ValueError(f"no scenarios selected for {device}")
+    return selected
+
+
+POOLED = ("iphone", "ipad", "duo")
+
+
+def wonderctl_lane(*args, timeout=None):
+    return subprocess.run([str(ROOT / "scripts/wonderctl"), "lane", *args], cwd=ROOT, text=True,
+                          capture_output=True, timeout=timeout)
+
+
+class CheckLane:
+    """Lease a pooled lane for this check only, so a unit never holds one between checks.
+
+    A lane the caller already holds (a worker's explicit acquire, release-pass, nightly) is
+    borrowed and left alone. With no pool of this kind configured the legacy path runs as before.
+    """
+
+    def __init__(self, device, timeout):
+        self.kind = device if device in POOLED else None
+        self.timeout = timeout
+        self.owned = False
+
+    def __enter__(self):
+        if not self.kind or os.environ.get("WONDER_SCENARIO_NO_LEASE") == "1":
+            return self
+        status = wonderctl_lane("status", "--kind", self.kind)
+        try:
+            info = json.loads(status.stdout)
+        except ValueError:
+            return self
+        if info.get("held") or not info.get("configured"):
+            return self
+        print(f"leasing a {self.kind} lane for this check (waits up to {self.timeout:.0f}s)", flush=True)
+        result = wonderctl_lane("acquire", "--kind", self.kind, "--owner-pid", str(os.getpid()),
+                                "--timeout", str(self.timeout))
+        if result.returncode != 0:
+            sys.exit(f"error: {result.stderr.strip() or 'could not lease a ' + self.kind + ' lane'}")
+        self.owned = True
+        self.previous = signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
+        return self
+
+    def __exit__(self, *exc):
+        if self.owned:
+            signal.signal(signal.SIGTERM, self.previous)
+            wonderctl_lane("release", "--kind", self.kind)
+            self.owned = False
+
+
+def run(device, scenario, crashes=None):
+    started = time.time()
+    result = subprocess.run([str(ROOT / "scripts/wonderctl"), "--device", device, "run", str(scenario)],
+                            cwd=ROOT, text=True, capture_output=True)
+    output = result.stdout + result.stderr
+    shots = SHOT.findall(output)
+    contexts = CONTEXT.findall(output)
+    failure = next((line for line in output.splitlines() if line.startswith("error:")), "")
+    failure = failure.removeprefix("error: ").split("\n")[0]
+    if len(failure) > 300:
+        failure = failure[:160] + " … " + failure[-137:]
+    passed = result.returncode == 0
+    r = {
+        "name": scenario_name(scenario),
+        "repro": shlex.join(["scripts/wonderctl", "--device", device, "run",
+                             str(scenario.relative_to(ROOT) if scenario.is_relative_to(ROOT) else scenario)]),
+        "passed": passed,
+        "result": "passed" if passed else "failed",
+        "seconds": time.time() - started,
+        "shot": ROOT / shots[-1] if shots else None,
+        "shots": [str(ROOT / shot) for shot in shots],
+        "context": str(ROOT / contexts[-1]) if contexts else None,
+        "failure": failure,
+        "output": output,
+    }
+    return crashes.check(r, started) if crashes else r
+
+
+# One simulator boot degrades under a long run: on 2026-10-15 the iPad (iOS 27.0)
+# typed 20 characters in ~2 s at the start and 10-25 s after ~45 minutes, and every
+# accessibility read after a tap then timed out creating its automation session
+# (53 of 108 failed). Relaunching the app did not clear it; rebooting the simulator
+# did (measured: 20 characters back to ~1.5-2.5 s). Typing had already slowed to
+# 0.66 s a character by the 39th scenario, and a boot an agent used before a run can
+# arrive worn, so a run starts on a fresh boot and a boot serves at most 15 scenarios.
+REBOOT_EVERY = 15
+
+
+def reboot(device):
+    for args in (["device", "--shutdown"], ["device"]):
+        result = subprocess.run([str(ROOT / "scripts/wonderctl"), "--device", device, *args],
+                                cwd=ROOT, text=True, capture_output=True)
+        if result.returncode != 0:
+            print(f"reboot failed ({' '.join(args)}): {(result.stderr or result.stdout).strip()[-300:]}", flush=True)
+            return False
+    print(f"rebooted the {device} simulator", flush=True)
+    return True
+
+
+def report(device, results, images):
+    passed = sum(r["passed"] for r in results)
+    crashed = sum(r.get("result") == "crashed" for r in results)
+    status = "✅" if passed == len(results) else "❌"
+    lines = [f"## {status} iOS scenarios on {device}: {passed}/{len(results)} passed"
+             + (f", {crashed} crashed" if crashed else ""), "",
+             "| Scenario | Result | Time | Screen |", "| --- | --- | ---: | --- |"]
+    for r in results:
+        image = images.get(r["name"], "")
+        cell = image.replace("![", "<img width=\"180\" alt=\"").replace("](", "\" src=\"").rstrip(")") + "\">" if image else ""
+        result = "pass" if r["passed"] else f"**{'crash' if r.get('result') == 'crashed' else 'fail'}**: {r['failure']}"
+        lines.append(f"| `{r['name']}` | {result} | {r['seconds']:.0f}s | {cell} |")
+    return "\n".join(lines) + "\n"
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--device", default="iphone", choices=["iphone", "iphone-27", "duo", "ipad"])
+    parser.add_argument("--pr", type=int)
+    parser.add_argument("--only", action="append", metavar="SCENARIO",
+                        help="feature-map name, .wctl path, duo-cover or duo-unfolded; repeatable")
+    parser.add_argument("--results", type=Path, help="also write the results as JSON to this file")
+    parser.add_argument("--lane-timeout", type=float, default=900, metavar="SECONDS",
+                        help="longest wait for a pooled lane when the check must lease its own (default 900)")
+    parser.add_argument("--reboot-every", type=int, default=REBOOT_EVERY, metavar="N",
+                        help=f"reboot the simulator before every Nth scenario (default {REBOOT_EVERY}; 0: never)")
+    args = parser.parse_args()
+
+    try:
+        selected = select_scenarios(args.device, args.only)
+    except ValueError as error:
+        parser.error(str(error))
+
+    results = []
+    with CheckLane(args.device, args.lane_timeout):
+        crashes = CrashFinder(args.device)
+        for index, scenario in enumerate(selected):
+            if args.reboot_every and len(selected) > 1 and index % args.reboot_every == 0:
+                reboot(args.device)
+            # A SpringBoard "Open in ..." alert left by the last scenario would cover this one.
+            subprocess.run([str(ROOT / "scripts/wonderctl"), "--device", args.device, "dismiss-open-alert"],
+                           cwd=ROOT, text=True, capture_output=True)
+            r = run(args.device, scenario, crashes)
+            print(f"{VERDICT[r['result']]} {r['name']} ({r['seconds']:.0f}s){'' if r['passed'] else ': ' + r['failure']}",
+                  flush=True)
+            if not r["passed"]:
+                print(r["output"], file=sys.stderr)
+            results.append(r)
+
+    if args.results:
+        args.results.parent.mkdir(parents=True, exist_ok=True)
+        args.results.write_text(json.dumps(
+            [{**r, "shot": str(r["shot"]) if r["shot"] else None, "device": args.device} for r in results],
+            indent=2))
+
+    if args.pr:
+        shots = {r["name"]: r["shot"] for r in results if r["shot"] and r["shot"].exists()}
+        images = {}
+        if shots:
+            names = list(shots)
+            out = subprocess.run([str(ROOT / "scripts/pr-evidence"), "upload", "--pr", str(args.pr),
+                                  "--label", f"scenarios-{args.device}", *[str(shots[n]) for n in names]],
+                                 cwd=ROOT, text=True, capture_output=True)
+            if out.returncode == 0:
+                markdown = out.stdout.splitlines()
+                images = {name: line for name, line in zip(names, markdown)}
+            else:
+                print(f"evidence upload failed: {out.stderr.strip()}", file=sys.stderr)
+        body = ROOT / ".local/control" / f"scenarios-{args.device}.md"
+        body.parent.mkdir(parents=True, exist_ok=True)
+        body.write_text(report(args.device, results, images))
+        subprocess.run([str(ROOT / "scripts/pr-evidence"), "comment", "--pr", str(args.pr),
+                        "--key", f"scenarios-{args.device}", "--body-file", str(body)], cwd=ROOT)
+
+    return 0 if all(r["passed"] for r in results) else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,26 @@
+# Own the theme: previous demo runs must not change this scenario’s geometry.
+# devices: ipad
+# A search result pushes its page over the list; Back returns to the results,
+# and erasing the query with the keyboard, including whitespace-only input,
+# shows the root list again without using the clear button.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-diagnostics-settings-open --arg=-diagnostics-theme --arg=light-classic
+wait --id settings-search-field --timeout 30
+tap --id settings-search-field
+type "Warn before taking over"
+wait --id settings-search-result:settings-take-over-warning --timeout 10
+tap --id settings-search-result:settings-take-over-warning
+wait --id settings-take-over-warning --timeout 10
+wait --id settings-search-field --gone --timeout 10
+shot settings-search-root-selected
+back
+wait --id settings-search-result:settings-take-over-warning --timeout 10
+tap --id settings-search-field
+keys e3:down,04,e3:up
+type " "
+wait --id settings-search-result:settings-take-over-warning --gone --timeout 10
+wait --id settings-add-computer --timeout 10
+shot settings-search-root-whitespace
+keys 2a
+wait --id settings-search-clear --gone --timeout 10
+wait --id settings-add-computer --timeout 10
+shot settings-search-root-erased

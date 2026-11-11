@@ -1,0 +1,4296 @@
+{
+  "$defs": {
+    "ApprovalsResolveParams": {
+      "additionalProperties": false,
+      "properties": {
+        "actionNonce": {
+          "type": "string"
+        },
+        "approvalId": {
+          "type": "string"
+        },
+        "decision": {
+          "description": "One of the approval's `availableDecisions`."
+        },
+        "expectedState": {
+          "description": "Always `\"pending\"`.",
+          "type": "string"
+        },
+        "idempotencyKey": {
+          "type": "string"
+        },
+        "issuedAtMs": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "responseJson": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "signature": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "approvalId",
+        "decision",
+        "actionNonce",
+        "expectedState",
+        "idempotencyKey",
+        "issuedAtMs",
+        "signature"
+      ],
+      "type": "object"
+    },
+    "ClientCapabilities": {
+      "additionalProperties": false,
+      "properties": {
+        "compactView": {
+          "default": false,
+          "description": "Ask for the compact conversation view (`x-wonder-history-view:\ncompact`) in `threads.read` and events.",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "ClientInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "DeviceAuth": {
+      "additionalProperties": false,
+      "description": "The session proof a paired device gives, as for `/api/v1/events`: the\nCSRF token issued with its session, and its signature over a fresh\n`auth.challenge`.",
+      "properties": {
+        "challengeId": {
+          "type": "string"
+        },
+        "csrfToken": {
+          "type": "string"
+        },
+        "deviceId": {
+          "type": "string"
+        },
+        "signature": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "deviceId",
+        "csrfToken",
+        "challengeId",
+        "signature"
+      ],
+      "type": "object"
+    },
+    "DeviceParams": {
+      "additionalProperties": false,
+      "properties": {
+        "deviceId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "deviceId"
+      ],
+      "type": "object"
+    },
+    "DeviceRenameParams": {
+      "additionalProperties": false,
+      "properties": {
+        "deviceId": {
+          "type": "string"
+        },
+        "label": {
+          "description": "1-160 characters, no control characters.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "deviceId",
+        "label"
+      ],
+      "type": "object"
+    },
+    "DevicesRevokeParams": {
+      "additionalProperties": false,
+      "properties": {
+        "deviceId": {
+          "type": "string"
+        },
+        "signed": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SignedAction"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Required from a paired device: its signature over `device.revoke`.\nThe local owner omits it."
+        }
+      },
+      "required": [
+        "deviceId"
+      ],
+      "type": "object"
+    },
+    "ErrorData": {
+      "properties": {
+        "body": {
+          "description": "The route's JSON error body when it sent one (for example\n`{\"error\":\"idempotency_conflict\"}`)."
+        },
+        "httpStatus": {
+          "description": "The status the route answered with, for a route refusal.",
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "supported": {
+          "description": "Protocol versions this host speaks, on `UNSUPPORTED_VERSION`.",
+          "items": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "EventBatchNotification": {
+      "description": "`events.batch` notification params; incremental events in journal order.",
+      "properties": {
+        "events": {
+          "items": {
+            "$ref": "#/$defs/hostEventEnvelope"
+          },
+          "type": "array"
+        },
+        "subscriptionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "subscriptionId",
+        "events"
+      ],
+      "type": "object"
+    },
+    "EventCursor": {
+      "additionalProperties": false,
+      "properties": {
+        "hostEpoch": {
+          "type": "string"
+        },
+        "sequence": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "hostEpoch",
+        "sequence"
+      ],
+      "type": "object"
+    },
+    "EventNotification": {
+      "description": "`event` notification params.",
+      "properties": {
+        "event": {
+          "$ref": "#/$defs/hostEventEnvelope",
+          "description": "A `hostEventEnvelope`; save its `hostEpoch` and `sequence` as the cursor\nonce it is applied."
+        },
+        "subscriptionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "subscriptionId",
+        "event"
+      ],
+      "type": "object"
+    },
+    "EventsEnded": {
+      "description": "`events.ended` notification params.",
+      "properties": {
+        "detail": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reason": {
+          "description": "`resync`: the cursor cannot be replayed (new host epoch or expired\nwindow); read state again from `events.checkpoint`. Treat any other\nreason the same way.",
+          "type": "string"
+        },
+        "subscriptionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "subscriptionId",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "EventsSubscribeParams": {
+      "additionalProperties": false,
+      "properties": {
+        "after": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EventCursor"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Replay every event after this cursor first. Omit to receive only new\nevents."
+        },
+        "batch": {
+          "default": false,
+          "description": "Opt in only after initialize advertises `eventBatches`; older hosts\nreject unknown fields. Omission preserves legacy single-event frames.",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "EventsSubscribeResult": {
+      "properties": {
+        "cursor": {
+          "$ref": "#/$defs/EventCursor",
+          "description": "Where the stream starts: events after this cursor follow."
+        },
+        "subscriptionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "subscriptionId",
+        "cursor"
+      ],
+      "type": "object"
+    },
+    "EventsUnsubscribeParams": {
+      "additionalProperties": false,
+      "properties": {
+        "subscriptionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "subscriptionId"
+      ],
+      "type": "object"
+    },
+    "HostRenameParams": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "description": "Empty or null goes back to the computer's own name.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "HttpRequestParams": {
+      "additionalProperties": false,
+      "description": "One HTTP API call a phone makes through the sealed channel. It runs with\nthe channel's session and CSRF token through the same router and checks\nas on the home network; only device API paths are served.",
+      "properties": {
+        "body": {
+          "default": null,
+          "description": "The JSON request body, as text.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "compact": {
+          "default": false,
+          "description": "The compact conversation view (the HTTP API's `x-wonder-history-view`).",
+          "type": "boolean"
+        },
+        "method": {
+          "description": "`GET`, `POST`, `PUT`, `PATCH` or `DELETE`.",
+          "type": "string"
+        },
+        "path": {
+          "description": "An `/api/v1/` path and query, percent-encoded as on the wire.",
+          "type": "string"
+        },
+        "responseCompression": {
+          "default": null,
+          "description": "Opt in only after initialize advertises historyCompression. Applies\nonly to stored history GETs; auth and arbitrary calls stay uncompressed.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "method",
+        "path"
+      ],
+      "type": "object"
+    },
+    "HttpResponse": {
+      "description": "The route's answer, whatever its status.",
+      "properties": {
+        "body": {
+          "description": "The response body, base64 (standard, padded).",
+          "type": "string"
+        },
+        "bodyEncoding": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contentType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "errorCode": {
+          "description": "The `x-wonder-error` code a client recovers from, when the route sets one.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "previewSha256": {
+          "description": "A phone-sized picture's own SHA-256 (`x-wonder-preview-sha256`).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "uncompressedBytes": {
+          "format": "uint",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "body"
+      ],
+      "type": "object"
+    },
+    "InitializeParams": {
+      "additionalProperties": false,
+      "properties": {
+        "auth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DeviceAuth"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Required on `/api/v1/rpc` from a paired device; omitted by the local owner."
+        },
+        "capabilities": {
+          "$ref": "#/$defs/ClientCapabilities",
+          "default": {
+            "compactView": false
+          }
+        },
+        "clientInfo": {
+          "$ref": "#/$defs/ClientInfo"
+        },
+        "protocolVersion": {
+          "description": "The major version the client speaks; this host speaks 1.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "clientInfo"
+      ],
+      "type": "object"
+    },
+    "InitializeResult": {
+      "properties": {
+        "authority": {
+          "description": "`owner` for the local owner, `device` for a paired device.",
+          "type": "string"
+        },
+        "capabilities": {
+          "$ref": "#/$defs/ServerCapabilities"
+        },
+        "deviceId": {
+          "description": "The paired device this session acts as; absent for the owner.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hostEpoch": {
+          "type": "string"
+        },
+        "hostInstallationId": {
+          "type": "string"
+        },
+        "methods": {
+          "description": "Every method this host serves. Gate a feature on its method being here.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "notifications": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "protocolVersion": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "serverInfo": {
+          "$ref": "#/$defs/ServerInfo"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "serverInfo",
+        "authority",
+        "hostEpoch",
+        "hostInstallationId",
+        "methods",
+        "notifications",
+        "capabilities"
+      ],
+      "type": "object"
+    },
+    "Notification": {
+      "properties": {
+        "jsonrpc": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "params": true
+      },
+      "required": [
+        "jsonrpc",
+        "method",
+        "params"
+      ],
+      "type": "object"
+    },
+    "NotificationLevel": {
+      "enum": [
+        "default",
+        "follow",
+        "mute"
+      ],
+      "type": "string"
+    },
+    "OrphanFolder": {
+      "properties": {
+        "bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "files": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "folder": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "folder",
+        "files",
+        "bytes"
+      ],
+      "type": "object"
+    },
+    "OrphanParams": {
+      "additionalProperties": false,
+      "properties": {
+        "olderThanDays": {
+          "default": null,
+          "description": "Only files unchanged for at least this many days (default 7, at least 1).",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "OrphanReport": {
+      "properties": {
+        "deletedBytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "deletedFiles": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "folders": {
+          "description": "Orphans per preview folder (a conversation ID), largest first.",
+          "items": {
+            "$ref": "#/$defs/OrphanFolder"
+          },
+          "type": "array"
+        },
+        "orphanedBytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "orphanedFiles": {
+          "description": "Files no conversation record names, older than the age limit.",
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "recentBytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "recentFiles": {
+          "description": "Unreferenced files kept because they are newer than the age limit.",
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "referencedBytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "referencedFiles": {
+          "description": "Files a conversation record still names.",
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "orphanedFiles",
+        "orphanedBytes",
+        "recentFiles",
+        "recentBytes",
+        "referencedFiles",
+        "referencedBytes",
+        "folders",
+        "deletedFiles",
+        "deletedBytes"
+      ],
+      "type": "object"
+    },
+    "PairingCancelParams": {
+      "additionalProperties": false,
+      "properties": {
+        "offerId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "offerId"
+      ],
+      "type": "object"
+    },
+    "PairingConfirmParams": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "description": "Verification text read from the phone; never echoed in a result.",
+          "type": "string"
+        },
+        "deviceId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "deviceId",
+        "code"
+      ],
+      "type": "object"
+    },
+    "PairingOfferParams": {
+      "additionalProperties": false,
+      "properties": {
+        "route": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PairingOfferRoute"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "`home` makes a link on this computer's home network address, for a\nphone on the same network. Omit it for the main route."
+        }
+      },
+      "type": "object"
+    },
+    "PairingOfferRoute": {
+      "enum": [
+        "home"
+      ],
+      "type": "string"
+    },
+    "ProjectModel": {
+      "additionalProperties": false,
+      "properties": {
+        "effort": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "family": {
+          "$ref": "#/$defs/ProviderId"
+        },
+        "model": {
+          "type": "string"
+        },
+        "serviceTier": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "family",
+        "model"
+      ],
+      "type": "object"
+    },
+    "ProviderId": {
+      "enum": [
+        "codex",
+        "claude",
+        "opencode",
+        "cursor"
+      ],
+      "type": "string"
+    },
+    "ProviderParams": {
+      "additionalProperties": false,
+      "properties": {
+        "provider": {
+          "$ref": "#/$defs/ProviderId"
+        }
+      },
+      "required": [
+        "provider"
+      ],
+      "type": "object"
+    },
+    "ProvidersListParams": {
+      "additionalProperties": false,
+      "properties": {
+        "refresh": {
+          "default": false,
+          "description": "Check sign-in again instead of answering from the last check.",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "QueueEditParams": {
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "description": "New text. Exactly one of `body`, `cancel` and `expectedTurnId`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cancel": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "expectedRevision": {
+          "description": "Its `revision` from `threads.queue`; a changed message is a conflict.",
+          "format": "int64",
+          "type": "integer"
+        },
+        "expectedTurnId": {
+          "description": "Send it now into this running turn (the thread's last turn in\n`threads.read`); a turn that changed is a conflict.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "messageId": {
+          "description": "The queued message's `id` from `threads.queue`.",
+          "type": "string"
+        },
+        "threadId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "threadId",
+        "messageId",
+        "expectedRevision"
+      ],
+      "type": "object"
+    },
+    "RelayEnableParams": {
+      "additionalProperties": false,
+      "properties": {
+        "grant": {
+          "description": "The Worker's one-time grant (`POST /v1/relay/grants`).",
+          "type": "string"
+        },
+        "label": {
+          "description": "The Worker's label for this computer's host key.",
+          "type": "string"
+        },
+        "signed": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SignedAction"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Required from a paired device: its signature over `relay.enable`\n(target `/api/v1/relay/enable`, body `{\"grant\",\"label\"}`, expected\nstate `allowed`). The local owner omits it."
+        }
+      },
+      "required": [
+        "grant",
+        "label"
+      ],
+      "type": "object"
+    },
+    "RelaySetParams": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed": {
+          "description": "`false` also stops the tunnel and releases the relay address.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "allowed"
+      ],
+      "type": "object"
+    },
+    "RelayState": {
+      "oneOf": [
+        {
+          "enum": [
+            "off",
+            "starting",
+            "ready"
+          ],
+          "type": "string"
+        },
+        {
+          "const": "unavailable",
+          "description": "On, but not reachable right now; `detail` says why.",
+          "type": "string"
+        },
+        {
+          "const": "stopped",
+          "description": "On, but this computer's tunnel is not running because Wonder stopped;\nit reconnects at the same address when Wonder starts.",
+          "type": "string"
+        }
+      ]
+    },
+    "RelayView": {
+      "description": "What `relay.status` reports: the owner's choice and the tunnel's state.",
+      "properties": {
+        "allowed": {
+          "type": "boolean"
+        },
+        "detail": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "origin": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state": {
+          "$ref": "#/$defs/RelayState"
+        }
+      },
+      "required": [
+        "allowed",
+        "enabled",
+        "state"
+      ],
+      "type": "object"
+    },
+    "Request": {
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RequestId"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Absent for a notification from the client (none are defined yet; the\nhost ignores them)."
+        },
+        "jsonrpc": {
+          "description": "Always `\"2.0\"`.",
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "params": true
+      },
+      "required": [
+        "jsonrpc",
+        "method"
+      ],
+      "type": "object"
+    },
+    "RequestId": {
+      "anyOf": [
+        {
+          "format": "int64",
+          "type": "integer"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "Response": {
+      "properties": {
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RpcError"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RequestId"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "`null` only when the request could not be read far enough to find it."
+        },
+        "jsonrpc": {
+          "type": "string"
+        },
+        "result": true
+      },
+      "required": [
+        "jsonrpc"
+      ],
+      "type": "object"
+    },
+    "RpcError": {
+      "properties": {
+        "code": {
+          "format": "int64",
+          "type": "integer"
+        },
+        "data": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorData"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "message": {
+          "description": "User language; safe to show as is.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "type": "object"
+    },
+    "ServerCapabilities": {
+      "properties": {
+        "compactView": {
+          "type": "boolean"
+        },
+        "eventBatches": {
+          "default": false,
+          "description": "`events.subscribe` accepts `batch: true` and emits `events.batch`.",
+          "type": "boolean"
+        },
+        "historyCompression": {
+          "default": [],
+          "description": "Stateless compression supported by stored-history HTTP responses only.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "maxInFlight": {
+          "description": "Requests one connection may have in flight at once.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "maxRequestBytes": {
+          "description": "The largest request line or frame the host reads, in bytes.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "compactView",
+        "maxInFlight",
+        "maxRequestBytes"
+      ],
+      "type": "object"
+    },
+    "ServerInfo": {
+      "properties": {
+        "apiVersion": {
+          "description": "The HTTP API version the routes behind the methods speak.",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "apiVersion"
+      ],
+      "type": "object"
+    },
+    "SignedAction": {
+      "additionalProperties": false,
+      "description": "`signedActionFields` in the HTTP authority.",
+      "properties": {
+        "actionNonce": {
+          "type": "string"
+        },
+        "issuedAtMs": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "signature": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "actionNonce",
+        "issuedAtMs",
+        "signature"
+      ],
+      "type": "object"
+    },
+    "ThreadNotificationsParams": {
+      "additionalProperties": false,
+      "properties": {
+        "notificationLevel": {
+          "$ref": "#/$defs/NotificationLevel"
+        },
+        "threadId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "threadId",
+        "notificationLevel"
+      ],
+      "type": "object"
+    },
+    "ThreadParams": {
+      "additionalProperties": false,
+      "properties": {
+        "threadId": {
+          "description": "The thread's `conversationId`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "threadId"
+      ],
+      "type": "object"
+    },
+    "ThreadsAttachParams": {
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        },
+        "reference": {
+          "description": "The thread's `reference` from `threads.list`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId",
+        "reference"
+      ],
+      "type": "object"
+    },
+    "ThreadsCreateParams": {
+      "additionalProperties": false,
+      "properties": {
+        "accessMode": {
+          "description": "`workspace` (default) or another access the provider offers.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "accountId": {
+          "description": "Compatibility field: only `default` (this computer's sign-in) is accepted.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "body": {
+          "description": "The first message.",
+          "type": "string"
+        },
+        "claudeApproval": {
+          "description": "Claude only: its approval mode.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "effort": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "family": {
+          "$ref": "#/$defs/ProviderId"
+        },
+        "folderId": {
+          "description": "The Project folder to work in; default the first.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "idempotencyKey": {
+          "description": "A UUID made once per new thread and reused on every retry; it is the\nfirst message's `idempotencyKey`.",
+          "type": "string"
+        },
+        "model": {
+          "description": "A model `models.list` offers for `family`.",
+          "type": "string"
+        },
+        "planMode": {
+          "default": false,
+          "type": "boolean"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "rootsRevision": {
+          "format": "int64",
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "serviceTier": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "projectId",
+        "idempotencyKey",
+        "body",
+        "family",
+        "model"
+      ],
+      "type": "object"
+    },
+    "ThreadsDelegateParams": {
+      "additionalProperties": false,
+      "properties": {
+        "accessMode": {
+          "default": null,
+          "description": "read_only, workspace or full_access; default and ceiling: the parent's.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "effort": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "folder": {
+          "default": null,
+          "description": "One of the Project's folders, or a Git worktree of one (absolute path);\ndefault: the parent's folder.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "idempotencyKey": {
+          "description": "A UUID the client makes once per task and reuses on every retry.",
+          "type": "string"
+        },
+        "maxChildren": {
+          "default": null,
+          "description": "Most children the parent may have, 1–64 (default: the host's\n`CUPOLA_DELEGATE_MAX_CHILDREN`, else 16).",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "model": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "prompt": {
+          "description": "The task; the child sees only this.",
+          "type": "string"
+        },
+        "provider": {
+          "description": "Agent that runs the child: codex, claude, cursor or opencode.",
+          "type": "string"
+        },
+        "threadId": {
+          "description": "The parent thread's `conversationId`.",
+          "type": "string"
+        },
+        "title": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "threadId",
+        "idempotencyKey",
+        "prompt",
+        "provider"
+      ],
+      "type": "object"
+    },
+    "ThreadsListParams": {
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "default": null,
+          "description": "`nextCursor` from the previous page.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "limit": {
+          "default": null,
+          "description": "1–30; default 5.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ],
+      "type": "object"
+    },
+    "ThreadsMoveToWorktreeParams": {
+      "additionalProperties": false,
+      "properties": {
+        "branch": {
+          "description": "The new branch's name; made from the thread's title when absent.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "threadId": {
+          "description": "The thread's `conversationId`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "threadId"
+      ],
+      "type": "object"
+    },
+    "ThreadsReadParams": {
+      "additionalProperties": false,
+      "properties": {
+        "before": {
+          "default": null,
+          "description": "The snapshot's `previousCursor`, to read the page before it.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "limit": {
+          "default": null,
+          "description": "1–100; default 100.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "threadId": {
+          "description": "The thread's `conversationId`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "threadId"
+      ],
+      "type": "object"
+    },
+    "ThreadsSendParams": {
+      "additionalProperties": false,
+      "properties": {
+        "attachmentIds": {
+          "default": [],
+          "description": "Files uploaded to this thread first (HTTP upload; no RPC method yet).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "body": {
+          "type": "string"
+        },
+        "codexSkills": {
+          "default": [],
+          "description": "Skills picked in the composer, as `codexSkillSelection`.",
+          "items": {
+            "$ref": "#/$defs/codexSkillSelection"
+          },
+          "maxItems": 8,
+          "type": "array"
+        },
+        "idempotencyKey": {
+          "description": "A UUID the client makes once per message and reuses on every retry of\nit. With the sender's identity it is the message's identity.",
+          "type": "string"
+        },
+        "projectModel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProjectModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Send with this model; it may move a Project thread to the other provider."
+        },
+        "threadId": {
+          "description": "The thread's `conversationId`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "threadId",
+        "idempotencyKey",
+        "body"
+      ],
+      "type": "object"
+    },
+    "UpdateParams": {
+      "additionalProperties": false,
+      "properties": {
+        "consentedRunning": {
+          "description": "Running replies the owner agreed to pause; omit to pause any.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "requestId": {
+          "description": "A UUID naming this update; `update.cancel` repeats it.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "requestId"
+      ],
+      "type": "object"
+    },
+    "VoiceDictionaryParams": {
+      "additionalProperties": false,
+      "properties": {
+        "add": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "remove": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "VoiceSetKeyParams": {
+      "additionalProperties": false,
+      "properties": {
+        "apiKey": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "apiKey"
+      ],
+      "type": "object"
+    },
+    "agentFamily": {
+      "enum": [
+        "codex",
+        "claude",
+        "opencode",
+        "cursor"
+      ]
+    },
+    "agentOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "allowedApprovalPolicies": {
+          "maxItems": 0,
+          "type": "array"
+        },
+        "models": {
+          "items": {
+            "$ref": "#/$defs/modelOption"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "models",
+        "allowedApprovalPolicies"
+      ],
+      "type": "object"
+    },
+    "approvalSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "actionNonce": {
+          "type": "string"
+        },
+        "approvalId": {
+          "type": "string"
+        },
+        "conversationId": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "params": {
+          "properties": {
+            "additionalPermissions": {
+              "type": "object"
+            },
+            "availableDecisions": {
+              "items": {
+                "type": [
+                  "string",
+                  "object"
+                ]
+              },
+              "type": "array"
+            },
+            "elicitationContext": {
+              "additionalProperties": false,
+              "properties": {
+                "details": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 32,
+                  "type": "array"
+                },
+                "isComputerUse": {
+                  "type": "boolean"
+                },
+                "riskLevel": {
+                  "type": "string"
+                },
+                "subtitle": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "grantRoot": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            },
+            "mode": {
+              "type": "string"
+            },
+            "networkApprovalContext": {
+              "properties": {
+                "host": {
+                  "type": "string"
+                },
+                "protocol": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "notificationQuestion": {
+              "additionalProperties": false,
+              "description": "A complete nonsecret single free-text question from the actual Codex or Claude runtime. The host bounds the full display body to 382 UTF-8 bytes; richer forms omit this capability.",
+              "properties": {
+                "body": {
+                  "maxLength": 382,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "id": {
+                  "maxLength": 256,
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "body"
+              ],
+              "type": "object"
+            },
+            "permissions": {
+              "type": "object"
+            },
+            "requestedSchema": {
+              "description": "The complete service form schema, never a projection that drops constraints. Limited to 64 KiB by the host.",
+              "type": "object"
+            },
+            "supportsDenyMessage": {
+              "description": "Claude command approval accepts native denial feedback. Other providers omit or return false.",
+              "type": "boolean"
+            },
+            "url": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "resolutionIdempotencyKey": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "approvalId",
+        "conversationId",
+        "method",
+        "params",
+        "actionNonce",
+        "resolutionIdempotencyKey"
+      ],
+      "type": "object"
+    },
+    "autoArchiveRule": {
+      "additionalProperties": false,
+      "description": "Project threads archive themselves after idleDays without activity (0 = never) and, with onMerge, once their pull request merges. Pinned, working and waiting threads are skipped.",
+      "properties": {
+        "idleDays": {
+          "maximum": 90,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "onMerge": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "idleDays",
+        "onMerge"
+      ],
+      "type": "object"
+    },
+    "chatNotifications": {
+      "additionalProperties": false,
+      "description": "Host-persisted per-chat policy. Default preserves existing delivery; follow also delivers child-task completions to this chat; mute suppresses chat pushes and Live Activity contributions, keeping approvals/questions in the app.",
+      "properties": {
+        "notificationLevel": {
+          "enum": [
+            "default",
+            "follow",
+            "mute"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "notificationLevel"
+      ],
+      "type": "object"
+    },
+    "codexSkillSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "folderId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+        },
+        "path": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "type": "string"
+        },
+        "projectId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "rootsRevision": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "path",
+        "projectId",
+        "folderId",
+        "rootsRevision"
+      ],
+      "type": "object"
+    },
+    "compactToolOutput": {
+      "additionalProperties": true,
+      "description": "String tool output on compact stored history pages. output is a UTF-8 prefix of at most 2048 bytes. outputBytes counts the full sanitized UTF-8 text; outputTruncated says whether the output route must be read on expansion. Structured output is unchanged. Unstored history keeps full output.",
+      "properties": {
+        "output": {
+          "maxLength": 2048,
+          "type": "string"
+        },
+        "outputBytes": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "outputTruncated": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "output",
+        "outputBytes",
+        "outputTruncated"
+      ],
+      "type": "object"
+    },
+    "conversationAssistantMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "codexThreadId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "codexTurnId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "createdAt": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "itemId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "messageId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "streaming",
+            "completed"
+          ],
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "messageId",
+        "codexThreadId",
+        "codexTurnId",
+        "itemId",
+        "text",
+        "state",
+        "createdAt",
+        "updatedAt"
+      ],
+      "type": "object"
+    },
+    "conversationEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "approvalId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "conversationId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "deviceId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "event": {
+          "additionalProperties": false,
+          "properties": {
+            "data": {},
+            "type": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        "eventId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "hostEpoch": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "itemId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "messageId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "occurredAt": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "requestId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sequence": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "threadId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "turnId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "eventId",
+        "hostEpoch",
+        "sequence",
+        "occurredAt",
+        "event"
+      ],
+      "type": "object"
+    },
+    "conversationMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "attachmentIds": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "body": {
+          "type": "string"
+        },
+        "bodySha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "clientMessageId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "codexThreadId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "codexTurnId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "createdAt": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "deliveryError": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "messageId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "originalBodySha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state": {
+          "$ref": "#/$defs/deliveryState"
+        }
+      },
+      "required": [
+        "messageId",
+        "clientMessageId",
+        "body",
+        "state",
+        "createdAt",
+        "bodySha256",
+        "codexThreadId",
+        "codexTurnId",
+        "attachmentIds"
+      ],
+      "type": "object"
+    },
+    "conversationSnapshot": {
+      "additionalProperties": false,
+      "description": "A local page of at most 100 canonical entries. Use thread.nextCursor as the next before parameter; each page has its own committed lastSequence.",
+      "properties": {
+        "assistantMessages": {
+          "items": {
+            "$ref": "#/$defs/conversationAssistantMessage"
+          },
+          "type": "array"
+        },
+        "codexThreadId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "conversationId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "events": {
+          "items": {
+            "$ref": "#/$defs/conversationEvent"
+          },
+          "type": "array"
+        },
+        "historyRevision": {
+          "description": "Native reset epoch; pages and caches from older revisions must not be merged.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "hostEpoch": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "lastSequence": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageRecords": {
+          "description": "Every agent record of a message sent through T3 Code in the conversation, also outside this page, each the userMessage item (turnId, itemId) whose payload carries that message's clientId. A client labels a cached item it names the same way. Omitted when empty.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "clientId": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "itemId": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "turnId": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "turnId",
+              "itemId",
+              "clientId"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "messages": {
+          "items": {
+            "$ref": "#/$defs/conversationMessage"
+          },
+          "type": "array"
+        },
+        "thread": {
+          "$ref": "#/$defs/conversationThread"
+        }
+      },
+      "required": [
+        "conversationId",
+        "hostEpoch",
+        "lastSequence",
+        "codexThreadId",
+        "messages",
+        "assistantMessages",
+        "thread",
+        "events"
+      ],
+      "type": "object"
+    },
+    "conversationThread": {
+      "additionalProperties": false,
+      "properties": {
+        "hydrated": {
+          "type": "boolean"
+        },
+        "nextCursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "threadId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "turns": {
+          "items": {
+            "$ref": "#/$defs/conversationTurn"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "threadId",
+        "turns",
+        "nextCursor",
+        "hydrated"
+      ],
+      "type": "object"
+    },
+    "conversationThreadItem": {
+      "additionalProperties": false,
+      "properties": {
+        "createdAt": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "payload": {
+          "description": "Compact views omit payload.id and payload.text only when equal to envelope id and text. Clients read the envelope first. Stored compact string tool output follows compactToolOutput.",
+          "if": {
+            "required": [
+              "outputTruncated"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "$ref": "#/$defs/compactToolOutput"
+          }
+        },
+        "state": {
+          "type": "string"
+        },
+        "text": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "type": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "state",
+        "text",
+        "payload",
+        "createdAt",
+        "updatedAt"
+      ],
+      "type": "object"
+    },
+    "conversationTurn": {
+      "additionalProperties": false,
+      "properties": {
+        "completedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/conversationThreadItem"
+          },
+          "type": "array"
+        },
+        "runningElsewhere": {
+          "const": true
+        },
+        "startedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "createdAt",
+        "updatedAt",
+        "items"
+      ],
+      "type": "object"
+    },
+    "createProjectThreadResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "conversation": {
+          "$ref": "#/$defs/projectThreadSummary"
+        },
+        "receipt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/messageReceipt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "conversation",
+        "receipt"
+      ],
+      "type": "object"
+    },
+    "deliveryState": {
+      "enum": [
+        "draft_on_device",
+        "submitting",
+        "accepted_by_wonder",
+        "dispatching_to_codex",
+        "accepted_by_codex",
+        "streaming",
+        "completed",
+        "interrupted",
+        "failed",
+        "uncertain",
+        "safe_to_retry"
+      ],
+      "type": "string"
+    },
+    "deviceSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        },
+        "lastSeenAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "revokedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "role": {
+          "const": "owner"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "role",
+        "lastSeenAt",
+        "revokedAt"
+      ],
+      "type": "object"
+    },
+    "executionReadiness": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "type": "string"
+        },
+        "providers": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "detail": {
+                "type": "string"
+              },
+              "id": {
+                "enum": [
+                  "codex",
+                  "claude",
+                  "opencode",
+                  "cursor"
+                ]
+              },
+              "ready": {
+                "type": "boolean"
+              },
+              "reason": {
+                "enum": [
+                  "ready",
+                  "runtime_unavailable",
+                  "storage_unavailable",
+                  "recovering",
+                  "backlog",
+                  "runtime_incompatible"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "ready",
+              "detail",
+              "reason"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "reason": {
+          "enum": [
+            "ready",
+            "runtime_unavailable",
+            "storage_unavailable",
+            "recovering",
+            "backlog",
+            "runtime_incompatible"
+          ]
+        }
+      },
+      "required": [
+        "ready",
+        "detail",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "hostCupola": {
+      "additionalProperties": false,
+      "description": "Cupola on the computer: what runs, the newest release known (null while unknown) and the command that updates it. A computer that sends no host is older than the app needs.",
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "command": {
+          "maxLength": 80,
+          "type": "string"
+        },
+        "latestVersion": {
+          "maxLength": 40,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "version": {
+          "maxLength": 40,
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "latestVersion",
+        "available",
+        "command"
+      ],
+      "type": "object"
+    },
+    "hostEventEnvelope": {
+      "additionalProperties": false,
+      "properties": {
+        "approvalId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "conversationId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "deviceId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "event": {
+          "additionalProperties": false,
+          "properties": {
+            "data": {},
+            "type": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        "eventId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "hostEpoch": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "itemId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "messageId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "requestId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sequence": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "threadId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "turnId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "eventId",
+        "hostEpoch",
+        "sequence",
+        "occurredAt",
+        "event"
+      ],
+      "type": "object"
+    },
+    "hostNameSettings": {
+      "additionalProperties": false,
+      "description": "The computer's one name in Wonder, owned by the host: the owner's choice from the Mac app or the phone, else the computer's own name. /api/v1/host/status reports the same hostName.",
+      "properties": {
+        "custom": {
+          "description": "The owner chose the name.",
+          "type": "boolean"
+        },
+        "maxLength": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "systemName": {
+          "description": "The computer's own name, used while no name is chosen.",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "systemName",
+        "custom",
+        "maxLength"
+      ],
+      "type": "object"
+    },
+    "hostRoute": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "home",
+            "tailscale",
+            "relay"
+          ]
+        },
+        "origin": {
+          "pattern": "^https://[^/?#@\\s]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "origin"
+      ],
+      "type": "object"
+    },
+    "hostStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "apiVersion": {
+          "const": "v1"
+        },
+        "codexTransport": {
+          "const": "stdio-jsonl"
+        },
+        "execution": {
+          "$ref": "#/$defs/executionReadiness"
+        },
+        "features": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "hostEpoch": {
+          "type": "string"
+        },
+        "hostInstallationId": {
+          "type": "string"
+        },
+        "hostKeyPin": {
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "type": "string"
+        },
+        "hostName": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "platform": {
+          "maxLength": 32,
+          "minLength": 1,
+          "type": "string"
+        },
+        "publicOrigin": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "routes": {
+          "items": {
+            "$ref": "#/$defs/hostRoute"
+          },
+          "type": "array"
+        },
+        "startedAt": {
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "ready",
+            "degraded"
+          ]
+        }
+      },
+      "required": [
+        "apiVersion",
+        "hostEpoch",
+        "hostInstallationId",
+        "state",
+        "codexTransport",
+        "startedAt",
+        "publicOrigin",
+        "execution",
+        "routes"
+      ],
+      "type": "object"
+    },
+    "messageReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "bodySha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "clientMessageId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "codexThreadId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "codexTurnId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "conversationId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "deliveryState": {
+          "$ref": "#/$defs/deliveryState"
+        },
+        "queued": {
+          "type": "boolean"
+        },
+        "wonderMessageId": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "clientMessageId",
+        "wonderMessageId",
+        "bodySha256",
+        "conversationId",
+        "deliveryState",
+        "codexThreadId",
+        "codexTurnId"
+      ],
+      "type": "object"
+    },
+    "modelChoice": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "description"
+      ],
+      "type": "object"
+    },
+    "modelOption": {
+      "additionalProperties": false,
+      "properties": {
+        "agentFamily": {
+          "enum": [
+            "codex",
+            "claude"
+          ]
+        },
+        "capabilities": {
+          "additionalProperties": false,
+          "properties": {
+            "goals": {
+              "type": "boolean"
+            },
+            "guide": {
+              "type": "boolean"
+            },
+            "imageGeneration": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "guide",
+            "goals",
+            "imageGeneration"
+          ],
+          "type": "object"
+        },
+        "defaultReasoningEffort": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "defaultServiceTier": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "hidden": {
+          "const": false
+        },
+        "id": {
+          "type": "string"
+        },
+        "isDefault": {
+          "type": "boolean"
+        },
+        "modelSpecialty": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reasoningEfforts": {
+          "items": {
+            "$ref": "#/$defs/modelChoice"
+          },
+          "type": "array"
+        },
+        "serviceTiers": {
+          "items": {
+            "$ref": "#/$defs/modelChoice"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "agentFamily",
+        "capabilities",
+        "id",
+        "displayName",
+        "description",
+        "modelSpecialty",
+        "hidden",
+        "reasoningEfforts",
+        "defaultReasoningEffort",
+        "serviceTiers",
+        "defaultServiceTier",
+        "isDefault"
+      ],
+      "type": "object"
+    },
+    "pinnedProjectThread": {
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "thread": {
+          "$ref": "#/$defs/projectThreadSummary"
+        }
+      },
+      "required": [
+        "projectId",
+        "thread"
+      ],
+      "type": "object"
+    },
+    "projectFolder": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "isAvailable": {
+          "type": "boolean"
+        },
+        "isPrimary": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "path": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "path",
+        "name",
+        "isPrimary",
+        "isAvailable"
+      ],
+      "type": "object"
+    },
+    "projectLastModel": {
+      "additionalProperties": false,
+      "description": "The model and effort the owner last chose for one provider in a Project: starting a thread, choosing in one, or moving one to that provider.",
+      "properties": {
+        "effort": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "family": {
+          "$ref": "#/$defs/agentFamily"
+        },
+        "model": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "family",
+        "model"
+      ],
+      "type": "object"
+    },
+    "projectPartialFailures": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "type": "string"
+          },
+          "family": {
+            "$ref": "#/$defs/agentFamily"
+          }
+        },
+        "required": [
+          "family",
+          "detail"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "projectRepository": {
+      "additionalProperties": false,
+      "description": "Which repository a Project's folder belongs to, for showing the same repository on several computers together. Grouping data only: equal keys never grant access or trust.",
+      "properties": {
+        "key": {
+          "description": "Versioned, credential-free key from the origin remote. Compare whole keys only; keys of different versions never match.",
+          "maxLength": 2100,
+          "minLength": 4,
+          "pattern": "^v[0-9]+:",
+          "type": "string"
+        },
+        "name": {
+          "description": "The repository's name as its remote spells it.",
+          "maxLength": 512,
+          "minLength": 1,
+          "type": "string"
+        },
+        "subpath": {
+          "description": "The folder's place inside the repository, '/'-separated, empty at its top.",
+          "maxLength": 4096,
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "subpath",
+        "name"
+      ],
+      "type": "object"
+    },
+    "projectSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "autoArchive": {
+          "$ref": "#/$defs/autoArchiveRule",
+          "description": "This Project's own rule; absent when it follows the computer's."
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "folders": {
+          "items": {
+            "$ref": "#/$defs/projectFolder"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "type": "array"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "isIncluded": {
+          "type": "boolean"
+        },
+        "isPinned": {
+          "type": "boolean"
+        },
+        "lastFamily": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/agentFamily"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lastModels": {
+          "description": "The model last chosen in this Project, at most one per provider. A new chat without a choice of its own starts from it, ahead of the computer's default model.",
+          "items": {
+            "$ref": "#/$defs/projectLastModel"
+          },
+          "maxItems": 16,
+          "type": "array"
+        },
+        "lastUsedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "repository": {
+          "$ref": "#/$defs/projectRepository",
+          "description": "The repository holding the primary folder; absent when the folder has no comparable origin remote."
+        },
+        "rootsRevision": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "isIncluded",
+        "isPinned",
+        "rootsRevision",
+        "folders",
+        "lastFamily",
+        "lastUsedAt",
+        "createdAt",
+        "lastModels"
+      ],
+      "type": "object"
+    },
+    "projectThreadSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "automationRun": {
+          "$ref": "#/$defs/threadAutomationRun"
+        },
+        "backgroundWork": {
+          "const": true,
+          "description": "The agent still runs background agents, commands or terminals after its reply ended. Omitted otherwise."
+        },
+        "branch": {
+          "description": "The branch checked out in the thread's working folder. Omitted outside a repository or on a detached HEAD.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "closedIn": {
+          "description": "Archived list only: the thread's home app closed it, in user language (\"Settled in T3 Code\", \"Archived in the Claude app\"). Omitted for threads archived in Cupola or Codex.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "conversationId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "currentActivity": {
+          "$ref": "#/$defs/conversationThreadItem"
+        },
+        "family": {
+          "$ref": "#/$defs/agentFamily"
+        },
+        "hasUnread": {
+          "type": "boolean"
+        },
+        "isComputerSession": {
+          "description": "Positive provider evidence that this chat started on a computer or is currently owned by a desktop or terminal app. Missing or false is unbadged; native identity alone is not evidence.",
+          "type": "boolean"
+        },
+        "isPinned": {
+          "type": "boolean"
+        },
+        "isSubagent": {
+          "const": true,
+          "description": "A T3 Code delegate_task child whose parent chat T3 Code no longer has. Children of a known parent are not listed; they appear in the parent's agent tasks. Omitted otherwise."
+        },
+        "isWorking": {
+          "type": "boolean"
+        },
+        "lastAutomationAt": {
+          "description": "When an automation last posted into this thread.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "needsInputOnMac": {
+          "const": true,
+          "description": "The agent waits on the Mac itself (a permission prompt or question in its desktop app). Omitted otherwise."
+        },
+        "reference": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "reopensThere": {
+          "const": true,
+          "description": "Archived list only: Restore also reopens the thread in its home app when Cupola is connected there; otherwise it shows in Cupola only. Omitted otherwise."
+        },
+        "resumesAt": {
+          "description": "A usage limit stopped the thread; Cupola continues it at this time (RFC 3339) unless cancelled. Omitted otherwise.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "returnsAt": {
+          "description": "Archived list only: a thread snoozed in T3 Code returns to Chats at this time (RFC 3339).",
+          "minLength": 1,
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "integer"
+        },
+        "waitingOnMacPermission": {
+          "const": true,
+          "description": "A macOS permission, password or download dialog is open on the Mac while this thread's turn runs; only the person at the Mac can answer it. Omitted otherwise."
+        },
+        "worktreeLabel": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "reference",
+        "conversationId",
+        "title",
+        "family",
+        "updatedAt",
+        "isPinned",
+        "hasUnread",
+        "isWorking"
+      ],
+      "type": "object"
+    },
+    "projectThreadsPage": {
+      "additionalProperties": false,
+      "properties": {
+        "loading": {
+          "type": "boolean"
+        },
+        "nextCursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "partial": {
+          "$ref": "#/$defs/projectPartialFailures"
+        },
+        "threads": {
+          "items": {
+            "$ref": "#/$defs/projectThreadSummary"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "threads",
+        "nextCursor",
+        "partial",
+        "loading"
+      ],
+      "type": "object"
+    },
+    "projectsResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "archiveVersion": {
+          "enum": [
+            1,
+            2,
+            3
+          ]
+        },
+        "capabilitiesVersion": {
+          "const": 1
+        },
+        "createVersion": {
+          "const": 1
+        },
+        "deleteVersion": {
+          "const": 1
+        },
+        "families": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "available": {
+                "type": "boolean"
+              },
+              "capabilities": {
+                "$ref": "#/$defs/providerCapabilities"
+              },
+              "family": {
+                "$ref": "#/$defs/agentFamily"
+              },
+              "installed": {
+                "type": "boolean"
+              },
+              "signedOut": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "family",
+              "available"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "modesVersion": {
+          "const": 1
+        },
+        "partial": {
+          "$ref": "#/$defs/projectPartialFailures"
+        },
+        "pinned": {
+          "items": {
+            "$ref": "#/$defs/pinnedProjectThread"
+          },
+          "maxItems": 50,
+          "type": "array"
+        },
+        "projects": {
+          "items": {
+            "$ref": "#/$defs/projectSummary"
+          },
+          "type": "array"
+        },
+        "skillsVersion": {
+          "const": 1
+        },
+        "terminalVersion": {
+          "const": 1
+        }
+      },
+      "required": [
+        "projects",
+        "families",
+        "modesVersion",
+        "pinned"
+      ],
+      "type": "object"
+    },
+    "providerCapabilities": {
+      "additionalProperties": false,
+      "description": "What one provider offers through Wonder (ProviderCapabilities in crates/wonder-store/src/provider.rs). Version 1 (capabilitiesVersion); later fields are additive.",
+      "properties": {
+        "accessChoices": {
+          "type": "boolean"
+        },
+        "accountSignInOnPhone": {
+          "const": false
+        },
+        "accounts": {
+          "const": false
+        },
+        "agentSteer": {
+          "type": "boolean"
+        },
+        "agentTasks": {
+          "enum": [
+            "none",
+            "nativeThreads",
+            "transcript"
+          ]
+        },
+        "approvalModes": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "archive": {
+          "enum": [
+            "provider",
+            "wonder"
+          ]
+        },
+        "attachments": {
+          "type": "boolean"
+        },
+        "backgroundWork": {
+          "description": "Where the host learns that work outlived a reply, shown as a thread row's backgroundWork: terminals the runtime keeps, or tasks the session's process keeps. none: never shown.",
+          "enum": [
+            "none",
+            "terminals",
+            "tasks"
+          ]
+        },
+        "browserUse": {
+          "description": "nativeChrome: Claude in Chrome when set up for Claude Code; its tool events offer the Chrome window holding Claude's tab in the computer preview.",
+          "enum": [
+            "none",
+            "nativeChrome"
+          ]
+        },
+        "connectedApps": {
+          "type": "boolean"
+        },
+        "denyWithInstruction": {
+          "type": "boolean"
+        },
+        "desktopProjectSync": {
+          "type": "boolean"
+        },
+        "fileMentions": {
+          "type": "boolean"
+        },
+        "goals": {
+          "type": "boolean"
+        },
+        "historySearch": {
+          "enum": [
+            "none",
+            "runtime",
+            "transcriptIndex"
+          ]
+        },
+        "imageGeneration": {
+          "type": "boolean"
+        },
+        "interrupt": {
+          "type": "boolean"
+        },
+        "modelSwitch": {
+          "type": "boolean"
+        },
+        "namedSubagents": {
+          "type": "boolean"
+        },
+        "nativeFork": {
+          "type": "boolean"
+        },
+        "nativeSessions": {
+          "type": "boolean"
+        },
+        "plan": {
+          "enum": [
+            "unavailable",
+            "toggle",
+            "permissionMode"
+          ]
+        },
+        "promptSuggestions": {
+          "type": "boolean"
+        },
+        "queue": {
+          "type": "boolean"
+        },
+        "rewind": {
+          "description": "Edit from here: the provider's history can be cut back to before one of the owner's messages (POST /api/v1/conversations/{conversationId}/rewind).",
+          "type": "boolean"
+        },
+        "rewindFiles": {
+          "description": "A rewind can also restore files the agent edited, once the owner turns on file backups for this provider (Settings > Providers).",
+          "type": "boolean"
+        },
+        "skills": {
+          "type": "boolean"
+        },
+        "slashCommands": {
+          "type": "boolean"
+        },
+        "steer": {
+          "type": "boolean"
+        },
+        "structuredQuestions": {
+          "type": "boolean"
+        },
+        "terminalStatus": {
+          "enum": [
+            "strong",
+            "weak"
+          ]
+        },
+        "threadTools": {
+          "type": "boolean"
+        },
+        "usageLimits": {
+          "type": "boolean"
+        },
+        "wonderSkills": {
+          "description": "Wonder's skill pack can be turned on for this provider's sessions (Settings > computer > Skills for phone).",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "interrupt",
+        "steer",
+        "agentSteer",
+        "queue",
+        "modelSwitch",
+        "terminalStatus",
+        "nativeFork",
+        "rewind",
+        "rewindFiles",
+        "nativeSessions",
+        "archive",
+        "attachments",
+        "slashCommands",
+        "fileMentions",
+        "skills",
+        "promptSuggestions",
+        "accessChoices",
+        "structuredQuestions",
+        "denyWithInstruction",
+        "plan",
+        "agentTasks",
+        "namedSubagents",
+        "threadTools",
+        "goals",
+        "imageGeneration",
+        "usageLimits",
+        "connectedApps",
+        "desktopProjectSync",
+        "wonderSkills",
+        "accounts",
+        "accountSignInOnPhone",
+        "historySearch",
+        "browserUse",
+        "backgroundWork",
+        "approvalModes"
+      ],
+      "type": "object"
+    },
+    "providerStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "maxLength": 60,
+          "type": "string"
+        },
+        "detail": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "enum": [
+            "codex",
+            "claude",
+            "opencode",
+            "cursor"
+          ]
+        },
+        "incompatible": {
+          "type": "boolean"
+        },
+        "running": {
+          "type": "boolean"
+        },
+        "starting": {
+          "type": "boolean"
+        },
+        "state": {
+          "enum": [
+            "signedIn",
+            "signedOut",
+            "needsSubscription",
+            "unsupported",
+            "notInstalled",
+            "installed",
+            "unavailable"
+          ]
+        },
+        "update": {
+          "$ref": "#/$defs/providerUpdate"
+        },
+        "updatePending": {
+          "type": "boolean"
+        },
+        "version": {
+          "maxLength": 40,
+          "type": "string"
+        },
+        "warning": {
+          "description": "Chats work, but a Codex newer than Cupola was tested with, or optional features turned off, need attention.",
+          "type": "string"
+        },
+        "working": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "running",
+        "starting",
+        "incompatible",
+        "updatePending",
+        "detail",
+        "state",
+        "version",
+        "account",
+        "working"
+      ],
+      "type": "object"
+    },
+    "providerUpdate": {
+      "additionalProperties": false,
+      "description": "Whether a newer version of this provider exists, who installs it (cupola: Cupola's Claude runtime; chatgpt: ChatGPT's bundled Codex; npm or homebrew: that installer; manual: anything else), whether Cupola can run that updater (POST /api/v1/providers/{id}/update) and the last update's result.",
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "canUpdate": {
+          "type": "boolean"
+        },
+        "cupolaUpdateNeeded": {
+          "type": "boolean"
+        },
+        "installedVersion": {
+          "maxLength": 40,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "latestVersion": {
+          "maxLength": 40,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "owner": {
+          "enum": [
+            "cupola",
+            "chatgpt",
+            "npm",
+            "homebrew",
+            "manual"
+          ]
+        },
+        "status": {
+          "enum": [
+            "idle",
+            "updating",
+            "ready",
+            "succeeded",
+            "unchanged",
+            "failed"
+          ]
+        }
+      },
+      "required": [
+        "owner",
+        "available",
+        "latestVersion",
+        "canUpdate",
+        "cupolaUpdateNeeded",
+        "status",
+        "message"
+      ],
+      "type": "object"
+    },
+    "providersResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "host": {
+          "$ref": "#/$defs/hostCupola"
+        },
+        "providers": {
+          "items": {
+            "$ref": "#/$defs/providerStatus"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "providers",
+        "host"
+      ],
+      "type": "object"
+    },
+    "queueList": {
+      "items": {
+        "$ref": "#/$defs/queuedMessage"
+      },
+      "type": "array"
+    },
+    "queuedMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "attachmentIds": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "body": {
+          "type": "string"
+        },
+        "clientMessageId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "codexSkills": {
+          "items": {
+            "$ref": "#/$defs/codexSkillSelection"
+          },
+          "maxItems": 8,
+          "type": "array"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "waitsInT3Code": {
+          "description": "T3 Code on the computer holds this message in its thread's queue; Send now, edit and cancel go to T3 Code.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "clientMessageId",
+        "body",
+        "revision",
+        "attachmentIds"
+      ],
+      "type": "object"
+    },
+    "readCheckpoint": {
+      "additionalProperties": false,
+      "description": "Authenticated host journal head. Read before fetching independent projections, atomically invalidate all cached scopes with this cursor, then replay strictly after it.",
+      "properties": {
+        "hostEpoch": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "hostInstallationId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "lastSequence": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "hostEpoch",
+        "lastSequence",
+        "hostInstallationId"
+      ],
+      "type": "object"
+    },
+    "threadAutomationRun": {
+      "additionalProperties": false,
+      "description": "The latest automation run that posted into a thread.",
+      "properties": {
+        "automationId": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "error": {
+          "description": "Why the run failed, in user language.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "finishedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "description": "Null if the automation record is gone.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "startedAt": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "running",
+            "completed",
+            "failed"
+          ]
+        }
+      },
+      "required": [
+        "automationId",
+        "name",
+        "status",
+        "startedAt",
+        "finishedAt",
+        "error"
+      ],
+      "type": "object"
+    },
+    "voiceDictionary": {
+      "additionalProperties": false,
+      "properties": {
+        "words": {
+          "items": {
+            "maxLength": 40,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 100,
+          "type": "array"
+        }
+      },
+      "required": [
+        "words"
+      ],
+      "type": "object"
+    },
+    "voiceStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "configured": {
+          "type": "boolean"
+        },
+        "model": {
+          "maxLength": 64,
+          "type": "string"
+        },
+        "provider": {
+          "const": "openai"
+        }
+      },
+      "required": [
+        "provider",
+        "configured",
+        "model"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://wonder.app/schemas/wonder-rpc-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Generated by `cupola rpc --schema` from crates/wonderd/src/rpc. Do not edit; see crates/wonderd/RPC.md.",
+  "envelope": {
+    "notification": {
+      "$ref": "#/$defs/Notification"
+    },
+    "request": {
+      "$ref": "#/$defs/Request"
+    },
+    "response": {
+      "$ref": "#/$defs/Response"
+    }
+  },
+  "errors": {
+    "alreadyInitialized": -32091,
+    "busy": -32092,
+    "internalError": -32603,
+    "invalidParams": -32602,
+    "invalidRequest": -32600,
+    "methodNotFound": -32601,
+    "notInitialized": -32090,
+    "parseError": -32700,
+    "unsupportedVersion": -32093
+  },
+  "methods": {
+    "approvals.list": {
+      "authority": "any",
+      "params": {
+        "additionalProperties": false,
+        "description": "No params: omit them, or send `{}`.",
+        "type": "object"
+      },
+      "result": {
+        "items": {
+          "$ref": "#/$defs/approvalSummary"
+        },
+        "type": "array"
+      },
+      "route": "GET /api/v1/approvals",
+      "summary": "Requests waiting for a decision."
+    },
+    "approvals.resolve": {
+      "authority": "pairedSigned",
+      "params": {
+        "$ref": "#/$defs/ApprovalsResolveParams"
+      },
+      "result": {
+        "description": "The route's JSON body; see the guide.",
+        "type": [
+          "object",
+          "array"
+        ]
+      },
+      "route": "POST /api/v1/approvals/{approvalId}/resolve",
+      "summary": "Answers an approval. Only a paired device can, with a signature over the decision."
+    },
+    "auth.challenge": {
+      "authority": "any",
+      "beforeInitialize": true,
+      "params": {
+        "additionalProperties": false,
+        "description": "No params: omit them, or send `{}`.",
+        "type": "object"
+      },
+      "result": {
+        "description": "The route's JSON body; see the guide.",
+        "type": [
+          "object",
+          "array"
+        ]
+      },
+      "route": "GET /api/v1/events/challenge",
+      "summary": "Issues the one-time challenge a paired device signs for `initialize`."
+    },
+    "devices.forget": {
+      "authority": "owner",
+      "params": {
+        "$ref": "#/$defs/DeviceParams"
+      },
+      "result": {
+        "additionalProperties": false,
+        "description": "Always `{}`.",
+        "type": "object"
+      },
+      "route": "POST /api/v1/devices/{deviceId}/forget",
+      "summary": "Removes a disconnected device from the list."
+    },
+    "devices.list": {
+      "authority": "any",
+      "params": {
+        "additionalProperties": false,
+        "description": "No params: omit them, or send `{}`.",
+        "type": "object"
+      },
+      "result": {
+        "items": {
+          "$ref": "#/$defs/deviceSummary"
+        },
+        "type": "array"
+      },
+      "route": "GET /api/v1/devices",
+      "summary": "Paired devices, including disconnected ones."
+    },
+    "devices.rename": {
+      "authority": "owner",
+      "params": {
+        "$ref": "#/$defs/DeviceRenameParams"
+      },
+      "result": {
+        "$ref": "#/$defs/deviceSummary"
+      },
+      "route": "PATCH /api/v1/devices/{deviceId}",
+      "summary": "Renames a device in the list."
+    },
+    "devices.revoke": {
+      "authority": "ownerOrSigned",
+      "params": {
+        "$ref": "#/$defs/DevicesRevokeParams"
+      },
+      "result": {
+        "additionalProperties": false,
+        "description": "Always `{}`.",
+        "type": "object"
+      },
+      "route": "POST /api/v1/devices/{deviceId}/revoke",
+      "summary": "Disconnects a device: its session ends at once."
+    },
+    "events.checkpoint": {
+      "authority": "any",
+      "params": {
+        "additionalProperties": false,
+        "description": "No params: omit them, or send `{}`.",
+        "type": "object"
+      },
+      "result": {
+        "$ref": "#/$defs/readCheckpoint"
+      },
+      "route": "GET /api/v1/sync/checkpoint",
+      "summary": "The current event cursor. Read it before reading state, then subscribe from it, so nothing falls between the two."
+    },
+    "events.subscribe": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/EventsSubscribeParams"
+      },
+      "result": {
+        "$ref": "#/$defs/EventsSubscribeResult"
+      },
+      "summary": "Streams host events as `event` notifications, replaying from a cursor."
+    },
+    "events.unsubscribe": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/EventsUnsubscribeParams"
+      },
+      "result": {
+        "additionalProperties": false,
+        "description": "Always `{}`.",
+        "type": "object"
+      },
+      "summary": "Ends a subscription."
+    },
+    "host.name": {
+      "authority": "any",
+      "params": {
+        "additionalProperties": false,
+        "description": "No params: omit them, or send `{}`.",
+        "type": "object"
+      },
+      "result": {
+        "$ref": "#/$defs/hostNameSettings"
+      },
+      "route": "GET /api/v1/host/name",
+      "summary": "The name phones show for this computer."
+    },
+    "host.providers": {
+      "authority": "owner",
+      "params": {
+        "additionalProperties": false,
+        "description": "No params: omit them, or send `{}`.",
+        "type": "object"
+      },
+      "result": {
+        "description": "The route's JSON body; see the guide.",
+        "type": [
+          "object",
+          "array"
+        ]
+      },
+      "route": "GET /api/v1/host/providers",
+      "summary": "Each provider runtime on this computer and whether it is running."
+    },
+    "host.rename": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/HostRenameParams"
+      },
+      "result": {
+        "$ref": "#/$defs/hostNameSettings"
+      },
+      "route": "PUT /api/v1/host/name",
+      "summary": "Renames this computer; an empty or null name goes back to its own name."
+    },
+    "host.status": {
+      "authority": "any",
+      "params": {
+        "additionalProperties": false,
+        "description": "No params: omit them, or send `{}`.",
+        "type": "object"
+      },
+      "result": {
+        "$ref": "#/$defs/hostStatus"
+      },
+      "route": "GET /api/v1/host/status",
+      "summary": "The computer's name, platform, public origin and whether it can run agents now."
+    },
+    "http.request": {
+      "authority": "sealedDevice",
+      "params": {
+        "$ref": "#/$defs/HttpRequestParams"
+      },
+      "result": {
+        "$ref": "#/$defs/HttpResponse"
+      },
+      "summary": "Runs one of the device's own HTTP API calls inside the sealed channel, so a phone on the relay works as it does at home."
+    },
+    "initialize": {
+      "authority": "any",
+      "beforeInitialize": true,
+      "params": {
+        "$ref": "#/$defs/InitializeParams"
+      },
+      "result": {
+        "$ref": "#/$defs/InitializeResult"
+      },
+      "summary": "Opens the session: agrees the protocol version and, on a paired device, proves the session with a signed challenge."
+    },
+    "media.orphans": {
+      "authority": "owner",
+      "params": {
+        "$ref": "#/$defs/OrphanParams"
+      },
+      "result": {
+        "$ref": "#/$defs/OrphanReport"
+      },
+      "route": "GET /api/v1/host/media/orphans",
+      "summary": "Preview files no conversation names any more, older than the age limit: what media.prune would delete. Changes nothing."
+    },
+    "media.prune": {
+      "authority": "owner",
+      "params": {
+        "$ref": "#/$defs/OrphanParams"
+      },
+      "result": {
+        "$ref": "#/$defs/OrphanReport"
+      },
+      "route": "POST /api/v1/host/media/orphans/prune",
+      "summary": "Deletes the preview files media.orphans lists, and preview folders left empty."
+    },
+    "models.list": {
+      "authority": "any",
+      "params": {
+        "additionalProperties": false,
+        "description": "No params: omit them, or send `{}`.",
+        "type": "object"
+      },
+      "result": {
+        "$ref": "#/$defs/agentOptions"
+      },
+      "route": "GET /api/v1/agent-options",
+      "summary": "The models each provider offers here; `isDefault` marks the one a new thread uses."
+    },
+    "pairing.cancel": {
+      "authority": "owner",
+      "params": {
+        "$ref": "#/$defs/PairingCancelParams"
+      },
+      "result": {
+        "additionalProperties": false,
+        "description": "Always `{}`.",
+        "type": "object"
+      },
+      "route": "POST /api/v1/pairing/offers/{offerId}/cancel",
+      "summary": "Withdraws an unclaimed pairing offer."
+    },
+    "pairing.confirm": {
+      "authority": "owner",
+      "params": {
+        "$ref": "#/$defs/PairingConfirmParams"
+      },
+      "result": {
+        "additionalProperties": false,
+        "description": "Always `{}`.",
+        "type": "object"
+      },
+      "route": "POST /api/v1/pairing/pending/{deviceId}/confirm",
+      "summary": "Lets a waiting device connect."
+    },
+    "pairing.offer": {
+      "authority": "owner",
+      "params": {
+        "$ref": "#/$defs/PairingOfferParams"
+      },
+      "result": {
+        "description": "The route's JSON body; see the guide.",
+        "type": [
+          "object",
+          "array"
+        ]
+      },
+      "route": "POST /api/v1/pairing/offers",
+      "summary": "Creates a pairing offer (link and code) for a new device."
+    },
+    "pairing.pending": {
+      "authority": "owner",
+      "params": {
+        "additionalProperties": false,
+        "description": "No params: omit them, or send `{}`.",
+        "type": "object"
+      },
+      "result": {
+        "description": "The route's JSON body; see the guide.",
+        "type": [
+          "object",
+          "array"
+        ]
+      },
+      "route": "GET /api/v1/pairing/pending",
+      "summary": "Devices that claimed an offer and wait for the owner's decision."
+    },
+    "pairing.reject": {
+      "authority": "owner",
+      "params": {
+        "$ref": "#/$defs/DeviceParams"
+      },
+      "result": {
+        "additionalProperties": false,
+        "description": "Always `{}`.",
+        "type": "object"
+      },
+      "route": "POST /api/v1/pairing/pending/{deviceId}/reject",
+      "summary": "Refuses a waiting device."
+    },
+    "projects.list": {
+      "authority": "any",
+      "params": {
+        "additionalProperties": false,
+        "description": "No params: omit them, or send `{}`.",
+        "type": "object"
+      },
+      "result": {
+        "$ref": "#/$defs/projectsResponse"
+      },
+      "route": "GET /api/v1/projects",
+      "summary": "Projects and pinned threads."
+    },
+    "providers.list": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/ProvidersListParams"
+      },
+      "result": {
+        "$ref": "#/$defs/providersResponse"
+      },
+      "route": "GET /api/v1/providers",
+      "summary": "Codex, Claude Code, OpenCode and Cursor: sign-in, models and capabilities."
+    },
+    "providers.reconnect": {
+      "authority": "owner",
+      "params": {
+        "$ref": "#/$defs/ProviderParams"
+      },
+      "result": {
+        "description": "The route's JSON body; see the guide.",
+        "type": [
+          "object",
+          "array"
+        ]
+      },
+      "route": "POST /api/v1/host/providers/{provider}/reconnect",
+      "summary": "Finds and checks a provider again, so it reads a new sign-in."
+    },
+    "queue.edit": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/QueueEditParams"
+      },
+      "result": {
+        "additionalProperties": false,
+        "description": "Always `{}`.",
+        "type": "object"
+      },
+      "route": "POST /api/v1/conversations/{threadId}/queue/{messageId}",
+      "summary": "Changes or cancels a queued message, or sends it now into the running turn (`expectedTurnId`)."
+    },
+    "relay.enable": {
+      "authority": "ownerOrSigned",
+      "params": {
+        "$ref": "#/$defs/RelayEnableParams"
+      },
+      "result": {
+        "$ref": "#/$defs/RelayView"
+      },
+      "route": "POST /api/v1/relay/enable",
+      "summary": "Starts the relay with a signed-in phone's one-time grant for this computer."
+    },
+    "relay.set": {
+      "authority": "owner",
+      "params": {
+        "$ref": "#/$defs/RelaySetParams"
+      },
+      "result": {
+        "$ref": "#/$defs/RelayView"
+      },
+      "route": "PUT /api/v1/relay/settings",
+      "summary": "Allows the relay on this computer, or turns it off and releases its address."
+    },
+    "relay.status": {
+      "authority": "any",
+      "params": {
+        "additionalProperties": false,
+        "description": "No params: omit them, or send `{}`.",
+        "type": "object"
+      },
+      "result": {
+        "$ref": "#/$defs/RelayView"
+      },
+      "route": "GET /api/v1/relay",
+      "summary": "Whether this computer can be reached through Cupola's relay, and its address."
+    },
+    "threads.attach": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/ThreadsAttachParams"
+      },
+      "result": {
+        "description": "The route's JSON body; see the guide.",
+        "type": [
+          "object",
+          "array"
+        ]
+      },
+      "route": "POST /api/v1/projects/{projectId}/threads/attach",
+      "summary": "Gives a provider thread without a `conversationId` one, so it can be read and sent to."
+    },
+    "threads.create": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/ThreadsCreateParams"
+      },
+      "result": {
+        "$ref": "#/$defs/createProjectThreadResponse"
+      },
+      "route": "POST /api/v1/projects/{projectId}/threads",
+      "summary": "Starts a thread in a Project with its first message. Idempotent per `idempotencyKey`, as `threads.send`."
+    },
+    "threads.delegate": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/ThreadsDelegateParams"
+      },
+      "result": {
+        "description": "The route's JSON body; see the guide.",
+        "type": [
+          "object",
+          "array"
+        ]
+      },
+      "route": "POST /api/v1/conversations/{threadId}/delegations",
+      "summary": "Starts a task as a child of a thread, like the agent tool `wonder_delegate`: the child shows in the parent as an agent task. Idempotent per `idempotencyKey`."
+    },
+    "threads.list": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/ThreadsListParams"
+      },
+      "result": {
+        "$ref": "#/$defs/projectThreadsPage"
+      },
+      "route": "GET /api/v1/projects/{projectId}/threads",
+      "summary": "One page of a Project's threads, most recent first."
+    },
+    "threads.moveToWorktree": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/ThreadsMoveToWorktreeParams"
+      },
+      "result": {
+        "description": "The route's JSON body; see the guide.",
+        "type": [
+          "object",
+          "array"
+        ]
+      },
+      "route": "POST /api/v1/project-conversations/{threadId}/worktree",
+      "summary": "Moves an idle thread onto a new git worktree and branch beside its repository; the thread keeps its history and carries on there."
+    },
+    "threads.notifications": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/ThreadParams"
+      },
+      "result": {
+        "$ref": "#/$defs/chatNotifications"
+      },
+      "route": "GET /api/v1/conversations/{threadId}/notifications",
+      "summary": "The stored notification level for a chat."
+    },
+    "threads.queue": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/ThreadParams"
+      },
+      "result": {
+        "$ref": "#/$defs/queueList"
+      },
+      "route": "GET /api/v1/conversations/{threadId}/queue",
+      "summary": "Messages waiting in a thread's queue, next first."
+    },
+    "threads.read": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/ThreadsReadParams"
+      },
+      "result": {
+        "$ref": "#/$defs/conversationSnapshot"
+      },
+      "route": "GET /api/v1/conversations/{threadId}",
+      "summary": "A thread's messages, newest page first; page back with `before`."
+    },
+    "threads.send": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/ThreadsSendParams"
+      },
+      "result": {
+        "$ref": "#/$defs/messageReceipt"
+      },
+      "route": "POST /api/v1/conversations/{threadId}/messages",
+      "summary": "Sends a message. Idempotent: resending the same `idempotencyKey` and body returns the first receipt; a different body is a conflict."
+    },
+    "threads.setNotifications": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/ThreadNotificationsParams"
+      },
+      "result": {
+        "$ref": "#/$defs/chatNotifications"
+      },
+      "route": "PUT /api/v1/conversations/{threadId}/notifications",
+      "summary": "Sets a chat to default, follow or mute on this computer."
+    },
+    "update.cancel": {
+      "authority": "owner",
+      "params": {
+        "$ref": "#/$defs/UpdateParams"
+      },
+      "result": {
+        "additionalProperties": false,
+        "description": "Always `{}`.",
+        "type": "object"
+      },
+      "route": "POST /api/v1/host/update/cancel",
+      "summary": "Lets the host take work again after a restart that did not happen."
+    },
+    "update.prepare": {
+      "authority": "owner",
+      "params": {
+        "$ref": "#/$defs/UpdateParams"
+      },
+      "result": {
+        "description": "The route's JSON body; see the guide.",
+        "type": [
+          "object",
+          "array"
+        ]
+      },
+      "route": "POST /api/v1/host/update/prepare",
+      "summary": "Pauses work durably for a restart; refuses if more replies run than `consentedRunning`."
+    },
+    "update.work": {
+      "authority": "owner",
+      "params": {
+        "additionalProperties": false,
+        "description": "No params: omit them, or send `{}`.",
+        "type": "object"
+      },
+      "result": {
+        "description": "The route's JSON body; see the guide.",
+        "type": [
+          "object",
+          "array"
+        ]
+      },
+      "route": "GET /api/v1/host/update/work",
+      "summary": "What a restart would interrupt: `running` replies and whether `blocksUpdate`."
+    },
+    "voice.dictionary": {
+      "authority": "owner",
+      "params": {
+        "additionalProperties": false,
+        "description": "No params: omit them, or send `{}`.",
+        "type": "object"
+      },
+      "result": {
+        "$ref": "#/$defs/voiceDictionary"
+      },
+      "route": "GET /api/v1/voice/dictionary",
+      "summary": "The words voice mode transcribes with care."
+    },
+    "voice.removeKey": {
+      "authority": "any",
+      "params": {
+        "additionalProperties": false,
+        "description": "No params: omit them, or send `{}`.",
+        "type": "object"
+      },
+      "result": {
+        "$ref": "#/$defs/voiceStatus"
+      },
+      "route": "DELETE /api/v1/voice/openai-key",
+      "summary": "Removes the saved voice key."
+    },
+    "voice.setKey": {
+      "authority": "any",
+      "params": {
+        "$ref": "#/$defs/VoiceSetKeyParams"
+      },
+      "result": {
+        "$ref": "#/$defs/voiceStatus"
+      },
+      "route": "PUT /api/v1/voice/openai-key",
+      "summary": "Saves the OpenAI API key voice uses."
+    },
+    "voice.status": {
+      "authority": "any",
+      "params": {
+        "additionalProperties": false,
+        "description": "No params: omit them, or send `{}`.",
+        "type": "object"
+      },
+      "result": {
+        "$ref": "#/$defs/voiceStatus"
+      },
+      "route": "GET /api/v1/voice",
+      "summary": "Whether voice is set up on this computer."
+    },
+    "voice.updateDictionary": {
+      "authority": "owner",
+      "params": {
+        "$ref": "#/$defs/VoiceDictionaryParams"
+      },
+      "result": {
+        "$ref": "#/$defs/voiceDictionary"
+      },
+      "route": "PUT /api/v1/voice/dictionary",
+      "summary": "Adds and removes voice dictionary words; used when the next voice session starts."
+    }
+  },
+  "notifications": {
+    "event": {
+      "params": {
+        "$ref": "#/$defs/EventNotification"
+      },
+      "summary": "One committed host event for a subscription, in sequence order."
+    },
+    "events.batch": {
+      "params": {
+        "$ref": "#/$defs/EventBatchNotification"
+      },
+      "summary": "Committed incremental events for an opted-in subscription, in sequence order."
+    },
+    "events.ended": {
+      "params": {
+        "$ref": "#/$defs/EventsEnded"
+      },
+      "summary": "A subscription stopped; `reason` says why and whether to read state again."
+    }
+  },
+  "protocolVersion": 1,
+  "title": "Cupola RPC"
+}

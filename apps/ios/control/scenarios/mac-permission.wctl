@@ -1,0 +1,77 @@
+# devices: iphone ipad
+# Named dialog kinds, grouped duplicate descriptions, dismissible host notice.
+# Count changes of the same description stay hidden; a different dialog revives it.
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-picture
+driver off
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id project-thread:claude:9c4f2e17-3b8a-4d5c-a6e1-7f0b2c3d4e5f --timeout 20
+signal mac-waiting
+wait --id mac-dialog-notification:diagnostic-host --contains "Permission request on your Mac ×2" --timeout 10
+# The fixture explicitly attributes this permission wait to one chat (as T3 does).
+wait --id project-thread:claude:9c4f2e17-3b8a-4d5c-a6e1-7f0b2c3d4e5f --contains "Waiting for a permission on your Mac"
+shot mac-dialog-attributed-chat-status
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+# A different chat keeps its own header while host attention remains reachable.
+# iPad keeps other chats visible in the sidebar; scope the absence to this header.
+wait --id project-conversation-header --contains "Read status fixture"
+wait --id project-conversation-header --contains "Waiting for a permission on your Mac" --gone
+wait --id computer-status-pill --contains "2 dialogs waiting" --timeout 10
+wait --id mac-dialog-notification:diagnostic-host --contains "Permission request on your Mac ×2"
+shot mac-dialog-named-two
+swipe left --in mac-dialog-notification:diagnostic-host
+wait --id mac-dialog-notification:diagnostic-host --gone
+wait --id computer-status-pill --contains "2 dialogs waiting"
+shot mac-dialog-dismissed-two
+# The fixture presents one group with multiplicity three. Rust tests own merging.
+signal mac-dialog-three
+wait --id computer-status-pill --contains "3 dialogs waiting" --timeout 10
+wait --id computer-status-pill --contains "Permission request on your Mac ×3"
+wait --id mac-dialog-notification:diagnostic-host --gone
+shot mac-dialog-dismissed-three
+# Computer opens the whole display; the dismissed dialog is an explicit viewer chip.
+tap --id computer-status-pill
+wait --id computer-session-header --contains "display" --timeout 10
+wait --id computer-session-dialogs --contains "3 dialogs waiting"
+shot mac-dialog-badge-whole-screen
+tap --id computer-session-dialogs
+wait --id computer-session-more --timeout 10
+wait --id computer-session-window-view-only --gone
+wait --id computer-session-header --contains "Mac dialog"
+shot mac-dialog-chip-window
+# The same native exit closes the phone viewer or iPad companion pane.
+driver on
+dismiss
+driver off
+wait --id mac-dialog-notification:diagnostic-host --gone
+wait --id computer-status-pill --contains "3 dialogs waiting"
+# The held count-one signal selects SecurityAgent/password instead of UserNotificationCenter/permission.
+signal mac-dialog-one
+wait --id mac-dialog-notification:diagnostic-host --contains "Password request" --timeout 10
+wait --id computer-status-pill --contains "1 dialog waiting"
+shot mac-dialog-different-owner
+tap --id mac-dialog-notification:diagnostic-host
+wait --id computer-session-close
+wait --id computer-session-header --contains "display"
+driver on
+assert --path computer.sourceKind --equals '"display"' --timeout 10
+assert --path computer.hasPicture --equals true --timeout 10
+driver off
+shot mac-dialog-banner-whole-screen
+tap --id computer-session-close
+# The final dialog vanishes on the Mac between the snapshot and the tap.
+signal mac-dialog-gone
+tap --id mac-dialog-notification:diagnostic-host
+wait --id computer-session-header --contains "display"
+driver on
+assert --path computer.sourceKind --equals '"display"' --timeout 10
+assert --path computer.hasPicture --equals true --timeout 10
+driver off
+shot mac-dialog-gone-whole-screen
+tap --id computer-session-close
+signal mac-permission-closed
+wait --id mac-dialog-notification:diagnostic-host --gone --timeout 10
+wait --id computer-status-pill --contains "dialog" --gone
+shot mac-dialog-count-zero

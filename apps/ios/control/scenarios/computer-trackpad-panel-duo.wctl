@@ -1,0 +1,49 @@
+# devices: duo
+# The Duo cover twin of computer-trackpad-panel. The cover has no separate
+# trackpad (the panel is for the flat iPhone and iPad, outside the half-folded
+# Duo), so this covers what the cover does share: the system keyboard with its
+# shortcut row, the one keyboard view and the lease-loss clear.
+# Native Duo taps are not dependable (#387: a tap reports success and nothing
+# happens), so control, the keyboard and Esc go through the dock signals, the
+# production actions the taps would run. Offline fixture: no paired host input
+# or model calls.
+# Return the display to the cover whatever pose an earlier scenario left it in.
+driver on
+hinge 180
+orient portrait
+hinge 0
+orient portrait
+driver off
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture no-hardware-keyboard --fixture computer-reconnect --fixture computer-dock
+wait --id computer-session-more --timeout 30
+signal computer-dock-take-control
+wait --id computer-session-control-active --timeout 15
+wait --id computer-session-trackpad --gone
+shot computer-duo-cover-before
+signal computer-dock-keyboard
+wait --id computer-session-keyboard --contains "Hide keyboard" --timeout 10
+wait --id computer-session-shortcuts-row --timeout 10
+shot computer-duo-cover-keyboard-up
+# Esc on the shortcut row is one key press through the input queue.
+signal computer-dock-key-escape
+wait --id computer-viewport-appearances --contains "sent: 2;" --timeout 5
+signal computer-dock-keyboard-hide
+wait --id computer-session-keyboard --contains "Show keyboard" --timeout 10
+wait --id computer-session-shortcuts-row --timeout 5
+wait --id computer-viewport-appearances --contains "appearances: 1; keyboards: 1;" --timeout 5
+shot computer-duo-cover-keyboard-hidden
+
+# The keyboard launch fixture raises the keyboard without a tap; a lease loss
+# lowers it and taking control again brings it back.
+launch --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-control-active --fixture computer-keyboard --fixture no-hardware-keyboard --fixture computer-reconnect --fixture computer-dock
+wait --id computer-viewport-appearances --contains "sent: 1;" --timeout 30
+wait --id computer-session-key-escape --timeout 15
+signal computer-control-lost
+wait --id computer-session-more --timeout 15
+# The key row is always under the picture.
+wait --id computer-session-shortcuts-row --timeout 10
+signal computer-dock-take-control
+wait --id computer-session-key-escape --timeout 15
+signal computer-dock-key-escape
+wait --id computer-viewport-appearances --contains "sent: 3;" --timeout 5
+shot computer-duo-cover-keyboard-after-control-loss

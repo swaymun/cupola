@@ -1,0 +1,67 @@
+# Settings > Default models > Codex (set on every computer): the page reads from
+# this device, so a failed first load shows no error and no Try again; reopening
+# lists Codex's models with the computer's own default chosen (never "Cupola's
+# default"), a chosen model and effort are kept after leaving and reopening the
+# screen, and hiding a model removes it from the Mac's model list.
+# The fixture stands in for the Mac; nothing is sent.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture default-models --fixture default-models-fail-once
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id sidebar-settings --timeout 10
+tap --id sidebar-settings
+wait --id settings-add-computer --timeout 10
+tap --id settings-default-models
+wait --id provider-default-model:codex --timeout 15
+# A computer that lacks the model is named on the provider's page, so the list
+# itself carries no scope footer.
+wait --contains "each of your computers" --never 1
+tap --id provider-default-model:codex
+# The first load fails: no error row and no Try again.
+wait --id default-models-retry --gone --timeout 5
+wait --contains "couldn’t be loaded" --never 1
+shot default-models-load-failed
+back
+wait --id provider-default-model:codex --timeout 10
+tap --id provider-default-model:codex
+wait --id default-model-codex --timeout 15
+wait --id default-model-claude --gone --timeout 2
+# Nothing saved shows the computer's own default model and its effort.
+wait --id default-effort-codex --timeout 5
+wait --contains "Cupola’s default" --never 1
+wait --contains "Model default" --never 1
+shot default-models-loaded
+tap --id default-model-codex
+wait --label "Codex Fixture Mini" --timeout 10
+tap --label "Codex Fixture Mini" --type Button
+wait --id default-effort-codex --timeout 10
+tap --id default-effort-codex
+wait --label "Low" --timeout 10
+tap --label "Low"
+wait --contains "Codex Fixture Mini" --timeout 10
+shot default-models-chosen
+back
+wait --id provider-default-model:codex --timeout 10
+tap --id provider-default-model:codex
+wait --id default-model-codex --timeout 15
+wait --contains "Codex Fixture Mini" --timeout 10
+wait --contains "Low" --timeout 10
+shot default-models-persisted
+# Hide the chosen model: its switch turns off (the switch sits near the row's
+# right edge, which a centre tap misses, and AXe actuates it only with a short
+# press), and the default picker moves to the model still shown with no "saved
+# model unavailable" note.
+wait --id model-shown:gpt-fixture-mini --contains "1" --timeout 10
+hold --id model-shown:gpt-fixture-mini --x-fraction 0.87 --seconds 0.15
+wait --id model-shown:gpt-fixture-mini --contains "0" --timeout 10
+wait --id model-shown:gpt-fixture --contains "1" --timeout 5
+wait --id default-model-codex --contains "Mini" --gone --timeout 5
+wait --id default-model-unavailable --gone --timeout 2
+shot default-models-hidden
+# Showing it again: its switch is back on.
+hold --id model-shown:gpt-fixture-mini --x-fraction 0.87 --seconds 0.15
+wait --id model-shown:gpt-fixture-mini --contains "1" --timeout 10
+back
+back
+tap --id settings-default-models
+tap --id provider-default-model:claude
+wait --id default-model-claude --timeout 15

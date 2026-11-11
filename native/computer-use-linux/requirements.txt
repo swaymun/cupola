@@ -1,0 +1,5 @@
+# Qualified together on Ubuntu 26.04 arm64 / Python 3.14.
+aiortc==1.15.0
+av==17.0.0
+mss==10.1.0
+numpy==2.4.1

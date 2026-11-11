@@ -1,0 +1,44 @@
+# Host response fixture only; no messages, providers or owner chats are changed.
+# Host tests own the sweep (`projects::auto_archive`): idle days, merges, the
+# exemptions and per-Project rules. This checks the phone's settings and the
+# "Confirm before archiving" dialog.
+# The launch argument selects "Confirm before archiving" on, so no earlier
+# run's choice matters (the switch reads it; AXe cannot actuate Form switches).
+# `reveal` scrolls the computer's page in short drags until the row (then the
+# section footer) is wholly on screen; a fling's landing point varies.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --arg=-wonder.confirm.archive --arg=YES
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+hold --id pinned-thread:codex:read-fixture
+wait --id archive-project-thread --timeout 10
+tap --id archive-project-thread
+wait --id archive-thread-confirm --timeout 10
+wait --contains "also be archived in the Codex app"
+shot auto-archive-confirm-dialog
+tap --id archive-thread-confirm
+wait --id pinned-thread:codex:read-fixture --gone --timeout 10
+tap --id sidebar-settings
+reveal up --id settings-confirm-archive
+wait --id settings-confirm-archive --contains "1" --timeout 10
+reveal up --id settings-confirm-delete
+wait --id settings-confirm-delete --timeout 10
+shot auto-archive-confirmations
+reveal down --id settings-computer:diagnostic-host
+tap --id settings-computer:diagnostic-host
+reveal up --id auto-archive-days --in connection-settings
+wait --id auto-archive-days --contains "After 3 days" --timeout 10
+reveal up --contains "A Project can have its own rule" --in connection-settings
+wait --id auto-archive-on-merge --contains "1" --timeout 10
+wait --id auto-archive-days --contains "After 3 days"
+shot auto-archive-computer-rule
+tap --id auto-archive-days
+tap --label "After 7 days"
+wait --id auto-archive-days --contains "After 7 days" --timeout 10
+back
+reveal down --id settings-computer:diagnostic-host
+tap --id settings-computer:diagnostic-host
+reveal up --id auto-archive-days --in connection-settings
+# The fixture host kept the saved rule.
+wait --id auto-archive-days --contains "After 7 days" --timeout 10
+shot auto-archive-saved

@@ -1,0 +1,33 @@
+# Unfolded iPhone Duo only: run by hand with
+#   scripts/wonderctl --device duo run apps/ios/control/duo-unfolded/header-and-keyboard-end.wctl
+# Not in the feature map (Duo postures; #387). `shot` captures the folded cover,
+# so capture the inner display with
+#   xcrun simctl io <duo udid> screenshot --display=primary-1 FILE
+# Launch fixtures set every state; no input is needed.
+#
+# Upright (inner portrait), a thread name too long for the bar truncates between
+# the sidebar button and the context ring instead of running under them. AX has
+# no horizontal assertion; compare conversation-title-menu's frame in the tree
+# with open-sidebar's and context-usage-ring's (fails before the fix: 54..496
+# against 24..64 and 487..531).
+hinge 180
+orient landscape-right
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-files-send --fixture open-project-thread --fixture context-usage --fixture long-thread-title --arg=-wonder.sidebar.hidden --arg=YES
+wait --id conversation-title-menu --timeout 30
+wait --id open-sidebar --timeout 5
+wait --id context-usage-ring --timeout 5
+tree
+# On its side with the Terminal beside the chat, the terminal takes the keyboard
+# as the chat opens at its end. The chat shrinks in steps; the reader stays at
+# the end with the last reply above the composer and no bottom arrow over it
+# (before the fix the arrow stayed and the reply was cut off).
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-files-send --fixture project-subagents --fixture open-project-thread --fixture terminal-preview --fixture companion-terminal --arg=-wonder.sidebar.hidden --arg=YES --arg=-wonder.companionPane.flipped --arg=NO
+wait --id terminal-output --timeout 30
+wait --id message-draft --timeout 5
+wait --id scroll-to-bottom --gone --timeout 5
+wait --id scroll-to-bottom --never 2
+tree
+# Leave the shared Duo folded for the input canary.
+hinge 0
+orient portrait

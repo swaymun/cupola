@@ -1,0 +1,198 @@
+[
+  {
+    "id": "owner-1",
+    "status": "completed",
+    "error": null,
+    "items": [
+      {
+        "type": "userMessage",
+        "id": "owner-1",
+        "content": [
+          {
+            "type": "text",
+            "text": "Run the build"
+          }
+        ]
+      },
+      {
+        "type": "commandExecution",
+        "id": "bg-alpha",
+        "command": "make",
+        "status": "completed",
+        "toolAction": {
+          "kind": "command",
+          "description": "Task alpha"
+        },
+        "success": true,
+        "backgroundTaskId": "alpha",
+        "aggregatedOutput": "Command running in background with ID: alpha. Output is being written to: /tmp/alpha.output"
+      },
+      {
+        "type": "commandExecution",
+        "id": "bg-beta",
+        "command": "make",
+        "status": "failed",
+        "toolAction": {
+          "kind": "command",
+          "description": "Task beta"
+        },
+        "success": false,
+        "backgroundTaskId": "beta",
+        "aggregatedOutput": "Command running in background with ID: beta. Output is being written to: /tmp/beta.output",
+        "error": {
+          "message": "Background command \"Run &quot;slow&quot; tests &amp; lint\" failed (exit code 1)"
+        }
+      },
+      {
+        "type": "commandExecution",
+        "id": "bg-gamma",
+        "command": "make",
+        "status": "interrupted",
+        "toolAction": {
+          "kind": "command",
+          "description": "Task gamma"
+        },
+        "backgroundTaskId": "gamma",
+        "aggregatedOutput": "Command running in background with ID: gamma. Output is being written to: /tmp/gamma.output"
+      },
+      {
+        "type": "agentMessage",
+        "id": "owner-1:first-m:0",
+        "text": "Started three tasks",
+        "status": "completed"
+      }
+    ]
+  },
+  {
+    "id": "wake-alpha",
+    "status": "completed",
+    "error": null,
+    "items": [
+      {
+        "type": "taskNotification",
+        "id": "wake-alpha",
+        "status": "completed",
+        "taskStatus": "completed",
+        "kind": "command",
+        "text": "Command \"Build the app\" finished"
+      },
+      {
+        "type": "mcpToolCall",
+        "id": "read-alpha",
+        "server": "Claude",
+        "tool": "Read",
+        "arguments": {
+          "file_path": "/tmp/alpha.txt"
+        },
+        "status": "completed",
+        "toolAction": {
+          "kind": "read",
+          "paths": [
+            "/tmp/alpha.txt"
+          ]
+        },
+        "success": true,
+        "contentItems": [
+          {
+            "type": "inputText",
+            "text": "ok"
+          }
+        ]
+      },
+      {
+        "type": "agentMessage",
+        "id": "wake-alpha:wfm-alpha:0",
+        "text": "Reply for alpha",
+        "status": "completed"
+      }
+    ]
+  },
+  {
+    "id": "wake-beta",
+    "status": "completed",
+    "error": null,
+    "items": [
+      {
+        "type": "taskNotification",
+        "id": "wake-beta",
+        "status": "completed",
+        "taskStatus": "failed",
+        "kind": "command",
+        "text": "Command \"Run \"slow\" tests & lint\" failed"
+      },
+      {
+        "type": "mcpToolCall",
+        "id": "read-beta",
+        "server": "Claude",
+        "tool": "Read",
+        "arguments": {
+          "file_path": "/tmp/beta.txt"
+        },
+        "status": "completed",
+        "toolAction": {
+          "kind": "read",
+          "paths": [
+            "/tmp/beta.txt"
+          ]
+        },
+        "success": true,
+        "contentItems": [
+          {
+            "type": "inputText",
+            "text": "ok"
+          }
+        ]
+      },
+      {
+        "type": "agentMessage",
+        "id": "wake-beta:wfm-beta:0",
+        "text": "Reply for beta",
+        "status": "completed"
+      }
+    ]
+  },
+  {
+    "id": "wake-gamma",
+    "status": "completed",
+    "error": null,
+    "items": [
+      {
+        "type": "taskNotification",
+        "id": "wake-gamma",
+        "status": "completed",
+        "taskStatus": "interrupted",
+        "kind": "command",
+        "text": "Command \"Watch the logs\" stopped"
+      },
+      {
+        "type": "mcpToolCall",
+        "id": "read-gamma",
+        "server": "Claude",
+        "tool": "Read",
+        "arguments": {
+          "file_path": "/tmp/gamma.txt"
+        },
+        "status": "completed",
+        "toolAction": {
+          "kind": "read",
+          "paths": [
+            "/tmp/gamma.txt"
+          ]
+        },
+        "success": true,
+        "contentItems": [
+          {
+            "type": "inputText",
+            "text": "ok"
+          }
+        ]
+      },
+      {
+        "type": "agentMessage",
+        "id": "wake-gamma:wfm-gamma:0",
+        "text": "Reply for gamma",
+        "status": "completed"
+      }
+    ]
+  }
+]

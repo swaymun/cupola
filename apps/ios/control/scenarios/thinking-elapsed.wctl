@@ -1,0 +1,17 @@
+# Held observed thinking metadata only; no provider work or private reasoning.
+# A running thought is the turn's one current-step row: "Thinking · Ns", ticking in the group header.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture open-project-thread
+wait --id activity-group:thinking-turn/measured-thinking --contains "Thinking ·" --timeout 30
+wait --id thinking-status:thinking-turn/measured-thinking --gone --timeout 5
+shot thinking-elapsed-running
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-finished --fixture open-project-thread
+# Thinking alone leaves nothing to fold at the default detail: no Worked row, just the reply.
+wait --contains "The layout keeps the message composer available." --timeout 30
+wait --id activity-group:thinking-turn/measured-thinking --gone --timeout 5
+wait --id thinking-status:thinking-turn/measured-thinking --gone --timeout 5
+shot thinking-elapsed-collapsed
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-stopped --fixture open-project-thread
+wait --contains "The layout keeps the message composer available." --timeout 30
+wait --id activity-group:thinking-turn/measured-thinking --gone --timeout 10
+wait --id thinking-status:thinking-turn/measured-thinking --gone --timeout 10
+shot thinking-elapsed-stopped

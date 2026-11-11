@@ -1,0 +1,52 @@
+# devices: iphone duo
+# Cupola stops on the computer while its supervisor still answers. The chat's
+# composer line says "Cupola stopped on <computer>." with Restart in place of
+# Reconnect, and Chats says the same under the computer. Restart shows progress
+# and the notice goes away once the computer answers. A restart that doesn't
+# bring Cupola back says "still isn't running" (Restart again), and Get
+# diagnostics shows the redacted report with the system share sheet. The same
+# notice replaces "is offline" on a chat that has nothing saved. No real
+# computer: the fixture stops answering 2.5 s after the chat opens and nothing
+# is sent anywhere, so a phone can run it (scripts/device-runner). Three launches:
+# the notices (composer, Chats), a successful restart, and the open-chat screen
+# with a restart that fails and the diagnostics.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture host-down
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 15
+wait --id composer-rescue-restart --timeout 40
+wait --contains "Cupola stopped on" --timeout 5
+shot rescue-stopped
+sidebar open
+wait --id sidebar-rescue-restart --timeout 10
+shot rescue-chats
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture host-down
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id message-draft --timeout 15
+wait --id composer-rescue-restart --timeout 40
+tap --id composer-rescue-restart
+wait --contains "Restarting Cupola on" --timeout 10
+shot rescue-restarting
+wait --id composer-rescue --gone --timeout 60
+shot rescue-reconnected
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture host-down --fixture host-down-early --fixture host-down-stays
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+
+wait --id chat-rescue-restart --timeout 60
+wait --contains "Cupola stopped on" --timeout 5
+shot rescue-open-chat
+tap --id chat-rescue-restart
+wait --contains "still isn’t running" --timeout 60
+shot rescue-gave-up
+tap --id chat-rescue-diagnostics
+wait --id rescue-diagnostics-report --timeout 15
+wait --id rescue-diagnostics-share --timeout 5
+shot rescue-diagnostics

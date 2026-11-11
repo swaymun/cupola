@@ -1,0 +1,68 @@
+# devices: iphone iphone-27 duo
+# iPad shows this tool in the companion pane, closed from its pill: companion-pane.wctl
+# A Project conversation's Terminal pill opens a half-height sheet with a shell
+# on the Mac in the project's folder (a local fixture stands in for the Mac's
+# shell); it can be pulled up to full height. On iPad it opens in the companion
+# pane instead. Recorded output shows with the
+# extra-keys bar above the keyboard (on iPad, under the terminal inside the
+# pane, not along the screen's bottom edge); typing echoes; Ctrl then c interrupts;
+# Dismissing keeps the shell, and reopening replays its output (the sheet's swipe
+# down: terminal-swipe-close.wctl, phone-width windows only).
+# Also checks Ctrl Off on opening/reopening, reset after Ctrl-c and Esc/Tab,
+# ordinary typing afterward, and closing while Ctrl is armed.
+# Passed all steps on iPhone and iPad simulators on 2026-10-20 (AXe input); the
+# iPad step-16 input failure tracked in #423 did not reproduce.
+launch --fixture read-preview --fixture send-preview --fixture project-files-conversation-preview --fixture terminal-preview
+wait --id conversation-terminal-pill --timeout 20
+shot terminal-pill
+tap --id conversation-terminal-pill
+wait --id terminal-sheet --timeout 10
+shot terminal-half-height
+wait --id terminal-output --contains "build.sh" --timeout 10
+wait --id terminal-key-ctrl --contains "Off" --timeout 10
+wait --id terminal-key-esc --timeout 5
+wait --id terminal-key-tab --timeout 5
+wait --label "Up arrow" --timeout 5
+order --ids terminal-output,terminal-key-ctrl
+shot terminal-keys
+type "pwd"
+wait --id terminal-output --contains "wonder-app % pwd" --timeout 5
+tap --id terminal-key-ctrl
+type "c"
+wait --id terminal-output --contains "pwd^C" --timeout 5
+wait --id terminal-key-ctrl --contains "Off" --timeout 5
+type "plain"
+wait --id terminal-output --contains "wonder-app % plain" --timeout 5
+# Accessory keys also consume the latch and leave the following text ordinary.
+tap --id terminal-key-ctrl
+tap --id terminal-key-esc
+wait --id terminal-key-ctrl --contains "Off" --timeout 5
+type "esc"
+wait --id terminal-output --contains "wonder-app % plainesc" --timeout 5
+tap --id terminal-key-ctrl
+tap --id terminal-key-tab
+wait --id terminal-key-ctrl --contains "Off" --timeout 5
+type "tab"
+wait --id terminal-output --contains "wonder-app % plainesctab" --timeout 5
+shot terminal-output
+# Hiding and reopening the keyboard changes the available grid without losing output.
+tap --id terminal-key-hide
+shot terminal-keyboard-hidden-grid
+tap --id terminal-output
+type "resized"
+wait --id terminal-output --contains "wonder-app % plainesctabresized" --timeout 5
+# Close while armed: reopening must preserve the shell but not the input latch.
+tap --id terminal-key-ctrl
+wait --id terminal-key-ctrl --contains "On, applies to the next key" --timeout 5
+shot terminal-armed-before-close
+swipe down --from terminal-title
+wait --id terminal-sheet --gone --timeout 10
+wait --id conversation-terminal-pill --timeout 5
+tap --id conversation-terminal-pill
+wait --id terminal-output --contains "pwd^C" --timeout 10
+wait --id terminal-key-ctrl --contains "Off" --timeout 5
+type "R"
+wait --id terminal-output --contains "wonder-app % plainesctabresizedR" --timeout 5
+shot terminal-reattached
+swipe down --from terminal-title
+wait --id terminal-sheet --gone --timeout 10

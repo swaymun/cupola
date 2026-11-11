@@ -1,0 +1,104 @@
+# devices: duo
+# Changed files and Files on the Duo, folded and unfolded (see changed-files-names.wctl):
+# named rows with language badges, the diff header row, the ~ location and the 16 pt icon inset.
+# visual-review: three named rows (one badge each), a diff header with path and counts, the ~ location row, folded and unfolded
+# A real fold: unfold and run the app there first, or the Duo launches it on the inner display and the cover shows the home screen.
+hinge 180
+orient portrait
+launch --fixture read-preview
+wait --id workspace-next-page --never 4
+hinge 0
+orient portrait
+terminate
+wait --id workspace-next-page --never 4
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-light --arg=-diagnostics-companion-reply-changes
+wait --id reply-changes --timeout 30
+wait --id "reply-file:Docs/Release notes.md"
+shot duo-folded-changed-files-light
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-light --arg=-diagnostics-companion-reply-changes --arg=-diagnostics-reply-changes-open --arg=3
+wait --id reply-diff-header --timeout 30
+shot duo-folded-changed-files-diff-light
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-light --arg=-diagnostics-companion-files
+wait --id workspace-file-list --timeout 30
+wait --id workspace-root-picker --contains "~/Projects/Atlas"
+shot duo-folded-files-home-light
+# A real fold: unfold and run the app there first, or the Duo launches it on the inner display and the cover shows the home screen.
+hinge 180
+orient portrait
+launch --fixture read-preview
+wait --id workspace-next-page --never 4
+hinge 0
+orient portrait
+terminate
+wait --id workspace-next-page --never 4
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-dark --arg=-diagnostics-companion-reply-changes
+wait --id reply-changes --timeout 30
+wait --id "reply-file:Docs/Release notes.md"
+shot duo-folded-changed-files-dark
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-dark --arg=-diagnostics-companion-reply-changes --arg=-diagnostics-reply-changes-open --arg=3
+wait --id reply-diff-header --timeout 30
+shot duo-folded-changed-files-diff-dark
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-dark --arg=-diagnostics-companion-files
+wait --id workspace-file-list --timeout 30
+wait --id workspace-root-picker --contains "~/Projects/Atlas"
+shot duo-folded-files-home-dark
+hinge 180
+orient portrait
+terminate
+wait --id workspace-next-page --never 3
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-light --arg=-diagnostics-companion-reply-changes
+wait --id reply-changes --timeout 30
+wait --id "reply-file:Docs/Release notes.md"
+shot duo-unfolded-changed-files-light --display primary-1
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-light --arg=-diagnostics-companion-reply-changes --arg=-diagnostics-reply-changes-open --arg=3
+wait --id reply-diff-header --timeout 30
+shot duo-unfolded-changed-files-diff-light --display primary-1
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-light --arg=-diagnostics-companion-files
+wait --id workspace-file-list --timeout 30
+wait --id workspace-root-picker --contains "~/Projects/Atlas"
+shot duo-unfolded-files-home-light --display primary-1
+hinge 180
+orient portrait
+terminate
+wait --id workspace-next-page --never 3
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-dark --arg=-diagnostics-companion-reply-changes
+wait --id reply-changes --timeout 30
+wait --id "reply-file:Docs/Release notes.md"
+shot duo-unfolded-changed-files-dark --display primary-1
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-dark --arg=-diagnostics-companion-reply-changes --arg=-diagnostics-reply-changes-open --arg=3
+wait --id reply-diff-header --timeout 30
+shot duo-unfolded-changed-files-diff-dark --display primary-1
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-dark --arg=-diagnostics-companion-files
+wait --id workspace-file-list --timeout 30
+wait --id workspace-root-picker --contains "~/Projects/Atlas"
+shot duo-unfolded-files-home-dark --display primary-1
+hinge 180
+orient landscape-left
+terminate
+wait --id workspace-next-page --never 3
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-light --arg=-diagnostics-companion-reply-changes
+wait --id reply-changes --timeout 30
+wait --id "reply-file:Docs/Release notes.md"
+shot duo-unfolded-landscape-changed-files-light --display primary-1
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-light --arg=-diagnostics-companion-reply-changes --arg=-diagnostics-reply-changes-open --arg=3
+wait --id reply-diff-header --timeout 30
+shot duo-unfolded-landscape-changed-files-diff-light --display primary-1
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-light --arg=-diagnostics-companion-files
+wait --id workspace-file-list --timeout 30
+wait --id workspace-root-picker --contains "~/Projects/Atlas"
+shot duo-unfolded-landscape-files-home-light --display primary-1
+hinge 180
+orient landscape-left
+terminate
+wait --id workspace-next-page --never 3
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-dark --arg=-diagnostics-companion-reply-changes
+wait --id reply-changes --timeout 30
+wait --id "reply-file:Docs/Release notes.md"
+shot duo-unfolded-landscape-changed-files-dark --display primary-1
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-dark --arg=-diagnostics-companion-reply-changes --arg=-diagnostics-reply-changes-open --arg=3
+wait --id reply-diff-header --timeout 30
+shot duo-unfolded-landscape-changed-files-diff-dark --display primary-1
+launch --fixture read-preview --fixture send-preview --fixture activity-preview --fixture response-turn-diff-preview --fixture response-turn-diff-unnamed-preview --fixture project-files-conversation-preview --fixture workspace-home-path-preview --fixture theme --arg cupola-dark --arg=-diagnostics-companion-files
+wait --id workspace-file-list --timeout 30
+wait --id workspace-root-picker --contains "~/Projects/Atlas"
+shot duo-unfolded-landscape-files-home-dark --display primary-1

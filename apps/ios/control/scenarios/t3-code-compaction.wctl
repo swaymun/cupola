@@ -1,0 +1,13 @@
+# Read-only host-response fixture: a native compaction in a Claude thread
+# held by T3 Code stays visible between the surrounding agent replies, and
+# names the time it happened.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture send-states --fixture send-claude --fixture send-held-by-app --fixture t3-code --fixture t3-code-running --fixture t3-code-compaction
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id context-compaction:t3-running-turn/t3-compact --contains "Context compacted" --timeout 20
+wait --id context-compaction:t3-running-turn/t3-compact --contains " · " --timeout 5
+wait --contains "I checked the release notes before compaction." --timeout 10
+wait --contains "Working on the release notes in T3 Code." --timeout 10
+shot t3-code-context-compacted

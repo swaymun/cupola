@@ -1,0 +1,20 @@
+# Project access is saved through its own detail route and read back on relaunch.
+# No message is sent and no real provider permissions change.
+launch --fixture subagent-fixture --fixture project-access --fixture project-access-reset
+wait --id project-composer-access --timeout 20
+tap --id project-composer-access
+wait --id access-choice-fullAccess
+tap --id access-choice-fullAccess
+wait --id project-composer-access --contains "Full access"
+shot project-access-full
+# Reopening reads the synthetic host's saved Project setting.
+launch --fixture subagent-fixture --fixture project-access
+wait --id project-composer-access --contains "Full access" --timeout 20
+tap --id project-composer-access
+wait --id access-choice-workspace
+tap --id access-choice-workspace
+wait --id project-composer-access --contains Auto
+shot project-access-workspace
+launch --fixture subagent-fixture --fixture project-access
+wait --id project-composer-access --contains Auto --timeout 20
+shot project-access-restored

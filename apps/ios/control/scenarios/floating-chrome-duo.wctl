@@ -1,0 +1,33 @@
+# devices: duo
+# FLOATING-CHROME on the Duo: the title pill floats over the timeline and the scroll-to-end icon is centred, each on its own display and
+# never on the hinge, folded and unfolded (vertical and horizontal hinge). Duo touch is not qualified (#387): driver-mode launches, assert
+# the arrow's centre against the pane (`check-layout folded` on the folded cover) and capture. Offline fixtures; nothing is sent.
+hinge 0
+orient portrait
+driver on
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture several-computers --fixture open-project-thread --fixture long-thread-title --fixture theme --arg cupola-dark --arg=-diagnostics-scroll-top
+driver off
+wait --id conversation-title-menu --timeout 30
+wait --id scroll-to-bottom --timeout 30
+tree --json
+check-layout folded
+shot floating-chrome-duo-folded
+# CHAT-CHROME-3: Agent tasks and the Terminal are closed with the arrow showing (the timeline runs under it, no strip).
+wait --id terminal-sheet --gone --timeout 3
+wait --label "Agent tasks" --gone --timeout 3
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture several-computers --fixture open-project-thread --fixture long-thread-title --fixture theme --arg cupola-dark --arg=-diagnostics-scroll-top
+wait --id conversation-title-menu --timeout 30
+wait --id scroll-to-bottom --timeout 30
+tree --json
+shot floating-chrome-duo-unfolded-wide --display primary-1
+orient landscape-right
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture project-speed --fixture send-states --fixture several-computers --fixture open-project-thread --fixture long-thread-title --fixture theme --arg cupola-dark --arg=-diagnostics-scroll-top
+wait --id conversation-title-menu --timeout 30
+wait --id scroll-to-bottom --timeout 30
+tree --json
+shot floating-chrome-duo-unfolded-tall --display primary-1
+# Leave the shared Duo folded for the input canary.
+hinge 0
+orient portrait

@@ -1,0 +1,37 @@
+# devices: duo
+# UX-DUO-5 (issue 24) on the Duo: the ⌘ Tab key tapped twice quickly keeps ⌘
+# held and underlines the key, unfolded and folded. Native taps are unavailable
+# on the Duo (#387), so the signals call the key's production action; the
+# any-tap release is asserted on iPhone and iPad (computer-switcher-release).
+driver on
+hinge 180
+orient portrait
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture open-project-thread --fixture rail-fixture --fixture computer-reconnect --fixture computer-dock --fixture computer-control-active --fixture no-hardware-keyboard --arg=-wonder.sidebar.hidden --arg=YES
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+assert --path computer.hasPicture --equals true --timeout 30
+assert --path computer.controlling --equals true --timeout 15
+assert --path computer.heldKeys --equals '[]'
+signal computer-dock-switcher-latch
+assert --path computer.heldKeys --equals '["command"]' --timeout 10
+assert --path computer.switcherLatched --equals true
+shot computer-switcher-latched-duo-unfolded --display primary-1
+# The typed keys keep the latched ⌘ held.
+signal computer-dock-type-a
+assert --path computer.heldKeys --equals '["command"]' --timeout 10
+assert --path computer.switcherLatched --equals true
+# The switcher's own Tab press carried ⌘ (8).
+assert --path computer.pressModifiers --equals '[8]' --timeout 10
+# Folded: the key sits in the strip under the dock once the trackpad panel is up.
+hinge 0
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture sidebar-status --fixture mac-waiting --fixture mac-permission --fixture computer-session-fixture --fixture computer-session-available-fixture --fixture computer-menu-fixture --fixture open-project-thread --fixture rail-fixture --fixture computer-reconnect --fixture computer-dock --fixture computer-control-active --fixture no-hardware-keyboard --arg=-wonder.sidebar.hidden --arg=YES
+wait --id computer-status-pill --timeout 30
+tap --id computer-status-pill
+assert --path computer.hasPicture --equals true --timeout 30
+assert --path computer.controlling --equals true --timeout 15
+signal computer-dock-trackpad
+signal computer-dock-switcher-latch-2
+assert --path computer.switcherLatched --equals true --timeout 15
+assert --path computer.optionalTrackpad --equals true --timeout 10
+shot computer-switcher-latched-duo-folded
+hinge 180

@@ -1,0 +1,36 @@
+# First launch: the welcome carousel, Skip, then notifications greyed out until
+# signing in from Settings. -diagnostics-onboarding selects first launch whatever
+# an earlier run saved; -diagnostics-account-fixture starts signed out against a
+# local stand-in service (no Apple, Cloudflare, APNs or Keychain).
+# OnboardingTests cover show-once per install and per version.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-actions --fixture account-fixture --fixture onboarding
+wait --id onboarding-welcome --timeout 30
+wait --contains "Welcome to Cupola" --timeout 5
+shot onboarding-welcome
+# Swiping pages is TabView's own gesture; Continue is the button path.
+tap --id carousel-next
+# Setup is the computer plus this device on the same Wi-Fi; Tailscale only later.
+wait --contains "Set up on your Wi-Fi" --timeout 5
+wait --contains "add Tailscale later" --timeout 2
+shot onboarding-wifi-setup
+tap --id carousel-next
+wait --contains "Your Projects" --timeout 5
+tap --id carousel-next
+wait --contains "You stay in charge" --timeout 5
+tap --id carousel-next
+# Last page: optional sign-in with its consent line, and Skip.
+wait --id account-sign-in-apple --timeout 5
+wait --id account-consent --contains "Cloudflare" --timeout 2
+wait --id onboarding-skip --timeout 2
+shot onboarding-last-page
+tap --id onboarding-skip
+wait --id onboarding-welcome --gone --timeout 10
+wait --id open-sidebar --timeout 10
+sidebar open
+tap --id sidebar-settings
+wait --id account-sign-in-apple --timeout 10
+shot onboarding-skipped-settings
+tap --id account-sign-in-apple
+wait --id account-provider --timeout 10
+wait --id settings-notifications --contains "Off" --timeout 10
+shot onboarding-signed-in-settings

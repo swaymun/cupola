@@ -1,0 +1,313 @@
+#!/usr/bin/env python3
+"""A Mac without ChatGPT: the Cupola host must find Codex on PATH and serve it.
+
+  scripts/check-cli-codex --out .local/cli-codex                 # build, install the CLI, check
+  scripts/check-cli-codex --out DIR --bin-dir target/debug --codex /opt/homebrew/bin/codex
+
+The nightly simulator host runs this after its simulator phases (scripts/nightly-sim).
+It builds `cupola` and `wonderd` from this checkout (--bin-dir skips that), installs
+the latest public Codex CLI (`npm install @openai/codex@latest`) into a temporary
+prefix (--codex uses an existing one), then runs the host from scratch:
+
+- HOME, the data directory and PATH are new temporary ones. PATH holds only that
+  Codex and node, plus /usr/bin and /bin. WONDER_CHATGPT_APP names a directory
+  that does not exist, so the locator sees no ChatGPT app. Nothing reads or writes
+  the owner's ~/.wonder or the installed host.
+- The only thing copied in is the Codex sign-in (~/.codex/auth.json, --auth), so
+  the host can report Codex ready. It is deleted with the temporary HOME.
+- No model work: the thread is reserved read-only without a first message
+  (`prepareOnly`), and the check fails if Codex wrote a session file.
+
+It checks, through `cupola providers --json`, `cupola rpc` and the loopback HTTP
+API: the locator picked the PATH Codex, the host became ready, Codex is signed in
+and running from that binary, models are listed, and a read-only Codex thread can
+be started and listed. Writes DIR/cli-codex.json and cli-codex.md; exits 0 when
+every check passed, 1 when one failed, 2 when the check could not run.
+"""
+import argparse
+import json
+import os
+import shutil
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+import time
+import urllib.error
+import urllib.request
+import uuid
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+ORIGIN = "https://cli-check.invalid"
+# `cupola rpc` sends as this sender; a loopback HTTP caller names it itself.
+LOCAL_SENDER = "wonder-desktop"
+READY_SECONDS = 120
+
+
+class Infrastructure(Exception):
+    """The check could not run; says nothing about Cupola."""
+
+
+def inside_chatgpt(path):
+    return any(part == "ChatGPT.app" for part in Path(path).parts)
+
+
+def isolated_env(root, real_env):
+    """A fresh account: nothing from the caller's environment but locale and TMPDIR."""
+    env = {key: real_env[key] for key in ("USER", "LOGNAME", "LANG", "LC_ALL", "TMPDIR") if key in real_env}
+    env.update(HOME=str(root / "home"), PATH=f"{root / 'bin'}:/usr/bin:/bin:/usr/sbin:/sbin",
+               WONDER_DATA_DIR=str(root / "data"), WONDER_CHATGPT_APP=str(root / "no-chatgpt"))
+    return env
+
+
+def evaluate(obs):
+    """One row per promise; a missing observation fails its row with the reason."""
+    error = obs.get("error")
+    local = obs.get("local") or {}
+    path = local.get("path") or ""
+    providers = {p.get("id"): p for p in (obs.get("providers") or {}).get("providers", [])}
+    codex = providers.get("codex") or {}
+    runtimes = obs.get("runtimeCommands")
+    models = [m for m in (obs.get("models") or {}).get("models", []) if m.get("agentFamily") == "codex"]
+    thread = obs.get("thread") or {}
+    listed = obs.get("threads") or {}
+    read = obs.get("read") or {}
+    rows = [
+        ("Codex found on PATH, not in ChatGPT",
+         bool(local.get("installed") and path and not inside_chatgpt(path)),
+         f"{path or 'not found'} ({local.get('version') or 'no version'})"),
+        ("The same Codex the PATH runs",
+         bool(local.get("version")) and local.get("version") == obs.get("cliVersion"),
+         f"locator {local.get('version')}, PATH {obs.get('cliVersion')}"),
+        ("Host ready",
+         (obs.get("ready") or {}).get("ready") is True,
+         json.dumps(obs.get("ready")) if obs.get("ready") else "no answer from /readyz"),
+        ("Codex signed in and running",
+         codex.get("state") == "signedIn" and codex.get("running") is True and not codex.get("incompatible"),
+         json.dumps({k: codex.get(k) for k in ("state", "running", "incompatible", "version", "detail")}) if codex else "not listed"),
+        ("The host runs that Codex",
+         bool(runtimes) and all(c.startswith(path + " ") for c in runtimes),
+         "; ".join(runtimes) if runtimes else "no Codex app server under the host"),
+        ("Codex models listed",
+         bool(models) and any(m.get("isDefault") for m in models),
+         f"{len(models)} models, default {next((m['id'] for m in models if m.get('isDefault')), None)}"),
+        ("Read-only thread started",
+         thread.get("family") == "codex" and bool(thread.get("conversationId")),
+         thread.get("conversationId") or "not created"),
+        ("Thread listed",
+         bool(thread.get("conversationId"))
+         and any(t.get("conversationId") == thread.get("conversationId") for t in listed.get("threads", []))
+         and not any(p.get("family") == "codex" for p in listed.get("partial", [])),
+         json.dumps(listed.get("partial")) if listed.get("partial") else f"{len(listed.get('threads', []))} threads"),
+        ("No model work",
+         bool(read) and not read.get("messages") and not (read.get("thread") or {}).get("turns")
+         and obs.get("sessionFiles") == [],
+         f"{len(read.get('messages') or [])} messages, session files {obs.get('sessionFiles')}"),
+    ]
+    return [{"name": name, "pass": ok, "detail": detail if ok or not error else f"{detail}; stopped at: {error}"}
+            for name, ok, detail in rows]
+
+
+def markdown(report):
+    if report["result"] == "infrastructure_failed":
+        return f"The CLI-only check could not run: {report.get('error')}\n"
+    lines = [f"Codex CLI {report.get('codexVersion') or '?'} from PATH, no ChatGPT app, temporary HOME and data. "
+             f"{sum(c['pass'] for c in report['checks'])}/{len(report['checks'])} checks passed.", "",
+             "| Check | Result | Detail |", "| --- | --- | --- |"]
+    lines += [f"| {c['name']} | {'pass' if c['pass'] else '**fail**'} | {str(c['detail']).replace('|', '/')[:300]} |"
+              for c in report["checks"]]
+    return "\n".join(lines) + "\n"
+
+
+def run(cmd, env=None, timeout=600, stdin=None):
+    result = subprocess.run([str(c) for c in cmd], env=env, input=stdin, capture_output=True, text=True,
+                            timeout=timeout, cwd=ROOT)
+    if result.returncode != 0:
+        raise RuntimeError(f"{Path(str(cmd[0])).name} {' '.join(map(str, cmd[1:3]))} exited {result.returncode}: "
+                           + (result.stderr or result.stdout).strip()[-400:])
+    return result.stdout
+
+
+def build(target_dir):
+    cargo = shutil.which("cargo") or str(Path.home() / ".cargo/bin/cargo")
+    env = dict(os.environ, **({"CARGO_TARGET_DIR": str(target_dir)} if target_dir else {}))
+    try:
+        run([cargo, "build", "-p", "wonderd", "--features", "experimental-headless",
+             "--bin", "cupola", "--bin", "wonderd"], env=env, timeout=3600)
+    except (OSError, RuntimeError, subprocess.SubprocessError) as error:
+        raise Infrastructure(f"building cupola failed: {error}")
+    return Path(target_dir or ROOT / "target") / "debug"
+
+
+def install_codex(prefix):
+    """The current public CLI, in a private prefix: never the Mac's global npm."""
+    npm = shutil.which("npm") or "/opt/homebrew/bin/npm"
+    try:
+        run([npm, "install", "--prefix", prefix, "--no-audit", "--no-fund", "--loglevel=error",
+             "@openai/codex@latest"], timeout=900)
+    except (OSError, RuntimeError, subprocess.SubprocessError) as error:
+        raise Infrastructure(f"installing the Codex CLI failed: {error}")
+    return prefix / "node_modules/.bin/codex"
+
+
+def free_port():
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        return sock.getsockname()[1]
+
+
+def http(port, capability, path, body=None):
+    request = urllib.request.Request(f"http://127.0.0.1:{port}{path}", method="POST" if body is not None else "GET",
+                                     data=json.dumps(body).encode() if body is not None else None,
+                                     headers={"x-wonder-loopback-capability": capability,
+                                              "Content-Type": "application/json"})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        return json.loads(response.read())
+
+
+def rpc(cupola, env, *calls):
+    """One `cupola rpc` session as the owner; returns each call's result in order."""
+    lines = [{"jsonrpc": "2.0", "id": 0, "method": "initialize",
+              "params": {"protocolVersion": 1, "clientInfo": {"name": "cli-codex-check"}}}]
+    lines += [{"jsonrpc": "2.0", "id": i, "method": m, **({"params": p} if p else {})}
+              for i, (m, p) in enumerate(calls, 1)]
+    output = run([cupola, "rpc"], env=env, timeout=120, stdin="".join(json.dumps(l) + "\n" for l in lines))
+    answers = {a.get("id"): a for a in map(json.loads, output.splitlines()) if a.get("id") is not None}
+    results = []
+    for i, (method, _) in enumerate(calls, 1):
+        answer = answers.get(i) or {}
+        if "result" not in answer:
+            raise RuntimeError(f"{method}: {answer.get('error') or 'no answer'}")
+        results.append(answer["result"])
+    return results
+
+
+def descendants(pid):
+    table = subprocess.run(["ps", "-axo", "pid=,ppid=,command="], capture_output=True, text=True).stdout
+    rows = [line.strip().split(None, 2) for line in table.splitlines() if line.strip()]
+    children, found = {}, []
+    for row in rows:
+        if len(row) == 3:
+            children.setdefault(int(row[1]), []).append((int(row[0]), row[2]))
+    stack = [pid]
+    while stack:
+        for child, command in children.get(stack.pop(), []):
+            found.append(command)
+            stack.append(child)
+    return found
+
+
+def stop(process):
+    if process and process.poll() is None:
+        os.killpg(process.pid, signal.SIGTERM)
+        try:
+            process.wait(timeout=20)
+        except subprocess.TimeoutExpired:
+            os.killpg(process.pid, signal.SIGKILL)
+            process.wait(timeout=10)
+
+
+def observe(root, bins, launcher, auth, out, obs):
+    """Run the host in `root` and record what it shows; stops at the first failure."""
+    for name in ("home/.codex", "bin", "data", "project"):
+        (root / name).mkdir(parents=True)
+    node = shutil.which("node") or "/opt/homebrew/bin/node"
+    (root / "bin/codex").symlink_to(launcher)
+    (root / "bin/node").symlink_to(node)
+    if not auth.is_file():
+        raise Infrastructure(f"no Codex sign-in to copy at {auth}")
+    copy = root / "home/.codex/auth.json"
+    shutil.copyfile(auth, copy)
+    copy.chmod(0o600)
+    env = isolated_env(root, os.environ)
+    cupola = bins / "cupola"
+    if not (cupola.is_file() and (bins / "wonderd").is_file()):
+        raise Infrastructure(f"cupola and wonderd are not both in {bins}")
+    obs["cliVersion"] = run(["codex", "--version"], env=env, timeout=60).strip()
+    obs["local"] = json.loads(run([cupola, "providers", "--json"], env=env, timeout=120))["codex"]
+    port = free_port()
+    run([cupola, "init", "--json", "--tunnel", "none", "--origin", ORIGIN, "--listen", f"127.0.0.1:{port}"], env=env)
+    log = (out / "host.log").open("w")
+    process = subprocess.Popen([str(cupola), "start", "--foreground"], env=env, stdout=log, stderr=subprocess.STDOUT,
+                               stdin=subprocess.DEVNULL, start_new_session=True)
+    log.close()
+    try:
+        deadline = time.monotonic() + READY_SECONDS
+        while True:
+            if process.poll() is not None:
+                raise RuntimeError(f"the host exited ({process.returncode}); see host.log")
+            try:
+                obs["ready"] = http(port, "", "/readyz")
+            except (OSError, ValueError, urllib.error.URLError):
+                pass
+            if (obs.get("ready") or {}).get("ready") or time.monotonic() > deadline:
+                break
+            time.sleep(1)
+        if not (obs.get("ready") or {}).get("ready"):
+            raise RuntimeError(f"not ready after {READY_SECONDS} s")
+        obs["providers"], obs["models"] = rpc(cupola, env, ("providers.list", None), ("models.list", None))
+        obs["runtimeCommands"] = [c for c in descendants(process.pid) if " app-server" in c]
+        capability = (root / "data/headless/loopback-capability").read_text().strip()
+        project = http(port, capability, "/api/v1/projects", {
+            "requestId": str(uuid.uuid4()), "name": "CLI-only check", "folders": [str(root / "project")],
+            "primaryIndex": 0})
+        model = next(m["id"] for m in obs["models"]["models"] if m.get("agentFamily") == "codex" and m.get("isDefault"))
+        obs["thread"] = http(port, capability, f"/api/v1/projects/{project['id']}/threads", {
+            "deviceId": LOCAL_SENDER, "clientMessageId": str(uuid.uuid4()), "family": "codex", "model": model,
+            "accessMode": "read_only", "body": "", "prepareOnly": True})["conversation"]
+        obs["threads"], obs["read"] = rpc(cupola, env, ("threads.list", {"projectId": project["id"]}),
+                                          ("threads.read", {"threadId": obs["thread"]["conversationId"]}))
+        sessions = root / "home/.codex/sessions"
+        obs["sessionFiles"] = sorted(str(p.relative_to(sessions)) for p in sessions.rglob("*") if p.is_file()) \
+            if sessions.exists() else []
+    finally:
+        stop(process)
+        for name in ("wonderd.jsonl",):
+            source = root / "data/logs" / name
+            if source.is_file():
+                shutil.copyfile(source, out / name)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--bin-dir", type=Path, help="directory with cupola and wonderd; default: build them")
+    parser.add_argument("--target-dir", type=Path, help="CARGO_TARGET_DIR for the build")
+    parser.add_argument("--codex", type=Path, help="Codex CLI launcher; default: npm install @openai/codex@latest")
+    parser.add_argument("--auth", type=Path, default=Path.home() / ".codex/auth.json")
+    args = parser.parse_args()
+    out = args.out.resolve()
+    out.mkdir(parents=True, exist_ok=True)
+    started = time.monotonic()
+    report, obs = {"result": "infrastructure_failed"}, {}
+    try:
+        bins = args.bin_dir.resolve() if args.bin_dir else build(args.target_dir)
+        # A private parent: the temporary HOME holds the copied sign-in, and the
+        # CLI install (about 300 MB) goes with it.
+        with tempfile.TemporaryDirectory(prefix="cli-codex-") as temporary:
+            os.chmod(temporary, 0o700)
+            launcher = args.codex.absolute() if args.codex else install_codex(Path(temporary) / "npm")
+            if inside_chatgpt(launcher.resolve()):
+                raise Infrastructure(f"{launcher} is ChatGPT's Codex; give a CLI install")
+            try:
+                observe(Path(temporary) / "mac", bins, launcher, args.auth, out, obs)
+            except (OSError, ValueError, KeyError, StopIteration, RuntimeError,
+                    subprocess.SubprocessError, urllib.error.URLError) as error:
+                obs["error"] = str(error) or type(error).__name__
+        checks = evaluate(obs)
+        report = {"result": "passed" if all(c["pass"] for c in checks) else "failed", "checks": checks,
+                  "codexVersion": obs.get("cliVersion"), "codexPath": (obs.get("local") or {}).get("path"),
+                  **({"error": obs["error"]} if obs.get("error") else {})}
+    except (Infrastructure, OSError, subprocess.SubprocessError) as error:
+        report["error"] = str(error)
+    report["seconds"] = round(time.monotonic() - started, 1)
+    (out / "cli-codex.json").write_text(json.dumps(report, indent=2))
+    (out / "cli-codex.md").write_text(markdown(report))
+    print(markdown(report), end="")
+    return {"passed": 0, "failed": 1}.get(report["result"], 2)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

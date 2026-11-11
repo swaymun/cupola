@@ -1,0 +1,29 @@
+# Native presentation checks for published HTML, in light and dark.
+# Rendered content and layout are checked by HTMLArtifactWebViewTests and
+# the XCTest-backed control/capture-genui.py corpus runner. AXe cannot read WebKit text.
+launch --fixture read-preview --fixture send-preview --fixture html-render-preview --arg=-diagnostics-theme --arg=cupola-light --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id html-render-page --timeout 30
+wait --id html-visual-page --timeout 15
+reveal down --id html-render-expand --in conversation-scroll
+wait --id tool-image:page-check --gone --timeout 5
+shot html-render-light-inline
+tap --id html-render-expand
+wait --id expanded-message --timeout 15
+shot html-render-light-expanded
+swipe up --in expanded-message
+shot html-render-light-scrolled
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10
+launch --fixture read-preview --fixture send-preview --fixture html-render-preview --arg=-diagnostics-theme --arg=cupola-dark --arg=-diagnostics-font --arg=system --arg=-UIPreferredContentSizeCategoryName --arg=UICTContentSizeCategoryL
+wait --id html-render-page --timeout 30
+wait --id html-visual-page --timeout 15
+reveal down --id html-render-expand --in conversation-scroll
+wait --id tool-image:page-check --gone --timeout 5
+shot html-render-dark-inline
+tap --id html-render-expand
+wait --id expanded-message --timeout 15
+shot html-render-dark-expanded
+swipe up --in expanded-message
+shot html-render-dark-scrolled
+swipe down --from-sheet
+wait --id expanded-message --gone --timeout 10

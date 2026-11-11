@@ -1,0 +1,39 @@
+# nightly-ipad: the iPad's form sheet shows fewer rows and puts Try again below its edge
+# The share sheet previews text, a link and a photo, lists the Mac's Project
+# threads (recent first, grouped by Project, searchable), sends into a thread
+# whose reply is running as a queued message, and retries a refused upload
+# without sending twice. The fixture Mac refuses the first upload and holds
+# the retry until the scenario has seen its progress.
+launch --fixture share-sheet --fixture share-text --fixture share-url --fixture share-image --fixture share-upload-fails
+wait --id share-note --timeout 30
+wait --id share-text-preview --timeout 10
+wait --id share-link-preview --timeout 10
+wait --id share-attachment-remove --timeout 10
+tap --id share-note --type TextField
+type "Can you check this?"
+shot share-sheet-preview
+# On a phone the software keyboard covers Send to (an attached hardware keyboard
+# hides it); drag the list as a person would, which also puts the keyboard away.
+swipe up
+tap --id share-destination --type Button
+wait --id share-target:thread:codex:share --timeout 15
+order --ids share-new-thread,share-target:thread:codex:share,share-target:thread:claude:landing
+# The iPad's form sheet shows fewer rows; scroll the list to the older thread.
+swipe up --in share-destination-list
+wait --id share-target:thread:codex:pairing --timeout 10
+shot share-sheet-destinations
+swipe down --in share-destination-list
+tap --id share-target:thread:codex:share
+wait --contains "your message will wait its turn" --timeout 10
+tap --id share-send --type Button
+wait --id share-error --timeout 15
+shot share-sheet-upload-failed
+# On the iPad the error and its Try again sit below the form sheet's edge (still on
+# screen, so a tap there would land outside the sheet and close it); scroll first.
+swipe up
+tap --id share-retry --type Button
+wait --id share-progress --timeout 10
+shot share-sheet-uploading
+signal share-upload
+wait --id share-queued --timeout 15
+shot share-sheet-queued

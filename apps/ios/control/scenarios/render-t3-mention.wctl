@@ -1,0 +1,16 @@
+# A T3 Code thread attached with a mention: the bubble shows the title and the owner's words,
+# never the ref id or the agent's context block, and Copy gives what is shown.
+# The fixture text is the host's projection (host case "t3-thread-mention");
+# `render-t3-mention-raw` is what the host sent before it.
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture render-sanitize --fixture render-t3-mention --fixture open-project-thread
+wait --id message:user-render-t3-mention-text --timeout 30
+wait --contains "Thread: Launch video style" --timeout 10
+wait --contains "ref=" --gone --timeout 3
+wait --contains "t3_context" --gone --timeout 3
+wait --contains "environmentId" --gone --timeout 3
+shot render-t3-mention
+clipboard --clear
+hold --id message:user-render-t3-mention-text
+wait --id copy-message --timeout 10
+tap --id copy-message
+clipboard --contains "maybe capture footage for Thread: Launch video style if possible" --not-contains "ref=" --not-contains "t3_context" --not-contains "environmentId"

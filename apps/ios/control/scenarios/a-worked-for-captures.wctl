@@ -1,0 +1,122 @@
+# devices: iphone ipad
+# Before/after captures for A-WORKED-FOR: Worked-for fold, live current-step row, no leftover done rows. Offline fixtures; nothing is sent.
+# std / cupola-light: finished turn, folded then expanded
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture turn-collapse --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --contains "One file changed" --timeout 15
+shot a-worked-for-std-cupola-light-finished-folded
+reveal down --contains "Fixed: the header keeps its title"
+tap --id activity-group:collapse-turn-1/collapse-turn-1-text-0
+wait --contains "The tests pass." --timeout 5
+shot a-worked-for-std-cupola-light-finished-expanded
+# std / cupola-light: running turn mid-step, then finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture current-step-finishes --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --contains "Searching for isWorking" --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --contains "Searching for isWorking" --timeout 15
+shot a-worked-for-std-cupola-light-running
+signal current-step-finish
+wait --contains "Searching for isWorking" --gone --timeout 30
+shot a-worked-for-std-cupola-light-current-step-finish
+# std / cupola-light: stopped turn
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-stopped --fixture open-project-thread --fixture theme --arg cupola-light
+wait --contains "The layout keeps the message composer available." --timeout 30
+shot a-worked-for-std-cupola-light-stopped
+# std / cupola-light: agent tasks finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch --fixture theme --arg cupola-light
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id agent-tasks-finished --timeout 20
+shot a-worked-for-std-cupola-light-tasks-finished
+
+# std / cupola-dark: finished turn, folded then expanded
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture turn-collapse --fixture theme --arg cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --contains "One file changed" --timeout 15
+shot a-worked-for-std-cupola-dark-finished-folded
+reveal down --contains "Fixed: the header keeps its title"
+tap --id activity-group:collapse-turn-1/collapse-turn-1-text-0
+wait --contains "The tests pass." --timeout 5
+shot a-worked-for-std-cupola-dark-finished-expanded
+# std / cupola-dark: running turn mid-step, then finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture current-step-finishes --fixture theme --arg cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --contains "Searching for isWorking" --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --contains "Searching for isWorking" --timeout 15
+shot a-worked-for-std-cupola-dark-running
+signal current-step-finish
+wait --contains "Searching for isWorking" --gone --timeout 30
+shot a-worked-for-std-cupola-dark-current-step-finish
+# std / cupola-dark: stopped turn
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-stopped --fixture open-project-thread --fixture theme --arg cupola-dark
+wait --contains "The layout keeps the message composer available." --timeout 30
+shot a-worked-for-std-cupola-dark-stopped
+# std / cupola-dark: agent tasks finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch --fixture theme --arg cupola-dark
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id agent-tasks-finished --timeout 20
+shot a-worked-for-std-cupola-dark-tasks-finished
+
+# std / nord: finished turn, folded then expanded
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture turn-collapse --fixture theme --arg nord
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --contains "One file changed" --timeout 15
+shot a-worked-for-std-nord-finished-folded
+reveal down --contains "Fixed: the header keeps its title"
+tap --id activity-group:collapse-turn-1/collapse-turn-1-text-0
+wait --contains "The tests pass." --timeout 5
+shot a-worked-for-std-nord-finished-expanded
+# std / nord: running turn mid-step, then finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture project-claude-tasks --fixture current-step --fixture current-step-finishes --fixture theme --arg nord
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --contains "Searching for isWorking" --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --id conversation-title-menu --contains "Searching for isWorking" --timeout 15
+shot a-worked-for-std-nord-running
+signal current-step-finish
+wait --contains "Searching for isWorking" --gone --timeout 30
+shot a-worked-for-std-nord-current-step-finish
+# std / nord: stopped turn
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture thinking-elapsed --fixture thinking-stopped --fixture open-project-thread --fixture theme --arg nord
+wait --contains "The layout keeps the message composer available." --timeout 30
+shot a-worked-for-std-nord-stopped
+# std / nord: agent tasks finished
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-provider-switch --fixture theme --arg nord
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:codex:read-fixture --timeout 20
+tap --id pinned-thread:codex:read-fixture
+wait --id agent-tasks-finished --timeout 20
+shot a-worked-for-std-nord-tasks-finished
+
+# std / misty-forest: finished turn, folded then expanded
+launch --fixture subagent-fixture --fixture chat-layout --fixture chat-layout-unsaved --fixture project-subagents --fixture turn-collapse --fixture theme --arg misty-forest
+wait --id open-sidebar --timeout 30
+sidebar open
+wait --id pinned-thread:claude:read-fixture --timeout 20
+tap --id pinned-thread:claude:read-fixture
+wait --contains "One file changed" --timeout 15
+shot a-worked-for-std-misty-forest-finished-folded
+reveal down --contains "Fixed: the header keeps its title"
+tap --id activity-group:collapse-turn-1/collapse-turn-1-text-0
+wait --contains "The tests pass." --timeout 5
+shot a-worked-for-std-misty-forest-finished-expanded

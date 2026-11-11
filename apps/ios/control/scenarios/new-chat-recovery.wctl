@@ -1,0 +1,41 @@
+# devices: iphone ipad duo
+# Owned local records only; no real connection, chat or model send.
+# Native iPhone input owns Copy, cancellation and confirmed discard. The same
+# fixture provides capture-only evidence on iPad and Duo when input is limited.
+launch --arg=-connections-preview --arg=-reset-new-chat-recovery-preview
+wait --id new-chat-recovery-title --timeout 30
+wait --id new-chat-recovery
+wait --id new-chat-copy:first
+wait --id new-chat-share:first
+wait --contains "Check the release notes before sending."
+wait --contains "Keep these project ideas for later."
+wait --label "Couldn’t read"
+shot new-chat-recovery-before-actions
+tap --id new-chat-copy:first
+clipboard --contains "Check the release notes before sending."
+tap --id new-chat-discard:first
+wait --id new-chat-confirm-discard
+shot new-chat-recovery-discard-confirmation
+tap --label Cancel
+wait --id new-chat-recover:first
+tap --id new-chat-discard:first
+tap --id new-chat-confirm-discard
+wait --id new-chat-recover:first --gone
+tap --id new-chat-discard:second
+tap --id new-chat-confirm-discard
+wait --id new-chat-recover:second --gone
+tap --label Discard
+tap --id new-chat-confirm-discard
+wait --label "Couldn’t read" --gone
+wait --id new-chat-recovery --gone
+wait --id new-chat-draft
+activate
+wait --id connection-picker --contains Studio --timeout 30
+shot new-chat-recovery-cleaned
+terminate
+launch --arg=-connections-preview
+wait --id new-chat-draft --timeout 30
+wait --id new-chat-recovery --gone
+activate
+wait --id connection-picker --contains Studio --timeout 30
+shot new-chat-recovery-cleaned-after-relaunch
